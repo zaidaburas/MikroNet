@@ -4,6 +4,7 @@ import 'package:mikronet/models/login_model.dart';
 import 'package:mikronet/models/mikrotik_model.dart';
 import 'package:mikronet/views/helpers/dialogs.dart';
 import 'package:mikronet/views/home_page.dart';
+import 'package:mikronet/views/home_view.dart';
 
 
 class LoginController extends GetxController{
@@ -89,7 +90,8 @@ class LoginController extends GetxController{
       Get.back();
       if (loginSuccess) {
         Get.to(
-          HomePage(mikrotik: client)
+          HomeView()
+          // HomePage(mikrotik: client)
         );
       } 
       else {

@@ -14,8 +14,7 @@ import './widgets/home_carousel.dart';
 import './widgets/menu_item_card.dart';
 
 class HomeView extends StatefulWidget {
-  final LoginController loginController;
-  const HomeView({super.key, required this.loginController});
+  const HomeView({super.key,});
 
   @override
   State<HomeView> createState() => _HomeViewState();
