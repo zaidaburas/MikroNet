@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import '../services/router_os_client.dart';
 
 class MikrotikAdapter extends RouterOSClient {
@@ -9,8 +7,6 @@ class MikrotikAdapter extends RouterOSClient {
   Future<List> fetch({
     required dynamic command,
     Map<String, String>? params,
-    // String? props,
-    // String detail="=detail=",
     int timeout=30
     })async{
     return await talk(
@@ -18,23 +14,20 @@ class MikrotikAdapter extends RouterOSClient {
       ).timeout(Duration(seconds: timeout));
   }
   
-  // @protected
-  // List<String> 
+  
   Future<List> printData({
     required List<String> commands,
     List<String> conditions=const[],
     String fields="",
-    // Map<String, String>? params,
     int timeout=30
   })async{
     if(conditions.isNotEmpty){
       conditions.first="?${conditions[0]}";
+      commands.addAll(conditions);
     }
     Map<String, String> params={};
-    if(fields!="" /* && params!=null */){
-      // if(params!=null){}
+    if(fields!="" ){
       params={".proplist":fields};
-      // params.addAll({".proplist":fields});
     }
     return await fetch(
       command: commands,
@@ -43,16 +36,47 @@ class MikrotikAdapter extends RouterOSClient {
       );
   }
 
-  Future<List> getProperties({required String command ,required String props,String detail="=detail=",int timeout=15})async{
-    return await talk([command,detail],{".proplist":props}).timeout(Duration(seconds: timeout));
-  }
+  // Future<List> getProperties({required String command ,required String props,String detail="=detail=",int timeout=15})async{
+  //   return await talk([command,detail],{".proplist":props}).timeout(Duration(seconds: timeout));
+  // }
 
-  Future<List> getAllProperties({required String command ,String detail="=detail=",int timeout=15})async{
-    return await talk([command,detail]).timeout(Duration(seconds: timeout));
-  }
+  // Future<List> getAllProperties({required String command ,String detail="=detail=",int timeout=15})async{
+  //   return await talk([command,detail]).timeout(Duration(seconds: timeout));
+  // }
 
   Future<List> addData({required String command,required Map<String, String> data})async{
-    return await talk(command,data);
+    return await fetch(command: command,params: data);
+  }
+
+  Future<String> _getElementId(String setCmd,String cond)async{
+    List cmd=setCmd.split("/");
+    String printCmd="";
+    int loop=(cmd.length-1);
+    for (var i = 0; i < loop; i++) {
+      printCmd+="${cmd[i]}/";
+    }
+    printCmd+="print";
+    List result=await printData(commands: [printCmd],conditions: [cond],fields: ".id");
+    return result[0]['.id'];
+  }
+
+  Future<List> editData({
+    required String command,
+    required Map<String, String> data,
+    required String condition 
+  })async{
+    // to get .id 
+    String userId = await _getElementId(command, condition) ;
+    return await fetch(command: [command,"=.id=$userId"],params: data);
+  }
+
+  Future<List> deleteData({
+    required String command,
+    required String condition 
+  })async{
+    // to get .id 
+    String userId = await _getElementId(command, condition) ;
+    return await fetch(command: [command,"=.id=$userId"]);
   }
 
   Future<int> getVersion()async{

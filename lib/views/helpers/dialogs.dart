@@ -3,9 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 void showErrorDialog({String title="Error",Color titleColor=Colors.black,String content="...",String action="Done"}){
-  // if(action.isEmpty) {
-  //   action=dictionary['done'];
-  // }
   Get.dialog(
     AlertDialog(
       title: Text(title),

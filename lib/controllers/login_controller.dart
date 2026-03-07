@@ -105,8 +105,8 @@ class LoginController extends GetxController{
   void onInit() {
     super.onInit();
     addressController.text = '1.1.1.1'; 
-    userController.text = 'admin'; 
-    passwordController.text = ''; 
+    userController.text = 'user'; 
+    passwordController.text = 'userpass'; 
     portController.text = '8727'; 
     nameController.text = 'Network';
     getSavedLogins();

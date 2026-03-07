@@ -27,12 +27,33 @@ class _HomePage extends State<HomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () async{
           try {
-  List r=await widget.mikrotik.printData(
-    commands: ["/tool/user-manager/user/print"],
-    conditions: ["username=zz7354"],
-    fields: "username,actual-profile",
-    timeout: 30
+  List r=await widget.mikrotik.deleteData(
+    command: "/tool/user-manager/user/remove", 
+    condition: "username=myUser"
     );
+  // .editData(
+  //   command: "/tool/user-manager/user/set", 
+  //   data: {
+  //     "username":"myUser",
+  //     "password":"",
+  //   },
+  //   condition: 'username=userMy'
+  //   );
+
+  // .addData(
+  //   command: "/tool/user-manager/user/add", 
+  //   data: {
+  //     "customer":"admin",
+  //     "username":"myUser",
+  //   }
+  //   );
+
+  // .printData(
+  //   commands: ["/tool/user-manager/user/print","=detail="],
+  //   conditions: ['username~"r"'],
+  //   fields: "username,actual-profile",
+  //   timeout: 30
+  //   );
     showErrorDialog(title: r.length.toString(),content: r.toString());
   // Get.dialog(
   //   AlertDialog(title: Text(r.length.toString()) ,content: Text(r.toString()),)

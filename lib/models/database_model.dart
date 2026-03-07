@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 import '../services/database.dart';
 
 String implode(List<String> list, String delimiter) {
@@ -21,6 +23,7 @@ String generateInsertQuery(Map<String, dynamic> data, String table) {
 
 class DBModel extends SqlDb {
 
+  @protected
   Future<List> select(String table,
       [String? where,
       String? fields,
@@ -52,6 +55,7 @@ class DBModel extends SqlDb {
     }
   }
 
+  @protected
   Future<int> insert(String table, Map<String, dynamic> data) async {
     List<String> fields = data.keys.toList();
     List<String> values =
@@ -70,6 +74,7 @@ class DBModel extends SqlDb {
     }
   }
 
+  @protected
   Future<int> update(String table, Map<String, dynamic> data,
       [String? where]) async {
     List<String> set = [];
@@ -93,6 +98,7 @@ class DBModel extends SqlDb {
     }
   }
 
+  @protected
   Future<int> delete(String table, [String? where]) async {
     String query = 'DELETE FROM $table';
     if (where != null && where.isNotEmpty) {

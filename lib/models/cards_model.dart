@@ -53,9 +53,9 @@ class CardsModel {
   // Future<List> getCustomers()async{}
   // Future<List> getCustomers()async{}
 
-  Future<List> getCustomers()async{
-    return await mikrotik.getAllProperties(command: commands[version]['user_customers']);
-  }
+  // Future<List> getCustomers()async{
+  //   return await mikrotik.getAllProperties(command: commands[version]['user_customers']);
+  // }
 
   Future<String> addOnerCard({
     required Map<String, String> data,
