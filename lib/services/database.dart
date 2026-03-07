@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -84,22 +85,22 @@ class SqlDb {
 
     // ????? ????? ???? ??????? ???.
   }
-
+  @protected
   Future<List<Map>> readData(String sql) async {
     Database? myDb = await db;
     return await myDb!.rawQuery(sql);
   }
-
+  @protected
   Future<int> insertData(String sql) async {
     Database? myDb = await db;
     return await myDb!.rawInsert(sql);
   }
-
+  @protected
   Future<int> updateData(String sql) async {
     Database? myDb = await db;
     return await myDb!.rawUpdate(sql);
   }
-
+  @protected
   Future<int> deleteData(String sql) async {
     Database? myDb = await db;
     return await myDb!.rawDelete(sql);
