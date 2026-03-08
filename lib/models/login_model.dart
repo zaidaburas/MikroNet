@@ -1,4 +1,6 @@
 
+import 'package:mikronet/views/helpers/dialogs.dart';
+
 import 'database_model.dart';
 
 class LoginDataModel extends DBModel{

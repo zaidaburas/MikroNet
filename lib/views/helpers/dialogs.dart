@@ -5,10 +5,10 @@ import 'package:get/get.dart';
 void showErrorDialog({String title="Error",Color titleColor=Colors.black,String content="...",String action="Done"}){
   Get.dialog(
     AlertDialog(
-      title: Text(title),
+      title: Text(title,style: TextStyle(color: titleColor)),
       content: Text(content),
       actions: [
-        TextButton(onPressed: ()=>Get.back(), child: Text(action,style: TextStyle(color: titleColor),))
+        TextButton(onPressed: ()=>Get.back(), child: Text(action,))
       ],
       scrollable: true,
     )

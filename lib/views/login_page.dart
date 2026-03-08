@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mikronet/controllers/login_controller.dart';
+import 'package:mikronet/views/helpers/dialogs.dart';
 
 
 class LoginPage extends StatefulWidget {
@@ -83,7 +84,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildInputSection() {
     return Column(
       children: [
-        _techField("عنوان السيرفر IP", Icons.terminal_rounded, controller.addressController),
+        _techField("عنوان السيرفر IP", Icons.terminal_rounded, controller.hostController),
         _techField("اسم المستخدم", Icons.admin_panel_settings_rounded, controller.userController),
         _techPasswordField(),
         _techField("المنفذ الرقمي", Icons.numbers_rounded, controller.portController),

@@ -28,22 +28,22 @@ class SqlDb {
     CREATE TABLE batches (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      created_at TEXT ,
       template_id INTEGER,
       generated_cards INTEGER,
       cards_type TEXT,
       card_prefix TEXT,
-      card_suffix TEXT,
+      card_suffix TEXT
     );
   """;
 
   String savedLogins="""
     CREATE TABLE saved_logins (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      host TEXT NOT NULL,
-      username TEXT NOT NULL,
-      password TEXT NOT NULL,
-      port INTEGER DEFAULT 22,
+      host TEXT,
+      username TEXT ,
+      password TEXT,
+      port TEXT,
       name TEXT
     );
   """;
@@ -90,7 +90,7 @@ class SqlDb {
     Database? myDb = await db;
     return await myDb!.rawQuery(sql);
   }
-  @protected
+  // @protected
   Future<int> insertData(String sql) async {
     Database? myDb = await db;
     return await myDb!.rawInsert(sql);

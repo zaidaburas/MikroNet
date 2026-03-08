@@ -4,7 +4,6 @@ import 'package:mikronet/models/login_model.dart';
 import 'package:mikronet/models/mikrotik_model.dart';
 import 'package:mikronet/views/helpers/dialogs.dart';
 import 'package:mikronet/views/home_page.dart';
-import 'package:mikronet/views/home_view.dart';
 
 
 class LoginController extends GetxController{
@@ -12,7 +11,7 @@ class LoginController extends GetxController{
   late MikrotikAdapter client;
   List savedLogin=[];
 
-  TextEditingController addressController = TextEditingController();
+  TextEditingController hostController = TextEditingController();
   TextEditingController userController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController portController = TextEditingController();
@@ -20,16 +19,21 @@ class LoginController extends GetxController{
 
   // Future<void> initialData()async{}
   Future<void> addRouterData()async{
-    await loginModel.saveLoginData(
-      {
-        "address":addressController.text,
-        'name': nameController.text,
-        'username': userController.text,
-        'password': passwordController.text,
-        'port': portController.text.toString(),
-      }
-    );
-    getSavedLogins();
+    try {
+      int r=await loginModel.saveLoginData(
+        {
+          "host":hostController.text,
+          'name': nameController.text,
+          'username': userController.text,
+          'password': passwordController.text,
+          'port': portController.text.toString(),
+        }
+      );
+      if(r>0)showErrorDialog(title: "Done",content: "done",titleColor: Colors.green);
+      // getSavedLogins();
+    } catch (e) {
+      showErrorDialog(content: e.toString());
+    }
   }
   
   Future<void> getSavedLogins()async{
@@ -45,7 +49,7 @@ class LoginController extends GetxController{
 
   bool emptyFields(){
     if(!(
-      addressController.text.isNotEmpty &&
+      hostController.text.isNotEmpty &&
       userController.text.isNotEmpty &&
       passwordController.text.isNotEmpty &&
       portController.text.isNotEmpty
@@ -56,8 +60,8 @@ class LoginController extends GetxController{
   }
 
   void fillInputFields(int loop){
-    addressController.text =
-        savedLogin[loop]['address'];
+    hostController.text =
+        savedLogin[loop]['host'];
     userController.text =
         savedLogin[loop]['username'];
     passwordController.text =
@@ -76,7 +80,7 @@ class LoginController extends GetxController{
 
     try {
       client = MikrotikAdapter(
-        address: addressController.text.trim(),
+        address: hostController.text.trim(),
         user: userController.text.trim(),
         password: passwordController.text.trim(),
         port: int.parse(portController.text),
@@ -90,8 +94,8 @@ class LoginController extends GetxController{
       Get.back();
       if (loginSuccess) {
         Get.to(
-          HomeView()
-          // HomePage(mikrotik: client)
+          // HomeView()
+          HomePage(mikrotik: client)
         );
       } 
       else {
@@ -106,7 +110,7 @@ class LoginController extends GetxController{
   @override
   void onInit() {
     super.onInit();
-    addressController.text = '1.1.1.1'; 
+    hostController.text = '1.1.1.1'; 
     userController.text = 'user'; 
     passwordController.text = 'userpass'; 
     portController.text = '8727'; 
