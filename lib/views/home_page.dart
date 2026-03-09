@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mikronet/models/cards_model.dart';
 import 'package:mikronet/models/mikrotik_model.dart';
 import 'package:mikronet/views/helpers/dialogs.dart';
 
@@ -27,10 +28,17 @@ class _HomePage extends State<HomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () async{
           try {
-  List r=await widget.mikrotik.deleteData(
-    command: "/tool/user-manager/user/remove", 
-    condition: "username=myUser"
-    );
+            CardsModel cardsModel=CardsModel(mikrotik: widget.mikrotik);
+            var r=await cardsModel.cardRenew(
+              username: "zaid",
+              profile: "500",
+              customer: "admin"
+            );
+  // List r=await widget.mikrotik.deleteData(
+  //   command: "/tool/user-manager/user/remove", 
+  //   condition: "username=myUser"
+  //   );
+
   // .editData(
   //   command: "/tool/user-manager/user/set", 
   //   data: {
@@ -48,10 +56,12 @@ class _HomePage extends State<HomePage> {
   //   }
   //   );
 
-  // .printData(
-  //   commands: ["/tool/user-manager/user/print","=detail="],
-  //   conditions: ['username~"r"'],
-  //   fields: "username,actual-profile",
+// :foreach i in=[/tool user-manager user find where !actual-profile] do={\n:local arrayDeleted [/tool user-manager user remove $i];\n"
+
+  // List r=await widget.mikrotik.printData(
+  //   commands: ["/tool/user-manager/user/print","?-actual-profile","?>uptime-used=0"],
+  //   // conditions: ['actual-profile=2500','=&&=uptime-used>0'],//,'&& uptime-used>0'],
+  //   // fields: "username",
   //   timeout: 30
   //   );
     showErrorDialog(title: r.length.toString(),content: r.toString());

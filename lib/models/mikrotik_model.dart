@@ -7,7 +7,7 @@ class MikrotikAdapter extends RouterOSClient {
   Future<List> fetch({
     required dynamic command,
     Map<String, String>? params,
-    int timeout=30
+    int timeout=60
     })async{
     return await talk(
       command,params
@@ -19,10 +19,10 @@ class MikrotikAdapter extends RouterOSClient {
     required List<String> commands,
     List<String> conditions=const[],
     String fields="",
-    int timeout=30
+    int timeout=60
   })async{
     if(conditions.isNotEmpty){
-      conditions.first="?${conditions[0]}";
+      // conditions.first="?${conditions[0]}";
       commands.addAll(conditions);
     }
     Map<String, String> params={};

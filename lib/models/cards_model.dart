@@ -4,7 +4,7 @@ import 'mikrotik_model.dart';
 class CardsModel {
   MikrotikAdapter mikrotik;
   int version;
-  CardsModel({required this.mikrotik,required this.version});
+  CardsModel({required this.mikrotik,this.version=6});
   Map commands={
     6:
     {
@@ -23,419 +23,251 @@ class CardsModel {
     // 'hotspot_profiles':'',
     // 'hotspot_servers':'',
   };
+  String props="""username,password,actual-profile,uptime-used,download-used,upload-used,last-seen""";
+  List cards=[];
 
-  // Future<List> getAllCards()async{
-  //   String props="""username,password,actual-profile,uptime-used,download-used,upload-used,last-seen""";
-  //   return await mikrotik.getProperties(
-  //     command: "/tool/user-manager/user/print",
-  //     props: props
-  //   );
-  // }
+  Future<int> getCardsCount()async{
+    final result = await mikrotik.printData(
+      commands: [
+        "/tool/user-manager/user/print",
+        "=count-only="
+        ]
+    );
+    int count=int.parse(result.first.values.first) ;
+    return count;
 
-  // Future<List> getCardsWith(List conditions,{List command=const["/tool/user-manager/user/print"]})async{
-  //   int 
-  //   conditions.insert(0, command);
-  //   conditions[1]="?${conditions[1]}";
-  //   return await mikrotik.getAllProperties(
-  //     command: conditions
-  //     );
-  // }
-  // Future<List> getExpiredCards()async{
-  //   List cond=[
-  //     '!actual-profile',
-  //     '&&uptime-used>0'
-  //   ];
-  //   return await getCardsWith(cond);
-  // }
-  // Future<List> getCustomers()async{}
-  // Future<List> getCustomers()async{}
-  // Future<List> getCustomers()async{}
-  // Future<List> getCustomers()async{}
-  // Future<List> getCustomers()async{}
+  }
+
+  Future<List> getAllCards()async{
+    // try {
+    //   int count=await getCardsCount();
+    //   if(cards.isEmpty || count==cards.length){
+    //     cards=await mikrotik.printData(
+    //       commands: ["/tool/user-manager/user/print"],
+    //       fields: props
+    //     );
+    //   }
+    //   return cards;
+    // } catch (e) {
+    //   return [{"error":e.toString()}];
+    // }
+    return await mikrotik.printData(
+      commands: ["/tool/user-manager/user/print"],
+      fields: props
+    );
+  }
+
+  Future<List> getCardsWith(
+    List<String> conditions,
+    {List<String> command=const[],
+    String fields=""
+  })async{
+    if(command.isEmpty)command=["/tool/user-manager/user/print"];
+    return await mikrotik.printData(
+      commands: command ,
+      conditions: conditions,
+      fields: fields
+      );
+  }
+  
+  Future<List> getExpiredCards()async{
+    List<String> cond=[
+      "?actual-profile",
+      "?#!",
+      "?>uptime-used=0"
+    ];
+    return await getCardsWith(cond,fields: props);
+  }
+
+  Future<Map> getCardInfo(String username)async{
+    try {
+      List result = await getCardsWith(["?username=$username"],fields: props);
+      return result[0];
+    } catch (e) {
+      return {
+        "error":e.toString()
+      };
+    }
+  }
+
+  Future<List> getActiveCards()async{
+    List<String> cond=[
+      "?-actual-profile",
+      "?#!",
+      "?>uptime-used=0"
+    ];
+    return await getCardsWith(cond,fields: "username,actual-profile");
+  }
+
+  Future<List> addCardProfile({
+    required String customer,
+    required String username,
+    // required String password,
+    required String profile,
+  })async{
+    return await mikrotik.addData(
+      command: "/tool/user-manager/user/create-and-activate-profile", 
+      data: {
+        "customer":customer,
+        "numbers":username,
+        "profile":profile,
+      }
+    );
+  }
+
+  Future<String> addOneCard({
+    required String customer,
+    required String username,
+    String password="",
+    required String profile,
+  })async{
+    try {
+      await mikrotik.addData(
+        command: "/tool/user-manager/user/add", 
+        data: {
+          "customer":customer,
+          "username":username,
+          "password":password,
+        }
+      );
+      
+      await addCardProfile(
+        customer: customer, 
+        username: username, 
+        profile: profile
+      );
+      return "done";
+    } on Exception catch (e) {
+      return "error:${e.toString()}";
+    }
+  }
+  
+  Future<List> getCustomers()async{
+    return await mikrotik.printData(
+      commands: ["/tool/user-manager/customer/print"],
+      conditions: ["?disabled=no"]
+    );
+  }
+
+  Future<String> cardEdit({
+    required String username,
+    required Map<String, String> data,
+  })async{
+    try {
+      await mikrotik.editData(
+        command: "/tool/user-manager/user/set", 
+        data: data, 
+        condition: "?username=$username"
+      );
+      return "done";
+    } catch (e) {
+      return e.toString();
+    }
+    // try {
+    //   return await mikrotik.editData(
+    //     command: "/tool/user-manager/user/set", 
+    //     data: data, 
+    //     condition: "?username=$username"
+    //   );
+    // } catch (e) {
+    //   return [{"error":e.toString()}];
+    // }
+  }
+  
+  Future<String> deleteCard(String username)async{
+    try {
+      await mikrotik.deleteData(
+        command: "/tool/user-manager/user/remove", 
+        condition: "?username=$username"
+      );
+      return "done";
+    } catch (e) {
+      return e.toString();
+    }
+  }
+
+  Future<String> cardRenew({
+    required String username,
+    required String profile,
+    required String customer,
+  })async{
+    try {
+      
+      await addCardProfile(
+        customer: customer, 
+        username: username, 
+        profile: profile
+      );
+      return "done";
+    } on Exception catch (e) {
+      return "error:${e.toString()}";
+    }
+  }
+
+
+  Future<List> getCardSessions(String username)async{
+    return await mikrotik.printData(
+      commands: ["/tool/user-manager/session/print"],
+      conditions: ["?user=$username"]
+    );
+  }
+  
 
   // Future<List> getCustomers()async{
   //   return await mikrotik.getAllProperties(command: commands[version]['user_customers']);
   // }
 
-  Future<String> addOnerCard({
-    required Map<String, String> data,
-    required Map<String, String> profile,
-  }) async {
-    // String tool=version==7?"":"/tool";
+  // // 1. البحث عن الكروت المنتهية التي تم استخدامها مسبقاً
+  // var expiredUsers = await client.talk([
+  //   '/tool/user-manager/user/print',
+  //   '?-actual-profile', 
+  //   '?>uptime-used=0s'  
+  // ]);
 
-    try {
-      await mikrotik.addData(command: commands[version]['user_adduser'], data: data);
-      await mikrotik.addData(command: commands[version]['user_addprofile'], data: profile);
-    } catch (e) {
-      return 'Failed to execute command: $e';
-    }
+  // if (expiredUsers.isEmpty) {
+  //   print('ممتاز! لا يوجد كروت منتهية لحذفها.');
+  //   return; // إنهاء العملية إذا لم يكن هناك بيانات
+  // }
 
-    return "Done";
-  }
+  // // 2. استخراج المعرفات الداخلية (.id) من النتائج
+  // List<String> idsToDelete = [];
+  // for (var user in expiredUsers) {
+  //   if (user.containsKey('.id')) {
+  //     idsToDelete.add(user['.id']!);
+  //   }
+  // }
+
+  // print('تم العثور على ${idsToDelete.length} كارت منتهي. جاري الحذف...');
+
+  // // 3. تقسيم المعرفات إلى دفعات (50 كارت في كل دفعة) للحفاظ على استقرار الراوتر
+  // int batchSize = 50;
+  // for (var i = 0; i < idsToDelete.length; i += batchSize) {
+  //   // تحديد بداية ونهاية الدفعة الحالية
+  //   var end = (i + batchSize < idsToDelete.length) ? i + batchSize : idsToDelete.length;
+  //   var batch = idsToDelete.sublist(i, end);
+
+  //   // دمج المعرفات بفاصلة (مثال: *1,*2,*3A)
+  //   String numbers = batch.join(',');
+
+  //   try {
+  //     // 4. إرسال أمر الحذف للدفعة الحالية
+  //     await client.talk([
+  //       '/tool/user-manager/user/remove',
+  //       '=numbers=$numbers'
+  //     ]);
+      
+  //     print('تم حذف الدفعة من ${i + 1} إلى $end بنجاح.');
+  //   } catch (e) {
+  //     print('حدث خطأ أثناء حذف الدفعة ${i + 1} إلى $end: $e');
+  //     // الكود سيستمر في محاولة حذف الدفعات الأخرى حتى لو فشلت إحداها
+  //   }
+  // }
+
+  // print('تم الانتهاء من تنظيف قاعدة البيانات بالكامل!');
+
+
 }
 
-
-
-
-
-// import 'dart:async';
-
-// import 'commands.dart';
-// import 'helperfunctions.dart';
-// // import 'package:router_os_client/router_os_client.dart';
-
-// import 'service/router_os_client.dart';
-
-// class MikrotikAdapter {
-//   // MikrotikAdapter({required super.address, required super.user, required super.password,required super.port});
-
-//   final RouterOSClient client;
-//   const MikrotikAdapter({required this.client});
-//   Future<List> command(String command) async {
-//     List result = await client.talk(command);
-//     return result;
-//   }
-
-  
-
-//   Future<String> addUsermanagerCardNew(
-//       String username, String profile,
-//       {String password = ''}) async {
-//     Map<String, String> data = {
-//       'name': username,
-//       'password': password,
-//     };
-//     try {
-//       await client.talk(commands[7]['user_adduser'], data);
-
-//       await client.talk(commands[7]['user_addprofile'],
-//           {'user': username, 'profile': profile});
-//     } catch (e) {
-//       return 'Failed to execute command: $e';
-//     }
-
-//     return "Done";
-//   }
-
-//   Future<String> addUsermanagerCards(
-//       List usernames, String customer, String profile,
-//       {List? passwords, bool pass = false}) async {
-//     String r = "";
-//     profile = Uri.encodeComponent(profile);
-//     if (!pass) {
-//       for (var i in usernames) {
-//         r = await addUsermanagerCard(i, customer, profile);
-//       }
-//     } else /* if (type=="different") */ {
-//       for (var i = 0; i < usernames.length; i++) {
-//         r = await addUsermanagerCard(usernames[i], customer, profile,
-//             password: passwords![i]);
-//       }
-//     }
-//     return r;
-//   }
-
-//   Future<String> reAddUsermanagerCard(
-//     String username,
-//     String customer,
-//     String profile,
-//     {String tool="/tool"}
-//   ) async {
-//     String r = "";
-//     try {
-//       await client.talk('$tool/user-manager/user/create-and-activate-profile',
-//           {'customer': customer, 'numbers': username, 'profile': profile});
-//     } catch (e) {
-//       return 'Failed to execute command: $e';
-//     }
-//     return r;
-//   }
-  
-//   Future<String> reAddUsermanagerCardNew(
-//     String username,
-//     String profile,
-//   ) async {
-//     String r = "";
-//     try {
-//       await client.talk(commands[7]['user_addprofile'],
-//           {'user': username, 'profile': profile});
-//     } catch (e) {
-//       return 'Failed to execute command: $e';
-//     }
-//     return r;
-//   }
-
-//   Future<String> addHotspotCard(String username, String server, String profile,
-//       {String password = ''}) async {
-//     Map<String, String>
-//         data = /* password==null?{
-//         'server': server,
-//         'username': username,
-//         'profile':profile
-//       }: */
-//         {
-//       'server': server,
-//       'name': username,
-//       'password': password,
-//       'profile': profile
-//     };
-//     try {
-//       await client.talk('/ip/hotspot/user/add', data);
-//     } catch (e) {
-//       return 'Failed to execute command: $e';
-//     }
-
-//     return "Done";
-//   }
-
-//   Future<String> addHotspotCards(List usernames, String server, String profile,
-//       {List? passwords, bool pass = false}) async {
-//     String r = "";
-//     if (!pass) {
-//       for (var i in usernames) {
-//         r = await addHotspotCard(i, server, profile);
-//       }
-//     } else /* if (type=="different") */ {
-//       for (var i = 0; i < usernames.length; i++) {
-//         r = await addHotspotCard(usernames[i], server, profile,
-//             password: passwords![i]);
-//       }
-//     }
-//     return r;
-//   }
-
-//   Future<Map> addUsermanagerCards2(
-//     String customer,
-//     String profile, {
-//     int passLength = 3,
-//     String cardType = "username",
-//     String userType = "numbers",
-//     String passType = "numbers",
-//     int count = 10,
-//     int length = 7,
-//     String prefix = "",
-//     String suffix = "",
-//     bool isTest = false,
-//     bool isSeven=false,
-//     required StreamController<int> progressController, // ????? StreamController
-//   }) async {
-//     Map result = {};
-//     List cards = [];
-//     List passwordsList = [];
-
-//     if (cardType == "username") {
-//       while (cards.length < count) {
-//         int numOfCards = count - cards.length;
-//         List usernames = generateUniqueRandomStrings2(
-//             count: numOfCards,
-//             length: length,
-//             prefix: prefix,
-//             suffix: suffix,
-//             type: userType,
-//             data: cards);
-
-//         for (var i in usernames) {
-//           if (!isTest) {
-//             String response = isSeven?
-//              await addUsermanagerCardNew(i, profile)
-//             :await addUsermanagerCard(i, customer, profile);
-//             if (!response.contains("username already exists")) {
-//               cards.add(i);
-//             }
-//           } else {
-//             cards.add(i);
-//           }
-
-//           // ????? ???? ??????
-//           progressController.add(((cards.length / count) * 100).toInt());
-//           await Future.delayed(const Duration(milliseconds: 100)); // ??? ???????
-//         }
-//       }
-//       result = {'usernames': cards, 'passwords': passwordsList};
-//     } else if (cardType == "same") {
-//       while (cards.length < count) {
-//         int numOfCards = count - cards.length;
-//         List usernames = generateUniqueRandomStrings2(
-//             count: numOfCards,
-//             length: length,
-//             prefix: prefix,
-//             suffix: suffix,
-//             type: userType,
-//             data: cards);
-
-//         for (var i in usernames) {
-//           if (!isTest) {
-//             String response =isSeven?
-//              await addUsermanagerCardNew(i, profile,password: i)
-//             :await addUsermanagerCard(i, customer, profile, password: i,);
-//             if (!response.contains("username already exists")) {
-//               cards.add(i);
-//               passwordsList.add(i);
-//             }
-//           } else {
-//             cards.add(i);
-//             passwordsList.add(i);
-//           }
-
-//           // ????? ???? ??????
-//           progressController.add(((cards.length / count) * 100).toInt());
-//           await Future.delayed(const Duration(milliseconds: 100)); // ??? ???????
-//         }
-//       }
-//       result = {'usernames': cards, 'passwords': passwordsList};
-//     } else {
-//       while (cards.length < count) {
-//         int numOfCards = count - cards.length;
-//         List usernames = generateUniqueRandomStrings2(
-//             count: numOfCards,
-//             length: length,
-//             prefix: prefix,
-//             suffix: suffix,
-//             type: userType,
-//             data: cards);
-//         List tempPasswords = generateUniqueRandomStrings(
-//             count: numOfCards, length: passLength, type: passType);
-
-//         for (var i = 0; i < usernames.length; i++) {
-//           if (!isTest) {
-//             String response = isSeven?
-//               await addUsermanagerCardNew(usernames[i], profile,password: tempPasswords[i])
-//              :await addUsermanagerCard(
-//                 usernames[i], customer, profile,
-//                 password: tempPasswords[i]);
-//             if (!response.contains("username already exists")) {
-//               cards.add(usernames[i]);
-//               passwordsList.add(tempPasswords[i]);
-//             }
-//           } else {
-//             cards.add(usernames[i]);
-//             passwordsList.add(tempPasswords[i]);
-//           }
-
-//           // ????? ???? ??????
-//           progressController.add(((cards.length / count) * 100).toInt());
-//           await Future.delayed(const Duration(milliseconds: 100)); // ??? ???????
-//         }
-//       }
-//       result = {'usernames': cards, 'passwords': passwordsList};
-//     }
-
-//     return result;
-//   }
-
-//   Future<Map> addMoreHotspotCards(
-//     String server,
-//     String profile, {
-//     int passLength = 3,
-//     String cardType = "username",
-//     String userType = "numbers",
-//     String passType = "numbers",
-//     int count = 10,
-//     int length = 7,
-//     String prefix = "",
-//     String suffix = "",
-//     bool isTest = false,
-//     required StreamController<int> progressController, // ????? StreamController
-//   }) async {
-//     Map result = {};
-//     List cards = [];
-//     List passwordsList = [];
-
-//     if (cardType == "username") {
-//       while (cards.length < count) {
-//         int numOfCards = count - cards.length;
-//         List usernames = generateUniqueRandomStrings2(
-//             count: numOfCards,
-//             length: length,
-//             prefix: prefix,
-//             suffix: suffix,
-//             type: userType,
-//             data: cards);
-
-//         for (var i in usernames) {
-//           if (!isTest) {
-//             String response = await addHotspotCard(i, server, profile);
-//             if (!response.contains("username already exists")) {
-//               cards.add(i);
-//             }
-//           } else {
-//             cards.add(i);
-//           }
-
-//           // ????? ???? ??????
-//           progressController.add(((cards.length / count) * 100).toInt());
-//           await Future.delayed(const Duration(milliseconds: 100)); // ??? ???????
-//         }
-//       }
-//       result = {'usernames': cards, 'passwords': passwordsList};
-//     } else if (cardType == "same") {
-//       while (cards.length < count) {
-//         int numOfCards = count - cards.length;
-//         List usernames = generateUniqueRandomStrings2(
-//             count: numOfCards,
-//             length: length,
-//             prefix: prefix,
-//             suffix: suffix,
-//             type: userType,
-//             data: cards);
-
-//         for (var i in usernames) {
-//           if (!isTest) {
-//             String response =
-//                 await addHotspotCard(i, server, profile, password: i);
-//             if (!response.contains("already exists")) {
-//               cards.add(i);
-//               passwordsList.add(i);
-//             }
-//           } else {
-//             cards.add(i);
-//             passwordsList.add(i);
-//           }
-
-//           // ????? ???? ??????
-//           progressController.add(((cards.length / count) * 100).toInt());
-//           await Future.delayed(const Duration(milliseconds: 100)); // ??? ???????
-//         }
-//       }
-//       result = {'usernames': cards, 'passwords': passwordsList};
-//     } else {
-//       while (cards.length < count) {
-//         int numOfCards = count - cards.length;
-//         List usernames = generateUniqueRandomStrings2(
-//             count: numOfCards,
-//             length: length,
-//             prefix: prefix,
-//             suffix: suffix,
-//             type: userType,
-//             data: cards);
-//         List tempPasswords = generateUniqueRandomStrings(
-//             count: numOfCards, length: passLength, type: passType);
-
-//         for (var i = 0; i < usernames.length; i++) {
-//           if (!isTest) {
-//             String response = await addHotspotCard(
-//                 usernames[i], server, profile,
-//                 password: tempPasswords[i]);
-//             if (!response.contains("already")) {
-//               cards.add(usernames[i]);
-//               passwordsList.add(tempPasswords[i]);
-//             }
-//           } else {
-//             cards.add(usernames[i]);
-//             passwordsList.add(tempPasswords[i]);
-//           }
-
-//           // ????? ???? ??????
-//           progressController.add(((cards.length / count) * 100).toInt());
-//           await Future.delayed(const Duration(milliseconds: 100)); // ??? ???????
-//         }
-//       }
-//       result = {'usernames': cards, 'passwords': passwordsList};
-//     }
-
-//     return result;
-//   }
-// }
 
 
 
