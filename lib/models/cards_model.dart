@@ -23,8 +23,8 @@ class CardsModel {
     // 'hotspot_profiles':'',
     // 'hotspot_servers':'',
   };
-  String props="""username,password,actual-profile,uptime-used,download-used,upload-used,last-seen""";
-  List cards=[];
+  final String _props="""username,password,actual-profile,uptime-used,download-used,upload-used,last-seen""";
+  // List cards=[];
 
   Future<int> getCardsCount()async{
     final result = await mikrotik.printData(
@@ -53,7 +53,7 @@ class CardsModel {
     // }
     return await mikrotik.printData(
       commands: ["/tool/user-manager/user/print"],
-      fields: props
+      fields: _props
     );
   }
 
@@ -76,12 +76,12 @@ class CardsModel {
       "?#!",
       "?>uptime-used=0"
     ];
-    return await getCardsWith(cond,fields: props);
+    return await getCardsWith(cond,fields: _props);
   }
 
   Future<Map> getCardInfo(String username)async{
     try {
-      List result = await getCardsWith(["?username=$username"],fields: props);
+      List result = await getCardsWith(["?username=$username"],fields: _props);
       return result[0];
     } catch (e) {
       return {
