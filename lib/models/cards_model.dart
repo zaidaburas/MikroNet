@@ -186,6 +186,40 @@ class CardsModel {
     }
   }
 
+  Future<String> deleteMultiCardsByIds(List idsList)async{
+    try {
+      String ids = idsList.join(',');
+      await mikrotik.fetch(
+        command: [
+          "/tool/user-manager/user/remove",
+          '=numbers=$ids'
+        ], 
+      );
+      return "done";
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  Future<String> deleteCardsBatch(String cards)async{
+    try {
+      List extractedIds=[];
+      List cardsData=cards.split(",");
+      List allCards=await getCardsWith(["=without-paging="],fields: ".id,username");
+      for (var user in allCards) {
+        if (cardsData.contains(user['username'])) {
+          extractedIds.add(user['.id']!);
+        }
+      }
+
+      await deleteMultiCardsByIds(extractedIds);
+      
+      return "done";
+    } catch (e) {
+      return e.toString();
+    }
+  }
+
   Future<String> cardRenew({
     required String username,
     required String profile,

@@ -50,8 +50,9 @@ class DBModel extends SqlDb {
       List<Map> response = await readData(query);
       return response;
     } catch (e) {
+      throw Exception("Error in select: $e");
       //print('Error in select: $e');
-      return [];
+      // return [];
     }
   }
 
@@ -69,8 +70,9 @@ class DBModel extends SqlDb {
       int response = await insertData(query);
       return response;
     } catch (e) {
+      throw Exception("Error in insert: $e");
       //print('Error in insert: $e');
-      return -1;
+      // return -1;
     }
   }
 
@@ -93,8 +95,9 @@ class DBModel extends SqlDb {
       int response = await updateData(query);
       return response;
     } catch (e) {
+      throw Exception("Error in update: $e");
       //print('Error in update: $e');
-      return -1;
+      // return -1;
     }
   }
 
@@ -108,8 +111,9 @@ class DBModel extends SqlDb {
       int response = await deleteData(query);
       return response;
     } catch (e) {
+      throw Exception("Error in delete: $e");
       //print('Error in delete: $e');
-      return -1;
+      // return -1;
     }
   }
 }

@@ -10,6 +10,7 @@ class SqlDb {
       name TEXT NOT NULL,
       password_type TEXT,
       photo TEXT,
+      image BLOB NOT NULL,
       rows INTEGER,
       columns INTEGER,
       username_length INTEGER,
@@ -30,7 +31,7 @@ class SqlDb {
       name TEXT NOT NULL,
       created_at TEXT ,
       template_id INTEGER,
-      generated_cards INTEGER,
+      generated_cards TEXT,
       cards_type TEXT,
       card_prefix TEXT,
       card_suffix TEXT

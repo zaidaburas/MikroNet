@@ -4,6 +4,7 @@ import 'package:mikronet/models/login_model.dart';
 import 'package:mikronet/models/mikrotik_model.dart';
 import 'package:mikronet/views/helpers/dialogs.dart';
 import 'package:mikronet/views/home_page.dart';
+import 'package:mikronet/views/test.dart';
 
 
 class LoginController extends GetxController{
@@ -95,6 +96,7 @@ class LoginController extends GetxController{
       if (loginSuccess) {
         Get.to(
           // HomeView()
+          // TestBatchesScreen(mikrotikAdapter: client)
           HomePage(mikrotik: client)
         );
       } 

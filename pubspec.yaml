@@ -39,6 +39,7 @@ dependencies:
   router_os_client: ^2.0.0
   crypto: ^3.0.7
   get: ^4.7.3
+  image_picker: ^1.0.7
 
 dev_dependencies:
   flutter_test:
