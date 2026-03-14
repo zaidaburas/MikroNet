@@ -36,14 +36,6 @@ class MikrotikAdapter extends RouterOSClient {
       );
   }
 
-  // Future<List> getProperties({required String command ,required String props,String detail="=detail=",int timeout=15})async{
-  //   return await talk([command,detail],{".proplist":props}).timeout(Duration(seconds: timeout));
-  // }
-
-  // Future<List> getAllProperties({required String command ,String detail="=detail=",int timeout=15})async{
-  //   return await talk([command,detail]).timeout(Duration(seconds: timeout));
-  // }
-
   Future<List> addData({required String command,required Map<String, String> data})async{
     return await fetch(command: command,params: data);
   }

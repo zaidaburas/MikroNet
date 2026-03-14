@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mikronet/models/login_model.dart';
 import 'package:mikronet/models/mikrotik_model.dart';
+import 'package:mikronet/services/mikrotik_client.dart';
 import 'package:mikronet/views/helpers/dialogs.dart';
 import 'package:mikronet/views/home_page.dart';
 import 'package:mikronet/views/test.dart';
@@ -80,6 +81,16 @@ class LoginController extends GetxController{
     }
 
     try {
+      // MikrotikClient 
+      MikrotikClient.init(
+        address: hostController.text.trim(),
+        user: userController.text.trim(),
+        password: passwordController.text.trim(),
+        port: int.parse(portController.text),
+        useSsl: false,
+        timeout: 25,
+        verbose: true,
+      );
       client = MikrotikAdapter(
         address: hostController.text.trim(),
         user: userController.text.trim(),

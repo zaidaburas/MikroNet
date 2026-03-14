@@ -1,4 +1,5 @@
 
+import 'package:mikronet/api/cards_api.dart';
 import 'package:mikronet/models/cards_model.dart';
 import 'package:mikronet/models/database_model.dart';
 import 'package:mikronet/models/mikrotik_model.dart';
@@ -33,8 +34,8 @@ class PrintBatchesModel extends DBModel {
   try {
     Map batch=await getBatchData(id);
     String cards=batch["generated_cards"];
-    CardsModel model =CardsModel(mikrotik: mikrotik);
-    await model.deleteCardsBatch(cards);
+    CardsApi model =CardsApi();
+    await model.deleteCardsBatch([cards]);
     return "done";
   } catch (e) {
     throw Exception(e.toString());

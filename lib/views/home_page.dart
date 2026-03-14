@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mikronet/api/cards_api.dart';
+import 'package:mikronet/api/profiles_api.dart';
 import 'package:mikronet/models/cards_model.dart';
 import 'package:mikronet/models/connected_devices_model.dart';
 import 'package:mikronet/models/mikrotik_model.dart';
 import 'package:mikronet/models/profiles_model.dart';
+import 'package:mikronet/services/mikrotik_client.dart';
 import 'package:mikronet/views/helpers/dialogs.dart';
 
 import 'widgets/menu_item_card.dart';
@@ -41,29 +44,52 @@ class _HomePage extends State<HomePage> {
       floatingActionButton: MaterialButton(
         onPressed: () async{
           try {
-            ConnectedDevicesModel model=ConnectedDevicesModel(mikrotik: widget.mikrotik);
-            var r=await model.getAllConnectedDevices();
-            showErrorDialog(title: r.length.toString(),content: r.toString());
+            List d=[];
+            await MikrotikClient.login();
+            ProfilesApi model=ProfilesApi();
+            var r=await model.getProfiles();
+            if(r.status){
+              for (var i in r.data!) {
+                d.add(
+                  i.toMap()
+                );
+              }
+            }
+            else{
+              d.add(r.message);
+            }
+            showErrorDialog(
+              title: d.length.toString(),
+              content: d.toString()
+            );
           } catch (e) {
             showErrorDialog(content: e.toString());
           }
         },
         onLongPress : () async{
           try {
-            ProfilesModel profilesModel=ProfilesModel(mikrotik: widget.mikrotik);
-            var r=await await widget.mikrotik.editData(
-        command: "/tool/user-manager/profile/set",
-        data: {
-          "name": "3500" ,
-          "owner": "admin" ,
-          "name-for-users": "3500" ,
-          "validity": "70d" ,
-          "price": "3500" ,
-          // "starts-at": "logon"
-        },
-        condition: "?name=proz"
-      );
-            showErrorDialog(title: r.length.toString(),content: r.toString());
+            List d=[];
+            await MikrotikClient.login();
+            ProfilesApi model=ProfilesApi();
+            var r=await model.getProfiles(profileName: "3500");
+            if(r.status){
+              for (var i in r.data!) {
+                d.add(
+                  i.toMap()
+                );
+              }
+            }
+            else{
+              d.add(r.message);
+            }
+            // List result=[
+            //   r.status.toString(),
+            //   r.message.toString()
+            // ];
+            showErrorDialog(
+              title: d.length.toString(),
+              content: d.toString()
+            );
           } catch (e) {
             showErrorDialog(content: e.toString());
           }
@@ -77,33 +103,66 @@ class _HomePage extends State<HomePage> {
   
   Future<void> fun1()async{
     try {
-      ProfilesModel model=ProfilesModel(mikrotik: widget.mikrotik);
-      // var r=await model._getHotspotProfiles(/* whereName: "?name=1" */);
-      var r=await widget.mikrotik.printData(
-        commands: ["/tool/user-manager/profile/print"],
-        conditions: ["?name=proz"]
+      List d=[];
+      await MikrotikClient.login();
+      ProfilesApi model=ProfilesApi();
+      var r=await model.addOneProfile(
+        {
+          "name": "3500", 
+          "price": "3500",
+          "palance": "73400320", // 70m
+          "validity": "21d",
+          "customer": "admin",
+          "uptime": "20h",
+          "speed": "512k/1m",
+          "users": "10"
+        }
       );
-      showErrorDialog(title: r.length.toString(),content: r.toString());
+      if(r.status){
+        d.add(r.message);
+      }
+      showErrorDialog(content: d.toString());
     } catch (e) {
       showErrorDialog(content: e.toString());
     }
   }
 
   Future<void> fun2()async{
-    // try {
-    //   ProfilesModel model=ProfilesModel(mikrotik: widget.mikrotik);
-    //   var r=await model._getLimitations(/* whereNane: "?name=200" */);
-    //   showErrorDialog(title: r.length.toString(),content: r.toString());
-    // } catch (e) {
-    //   showErrorDialog(content: e.toString());
-    // }
+    try {
+      List d=[];
+      await MikrotikClient.login();
+      ProfilesApi model=ProfilesApi();
+      var r=await model.profileEdit(
+        "3500",
+        {
+          "name": "4500",
+          "price": "4500",
+          "palance": "73401344", // 70m
+          "validity": "22d",
+          "uptime": "29h",
+          "speed": "512k/1024k",
+          "users": "20"
+        }
+      );
+      if(r.status){
+        d.add(r.message);
+      }
+      showErrorDialog(content: d.toString());
+    } catch (e) {
+      showErrorDialog(content: e.toString());
+    }
   }
 
   Future<void> fun3()async{
     try {
-      ProfilesModel model=ProfilesModel(mikrotik: widget.mikrotik);
-      var r=await model.getProfilesNames(/* whereName: "?name=200" */);
-      showErrorDialog(title: r.length.toString(),content: r.toString());
+      List d=[];
+      await MikrotikClient.login();
+      ProfilesApi model=ProfilesApi();
+      var r=await model.deleteProfile("3500");
+      if(r.status){
+        d.add(r.message);
+      }
+      showErrorDialog(content: d.toString());
     } catch (e) {
       showErrorDialog(content: e.toString());
     }
@@ -120,31 +179,31 @@ class _HomePage extends State<HomePage> {
   }
 
   Future<void> fun5()async{
-    try {
-      ProfilesModel model=ProfilesModel(mikrotik: widget.mikrotik);
-      var r=await model.getAllProfiles(profileName: "prof");
-      showErrorDialog(title: r.length.toString(),content: r.toString());
-    } catch (e) {
-      showErrorDialog(content: e.toString());
-    }
+    // try {
+    //   ProfilesModel model=ProfilesModel(mikrotik: widget.mikrotik);
+    //   var r=await model.getAllProfiles(profileName: "prof");
+    //   showErrorDialog(title: r.length.toString(),content: r.toString());
+    // } catch (e) {
+    //   showErrorDialog(content: e.toString());
+    // }
   }
   
   Future<void> fun6()async{
-    try {
-      ProfilesModel model=ProfilesModel(mikrotik: widget.mikrotik);
-      var r=await model.getAllProfiles();
-      showErrorDialog(title: r.length.toString(),content: r.toString());
-    } catch (e) {
-      showErrorDialog(content: e.toString());
-    }
+    // try {
+    //   ProfilesModel model=ProfilesModel(mikrotik: widget.mikrotik);
+    //   var r=await model.getAllProfiles();
+    //   showErrorDialog(title: r.length.toString(),content: r.toString());
+    // } catch (e) {
+    //   showErrorDialog(content: e.toString());
+    // }
   }
 
 
   Widget _buildGridMenu(BuildContext context) {
       final List<Map<String, dynamic>> menuData = [
-        {"title": "getHotspotProfiles", "icon": Icons.credit_card_rounded, "view": fun1 },
-        {"title": "getLimitations", "icon": Icons.people_alt_rounded, "view": fun2 },
-        {"title": "getProfilesNames", "icon": Icons.print_rounded, "view": fun3 },
+        {"title": "add", "icon": Icons.credit_card_rounded, "view": fun1 },
+        {"title": "edit", "icon": Icons.people_alt_rounded, "view": fun2 },
+        {"title": "delete", "icon": Icons.print_rounded, "view": fun3 },
         {"title": "getProfilesLimitations", "icon": Icons.dns_rounded, "view": fun4 },
         {"title": "getProfile", "icon": Icons.analytics_rounded, "view": fun5 },
         {"title": "getAllProfiles", "icon": Icons.cloud_sync_rounded, "view": fun6 },
