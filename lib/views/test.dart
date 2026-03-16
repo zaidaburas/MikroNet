@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:mikronet/models/mikrotik_model.dart';
-import 'package:mikronet/models/print_batches_model.dart';
+import 'package:get/get.dart';
+import 'package:mikronet/api/print_api.dart';
 import 'dart:typed_data';
 
-import 'package:mikronet/models/print_templates_model.dart';
-import 'package:mikronet/views/helpers/dialogs.dart'; // مهم للتعامل مع حقل الـ BLOB (image)
+import 'package:mikronet/models/print_model.dart';
+// import 'package:mikronet/views/helpers/dialogs.dart'; // مسار الـ dialogs الخاص بك
 import 'package:image_picker/image_picker.dart';
-
-// استدعِ المودل الخاص بك هنا
-// import 'package:mikronet/models/print_templates_model.dart';
+import 'package:mikronet/views/helpers/dialogs.dart';
 
 class TestTemplatesScreen extends StatefulWidget {
   const TestTemplatesScreen({Key? key}) : super(key: key);
@@ -18,9 +16,11 @@ class TestTemplatesScreen extends StatefulWidget {
 }
 
 class _TestTemplatesScreenState extends State<TestTemplatesScreen> {
-  final PrintTemplatesModel _model = PrintTemplatesModel();
-  List _templates = [];
-  bool _isLoading = true;
+  final PrintTemplatesApi _api = PrintTemplatesApi(); // نستخدم الـ API هنا
+  List<PrintTemplatesModel> _templates = []; // اللستة أصبحت من نوع Model
+  bool _isLoading = false;
+
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -28,51 +28,71 @@ class _TestTemplatesScreenState extends State<TestTemplatesScreen> {
     _loadTemplates();
   }
 
-  // دالة لجلب كل البيانات وعرضها
+  // دالة لجلب كل البيانات وتحويلها إلى Models
   Future<void> _loadTemplates() async {
-    setState(() => _isLoading = true);
-    final data = await _model.getAllTemplates();
-    setState(() {
-      _templates = data;
+    try {
+      // setState(() => _isLoading = true);
+      final List data = await PrintTemplatesApi.getAllTemplates().timeout(Duration(seconds: 20));
+      showErrorDialog(title: data.length.toString(),content: data.toString());
+      // _showTemplatePreviewDialog(PrintTemplatesModel.fromDatabase(data[0]));
+      Get.dialog(
+        AlertDialog(
+          title: const Text('معاينة القالب', textAlign: TextAlign.center),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // استدعاء ويدجت المعاينة الذي صنعناه مسبقاً
+              Image.memory(PrintTemplatesModel.fromDatabase(data[0]).imageData),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إغلاق'),
+            ),
+          ],
+        )
+      );
+      
+      setState(() {
+        // تحويل كل Map قادم من قاعدة البيانات إلى PrintTemplatesModel
+        _templates = data.map((e) => PrintTemplatesModel.fromDatabase(e)).toList();
+        _isLoading = false;
+      });
+    } on Exception catch (e) {
       _isLoading = false;
-    });
+      showErrorDialog(content: e.toString());
+    }
   }
 
-  final ImagePicker _picker = ImagePicker();
-
-  // دالة لاختيار الصورة من المعرض وحفظها مع القالب
+  // دالة لاختيار الصورة من المعرض وحفظها
   Future<void> _pickImageAndSaveTemplate() async {
     try {
-      // 1. فتح المعرض لاختيار الصورة
       final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
 
       if (pickedFile != null) {
-        // 2. تحويل الصورة المحددة إلى Uint8List (الصيغة المناسبة لحقل BLOB)
         Uint8List imageBytes = await pickedFile.readAsBytes();
 
-        // 3. تجهيز بيانات القالب متضمنة الصورة الفعلية
-        Map<String, dynamic> newTemplateData = {
-          'name': 'قالب كروت مخصص ${DateTime.now().minute}',
-          'password_type': 'letters_numbers',
-          'photo': pickedFile.name, // حفظ اسم أو مسار الصورة كمرجع نصي
-          'image': imageBytes, // <--- هنا نضع الصورة المحولة (BLOB)
-          'rows': 10,
-          'columns': 3,
-          'username_length': 8,
-          'password_length': 8,
-          'fontsize': 12,
-          'username_pattern': 'user_*',
-          'password_pattern': 'pass_*',
-          'username_location_x': 15.0,
-          'username_location_y': 25.0,
-          'password_location_x': 15.0,
-          'password_location_y': 35.0,
-        };
+        // تجهيز بيانات القالب باستخدام المودل الخاص بك
+        PrintTemplatesModel newModel = PrintTemplatesModel(
+          id: 0, // لن يتم استخدامه في الإضافة لأنه AutoIncrement
+          name: 'قالب مخصص ${DateTime.now().minute}',
+          passwordType: 'letters_numbers',
+          imageData: imageBytes, 
+          rows: 10,
+          columns: 3,
+          usernameLength: 8,
+          passwordLength: 8,
+          fontsize: 12,
+          usernamePattern: 'user_*',
+          passwordPattern: 'pass_*',
+          usernameLocation: {"x": 15.0, "y": 25.0},
+          passwordLocation: {"x": 15.0, "y": 35.0},
+        );
 
-        // 4. حفظ القالب في قاعدة البيانات باستخدام المودل الخاص بك
-        await _model.addOneTemplate(newTemplateData);
+        // حفظ القالب في قاعدة البيانات باستخدام دالة toDatabase()
+        await PrintTemplatesApi.addOneTemplate(newModel.toDatabase());
         
-        // 5. تحديث الواجهة لعرض البيانات الجديدة
         _loadTemplates(); 
         
         if (mounted) {
@@ -81,7 +101,6 @@ class _TestTemplatesScreenState extends State<TestTemplatesScreen> {
           );
         }
       } else {
-        // في حال قام المستخدم بفتح المعرض وتراجع دون اختيار صورة
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('لم يتم اختيار أي صورة.')),
@@ -90,61 +109,32 @@ class _TestTemplatesScreenState extends State<TestTemplatesScreen> {
       }
     } catch (e) {
       showErrorDialog(content: e.toString());
-      // print("حدث خطأ أثناء اختيار أو حفظ الصورة: $e");
+      print("Error: $e");
     }
   }
 
-  // دالة لاختبار إضافة قالب ببيانات وهمية
-  Future<void> _addDummyTemplate() async {
-    try {
-      Map<String, dynamic> dummyData = {
-        'name': 'قالب كروت جديد ${DateTime.now().second}',
-        'password_type': 'numbers',
-        'photo': 'path/to/photo.jpg',
-        'image': Uint8List(0), // بيانات وهمية فارغة لحقل الـ BLOB
-        'rows': 5,
-        'columns': 2,
-        'username_length': 6,
-        'password_length': 6,
-        'fontsize': 14,
-        'username_pattern': 'user_*',
-        'password_pattern': 'pass_*',
-        'username_location_x': 10.5,
-        'username_location_y': 20.0,
-        'password_location_x': 10.5,
-        'password_location_y': 30.0,
-      };
-
-      await _model.addOneTemplate(dummyData);
-      _loadTemplates(); // تحديث القائمة بعد الإضافة
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تمت إضافة القالب بنجاح')));
-    } catch (e) {
-      showErrorDialog(content: e.toString());
-    }
-  }
-
-  // دالة لاختبار التعديل
+  // دالة لاختبار التعديل (يمكن تمرير Map مباشرة للتعديل الجزئي)
   Future<void> _editTemplate(int id) async {
     Map<String, dynamic> updatedData = {
       'name': 'قالب مُعدل',
-      'fontsize': 18, // تعديل حجم الخط كمثال
+      'fontsize': 18, 
     };
 
-    await _model.templateEdit(id, updatedData);
+    await PrintTemplatesApi.templateEdit(id, updatedData);
     _loadTemplates();
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم تعديل القالب بنجاح')));
   }
 
   // دالة لاختبار الحذف
   Future<void> _deleteTemplate(int id) async {
-    await _model.deleteTemplate(id);
+    await PrintTemplatesApi.deleteTemplate(id);
     _loadTemplates();
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم الحذف بنجاح')));
   }
 
-  // دالة لاختبار جلب قالب واحد وعرضه في Dialog
+  // دالة لعرض تفاصيل
   Future<void> _viewSingleTemplate(int id) async {
-    final data = await _model.getTemplateData(id);
+    final data = await PrintTemplatesApi.getTemplateData(id);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -160,6 +150,42 @@ class _TestTemplatesScreenState extends State<TestTemplatesScreen> {
     );
   }
 
+    // دالة لعرض معاينة القالب ببيانات تجريبية
+  void _showTemplatePreviewDialog(PrintTemplatesModel template) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('معاينة القالب', textAlign: TextAlign.center),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // استدعاء ويدجت المعاينة الذي صنعناه مسبقاً
+              CardPreviewWidget(
+                template: template,
+                sampleUsername: '87654321', // بيانات تجريبية للمعاينة
+                samplePassword: '87654321', // بيانات تجريبية للمعاينة
+              ),
+              const SizedBox(height: 15),
+              const Text(
+                'هذه معاينة تقريبية لشكل الكرت باستخدام بيانات افتراضية.',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إغلاق'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -174,69 +200,103 @@ class _TestTemplatesScreenState extends State<TestTemplatesScreen> {
               : ListView.builder(
                   itemCount: _templates.length,
                   itemBuilder: (context, index) {
-                    final template = _templates[index];
-                    final int id = template['id'];
+                    final PrintTemplatesModel template = _templates[index]; // استخدام المودل
+                    final int id = template.id;
 
                     return Card(
                       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       child: ListTile(
-                        title: Text(template['name'] ?? 'بدون اسم'),
-                        subtitle: Text('ID: $id | Font Size: ${template['fontsize']}'),
+                        leading: CircleAvatar(
+                          // عرض الصورة المحفوظة إن وجدت
+                          backgroundImage: MemoryImage(template.imageData),
+                        ),
+                        title: Text(template.name),
+                        subtitle: Text('ID: $id | Font Size: ${template.fontsize}'),
                         trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
+  mainAxisSize: MainAxisSize.min,
+  children: [
+    // زر المعاينة الجديد الذي أضفناه
+    IconButton(
+      icon: const Icon(Icons.preview, color: Colors.purple),
+      onPressed: () => _showTemplatePreviewDialog(template), // نمرر كائن القالب كاملاً
+      tooltip: 'معاينة القالب',
+    ),
+    IconButton(
                               icon: const Icon(Icons.remove_red_eye, color: Colors.blue),
-                              onPressed: () => _viewSingleTemplate(id), // عرض تفاصيل
+                              onPressed: () => _viewSingleTemplate(id), 
                             ),
                             IconButton(
                               icon: const Icon(Icons.edit, color: Colors.green),
-                              onPressed: () => _editTemplate(id), // تعديل
+                              onPressed: () => _editTemplate(id), 
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => _deleteTemplate(id), // حذف
+                              onPressed: () => _deleteTemplate(id), 
                             ),
-                          ],
-                        ),
+    // الأزرار السابقة...
+    IconButton(
+      icon: const Icon(Icons.remove_red_eye, color: Colors.blue),
+      onPressed: () => _viewSingleTemplate(id), // عرض تفاصيل البيانات كنص
+      tooltip: 'البيانات الخام',
+    ),
+    IconButton(
+      icon: const Icon(Icons.edit, color: Colors.green),
+      onPressed: () => _editTemplate(id), // تعديل
+    ),
+    IconButton(
+      icon: const Icon(Icons.delete, color: Colors.red),
+      onPressed: () => _deleteTemplate(id), // حذف
+    ),
+  ],
+),
+
+                        // trailing: Row(
+                        //   mainAxisSize: MainAxisSize.min,
+                        //   children: [
+                            
+                        //   ],
+                        // ),
                       ),
                     );
                   },
                 ),
-            floatingActionButton: FloatingActionButton.extended(
-              onPressed: _pickImageAndSaveTemplate, // استدعاء دالة اختيار الصورة
-              icon: const Icon(Icons.add_photo_alternate),
-              label: const Text('إضافة قالب بصورة حقيقية'),
-            ),
-
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _pickImageAndSaveTemplate,
+        icon: const Icon(Icons.add_photo_alternate),
+        label: const Text('إضافة قالب بصورة حقيقية'),
+      ),
     );
   }
 }
 
 
 
-  
 
 
 
 
-// import 'package:flutter/material.dart';
 
-// استدعِ المودلات الخاصة بك هنا
-// import 'package:mikronet/models/print_batches_model.dart';
-// import 'package:mikronet/models/mikrotik_model.dart'; // تأكد من المسار
+
+
+
+
+
+
+
+
+// import 'package:mikronet/services/mikrotik_client.dart';
 
 class TestBatchesScreen extends StatefulWidget {
-  final MikrotikAdapter mikrotikAdapter;
-  const TestBatchesScreen({Key? key,required this.mikrotikAdapter}) : super(key: key);
+  // final MikrotikClient mikrotikAdapter;
+  const TestBatchesScreen({Key? key/*, required this.mikrotikAdapter*/}) : super(key: key);
 
   @override
   _TestBatchesScreenState createState() => _TestBatchesScreenState();
 }
 
 class _TestBatchesScreenState extends State<TestBatchesScreen> {
-  final PrintBatchesModel _model = PrintBatchesModel();
-  List _batches = [];
+  final PrintBatchesApi _api = PrintBatchesApi(); // نستخدم الـ API
+  List<PrintBatchesModel> _batches = []; // اللستة أصبحت من نوع Model
   bool _isLoading = true;
 
   @override
@@ -245,29 +305,36 @@ class _TestBatchesScreenState extends State<TestBatchesScreen> {
     _loadBatches();
   }
 
-  // جلب كل الدفعات وعرضها
+  // جلب كل الدفعات وتحويلها لمودلز متكاملة (مع قوالبها)
   Future<void> _loadBatches() async {
     setState(() => _isLoading = true);
-    final data = await _model.getAllBatches();
+    final List data = await PrintBatchesApi.getAllBatches();
+    
+    // بما أن fromDatabase تحتوي على await بداخلها، يجب استخدام Future.wait للتعامل مع اللستة
+    List<PrintBatchesModel> parsedBatches = await Future.wait(
+      data.map((e) => PrintBatchesModel.fromDatabase(e))
+    );
+
     setState(() {
-      _batches = data;
+      _batches = parsedBatches;
       _isLoading = false;
     });
   }
 
-  // إضافة دفعة كروت ببيانات وهمية وقصيرة
+  // إضافة دفعة عبر المودل
   Future<void> _addDummyBatch() async {
-    Map<String, dynamic> dummyData = {
-      'name': 'دفعة كروت فئة شهر ${DateTime.now().minute}',
-      'created_at': DateTime.now().toString(),
-      'template_id': 1, // رقم قالب افتراضي
-      'generated_cards': 'card1,card2,card3', // عدد كروت قليل للتجربة
-      'cards_type': '30 Days',
-      'card_prefix': 'net_',
-      'card_suffix': '_26'
-    };
+    PrintBatchesModel dummyModel = PrintBatchesModel(
+      id: 0,
+      name: 'دفعة كروت فئة شهر ${DateTime.now().minute}',
+      createdAt: DateTime.now().toString(),
+      template: null, // تم وضع null للتجربة
+      generatedCards: 'card1,card2,card3',
+      cardsType: '30 Days',
+      cardPrefix: 'net_',
+      cardSuffix: '_26',
+    );
 
-    await _model.addOneBatch(dummyData);
+    await PrintBatchesApi.addOneBatch(dummyModel.toDatabase());
     _loadBatches();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -276,90 +343,37 @@ class _TestBatchesScreenState extends State<TestBatchesScreen> {
     }
   }
 
-  // تعديل اسم الدفعة للتجربة
   Future<void> _editBatch(int id) async {
     Map<String, dynamic> updatedData = {
       'name': 'دفعة معدلة ${DateTime.now().second}',
     };
 
-    await _model.batchEdit(id, updatedData);
+    await PrintBatchesApi.batchEdit(id, updatedData);
     _loadBatches();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم تعديل الدفعة بنجاح!')),
-      );
-    }
   }
 
-  // الحذف المحلي (من التطبيق فقط)
   Future<void> _deleteLocal(int id) async {
-    await _model.deleteFromLocal(id);
+    await PrintBatchesApi.deleteFromLocal(id);
     _loadBatches();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم الحذف المحلي بنجاح!')),
-      );
-    }
   }
 
-  // الحذف الشامل (من التطبيق وسيرفر المايكروتيك)
   Future<void> _deleteFull(int id) async {
     try {
-      // ملاحظة: هنا يجب أن تمرر كائن المايكروتيك الفعلي المتصل بالشبكة
-      // MikrotikAdapter myMikrotik = MikrotikAdapter(...); 
-      await _model.deleteBatch(id, widget.mikrotikAdapter);
-
-      // للتجربة فقط، سأقوم باستدعاء الحذف المحلي لتجنب خطأ نقص الكائن
-      // await _model.deleteFromLocal(id); 
+      await PrintBatchesApi.deleteBatch(id);
       
       _loadBatches();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تم الحذف من القاعدة والمايكروتيك بنجاح! ✅'),
-            backgroundColor: Colors.green,
-          ),
+          const SnackBar(content: Text('تم الحذف بنجاح! ✅'), backgroundColor: Colors.green),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('حدث خطأ: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('حدث خطأ: $e'), backgroundColor: Colors.red),
         );
       }
     }
-  }
-
-  // عرض تفاصيل الدفعة والكروت المولدة فيها
-  Future<void> _viewSingleBatch(int id) async {
-    final data = await _model.getBatchData(id);
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(data['name'] ?? 'بدون اسم'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('تاريخ الإنشاء: ${data['created_at']}'),
-            const SizedBox(height: 10),
-            Text('نوع الكروت: ${data['cards_type']}'),
-            const SizedBox(height: 10),
-            const Text('الكروت المولدة:', style: TextStyle(fontWeight: FontWeight.bold)),
-            Text(data['generated_cards'] ?? ''),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إغلاق'),
-          )
-        ],
-      ),
-    );
   }
 
   @override
@@ -376,36 +390,29 @@ class _TestBatchesScreenState extends State<TestBatchesScreen> {
               : ListView.builder(
                   itemCount: _batches.length,
                   itemBuilder: (context, index) {
-                    final batch = _batches[index];
-                    final int id = batch['id'];
+                    final PrintBatchesModel batch = _batches[index]; // التعامل مع المودل النظيف
+                    final int id = batch.id;
 
                     return Card(
                       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       child: ListTile(
-                        title: Text(batch['name'] ?? 'بدون اسم'),
-                        subtitle: Text('عدد الكروت: ${batch['generated_cards'].split(',').length} | القالب: ${batch['template_id']}'),
+                        title: Text(batch.name),
+                        // نصل لبيانات القالب مباشرة لأن المودل جلبها لنا مسبقاً
+                        subtitle: Text('الكروت: ${batch.generatedCards.split(',').length} | القالب: ${batch.template?.name ?? 'بدون'}'),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.remove_red_eye, color: Colors.blue),
-                              onPressed: () => _viewSingleBatch(id),
-                              tooltip: 'عرض التفاصيل',
-                            ),
-                            IconButton(
                               icon: const Icon(Icons.edit, color: Colors.green),
                               onPressed: () => _editBatch(id),
-                              tooltip: 'تعديل',
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete_outline, color: Colors.orange),
                               onPressed: () => _deleteLocal(id),
-                              tooltip: 'حذف محلي فقط',
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete_forever, color: Colors.red),
                               onPressed: () => _deleteFull(id),
-                              tooltip: 'حذف من السيرفر والقاعدة',
                             ),
                           ],
                         ),
@@ -426,7 +433,71 @@ class _TestBatchesScreenState extends State<TestBatchesScreen> {
 
 
 
+class CardPreviewWidget extends StatelessWidget {
+  final PrintTemplatesModel template;
+  final String sampleUsername;
+  final String samplePassword;
 
+  const CardPreviewWidget({
+    Key? key,
+    required this.template,
+    required this.sampleUsername,
+    required this.samplePassword,
+  }) : super(key: key);
 
+  @override
+  Widget build(BuildContext context) {
+    // استخدمنا LayoutBuilder لمعرفة حجم الحاوية المتاحة (اختياري لكنه مفيد)
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade400, width: 2),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      // ميزة ClipRRect لمنع خروج الصورة أو النصوص عن حواف الحاوية
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: Stack(
+          children: [
+            // 1. الطبقة السفلية: صورة القالب
+            // نستخدم Image.memory لأن الصورة محفوظة كـ Bytes (BLOB)
+            Image.memory(
+              template.imageData,
+              fit: BoxFit.contain, // يمكنك تغييرها لـ cover حسب الاحتياج
+              width: double.infinity,
+            ),
+            
+            // 2. الطبقة العلوية الأولى: اسم المستخدم (يتم رسمه بناءً على الإحداثيات)
+            Positioned(
+              left: template.usernameLocation["x"]?.toDouble() ?? 0.0,
+              top: template.usernameLocation["y"]?.toDouble() ?? 0.0,
+              child: Text(
+                sampleUsername,
+                style: TextStyle(
+                  fontSize: template.fontsize.toDouble(),
+                  color: Colors.black, // يمكنك لاحقاً إضافة حقل للون الخط في المودل
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
 
-
+            // 3. الطبقة العلوية الثانية: كلمة المرور (نفس الفكرة)
+            // نتأكد أولاً أن نوع القالب لا يخفي كلمة المرور
+            if (template.passwordType != 'none')
+              Positioned(
+                left: template.passwordLocation["x"]?.toDouble() ?? 0.0,
+                top: template.passwordLocation["y"]?.toDouble() ?? 0.0,
+                child: Text(
+                  samplePassword,
+                  style: TextStyle(
+                    fontSize: template.fontsize.toDouble(),
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}

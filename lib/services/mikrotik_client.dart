@@ -108,6 +108,13 @@ class MikrotikClient {
     return await fetch(command: [command, "=.id=$userId"]);
   }
 
+  static Future<List> removeById({
+    required String command,
+    required String id,
+  }) async {
+    return await fetch(command: [command, "=.id=$id"]);
+  }
+
   static Future<int> getVersion() async {
     _checkConnection();
     List result = await _client!.talk("/system/resource/print");

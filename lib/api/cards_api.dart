@@ -23,28 +23,22 @@ class CardsApi {
       'user_addprofile':'/user-manager/user-profile/add',
     },
   };
-  final String _props=""".id,username,password,actual-profile,uptime-used,download-used,upload-used,last-seen,customer""";
+  static const String _props=""".id,username,password,actual-profile,uptime-used,download-used,upload-used,last-seen,customer""";
   // List cards=[];
 
   
 
 
-  Future<AppResponse<List<CardsModel>>> getAllCards({List where=const["=detail="]})async{
+  static Future<AppResponse> getAllCards({List where=const["=detail="]})async{
   try {
       List myCards=await MikrotikClient.printData(
         commands: ["/tool/user-manager/user/print"],
         fields: _props
       );
-      List<CardsModel> cards=[];
-      for (Map card in myCards) {
-        cards.add(
-          CardsModel.fromMap(card)
-        );
-      }
       return AppResponse(
         status: true, 
         message: "done",
-        data: cards
+        data: myCards
       );
       // return cards;
     } catch (e) {
@@ -68,7 +62,7 @@ class CardsApi {
   //   }
   // }
 
-  Future<AppResponse> addCardProfile({
+  static Future<AppResponse> addCardProfile({
     required String customer,
     required String username,
     required String profile,
@@ -102,7 +96,7 @@ class CardsApi {
     // );
   }
 
-  Future<AppResponse> addOneCard({
+  static Future<AppResponse> addOneCard({
     required String customer,
     required String username,
     String password="",
@@ -138,14 +132,14 @@ class CardsApi {
     }
   }
   
-  Future<List> getCustomers()async{
+  static Future<List> getCustomers()async{
     return await MikrotikClient.printData(
       commands: ["/tool/user-manager/customer/print"],
       conditions: ["?disabled=no"]
     );
   }
 
-  Future<AppResponse> cardEdit({
+  static Future<AppResponse> cardEdit({
     required String username,
     required Map<String, String> data,
   })async{
@@ -167,7 +161,7 @@ class CardsApi {
     }
   }
   
-  Future<AppResponse> deleteCard(String username)async{
+  static Future<AppResponse> deleteCard(String username)async{
     try {
       await MikrotikClient.deleteData(
         command: "/tool/user-manager/user/remove", 
@@ -185,7 +179,7 @@ class CardsApi {
     }
   }
 
-  Future<AppResponse> deleteCardsBatch(List idsList)async{
+  static Future<AppResponse> deleteCardsBatch(List idsList)async{
     try {
       String ids = idsList.join(',');
       await MikrotikClient.fetch(
@@ -205,6 +199,34 @@ class CardsApi {
       );
     }
   }
+
+  static Future<List> getIdsByUsernames(List usernames) async {
+  List<String> extractedIds = [];
+
+  try {
+    // 1. جلب المعرفات والأسماء فقط من الراوتر (سريع جداً)
+    var allUsers = await MikrotikClient.printData(
+      commands:[
+        '/tool/user-manager/user/print', 
+      ],
+      fields: ".id,username"
+    );
+
+    // 2. المرور على الناتج واستخراج الـ id للكروت المطابقة
+    for (var user in allUsers) {
+      if (usernames.contains(user['username'])) {
+        extractedIds.add(user['.id']!);
+      }
+    }
+
+    return extractedIds;
+
+  } catch (e) {
+    throw Exception(e.toString());
+  }
+}
+
+
 
   
 
@@ -236,7 +258,7 @@ class CardsApi {
       List result=[];
       for (var session in sessions) {
         result.add(
-          CardSessionModel.fromMap(session)
+          CardSessionModel.fromMikrotik(session)
         );
       }
       return AppResponse(

@@ -21,10 +21,11 @@ String generateInsertQuery(Map<String, dynamic> data, String table) {
   return 'INSERT INTO $table ($fieldsStr) VALUES ($valuesStr)';
 }
 
-class DBModel extends SqlDb {
+class DBApi{
+  static final SqlDb _db=SqlDb();
 
-  @protected
-  Future<List> select(String table,
+  // @protected
+  static Future<List> select(String table,
       [String? where,
       String? fields,
       String? order,
@@ -47,7 +48,7 @@ class DBModel extends SqlDb {
       $offset
       ''';
 
-      List<Map> response = await readData(query);
+      List<Map> response = await _db.readData(query);
       return response;
     } catch (e) {
       throw Exception("Error in select: $e");
@@ -56,8 +57,8 @@ class DBModel extends SqlDb {
     }
   }
 
-  @protected
-  Future<int> insert(String table, Map<String, dynamic> data) async {
+  // @protected
+  static Future<int> insert(String table, Map<String, dynamic> data) async {
     List<String> fields = data.keys.toList();
     List<String> values =
         data.values.map((value) => quoteValue(value.toString())).toList();
@@ -67,7 +68,7 @@ class DBModel extends SqlDb {
 
     String query = 'INSERT INTO $table ($fieldsStr) VALUES ($valuesStr)';
     try {
-      int response = await insertData(query);
+      int response = await _db.insertData(query);
       return response;
     } catch (e) {
       throw Exception("Error in insert: $e");
@@ -76,8 +77,8 @@ class DBModel extends SqlDb {
     }
   }
 
-  @protected
-  Future<int> update(String table, Map<String, dynamic> data,
+  // @protected
+  static Future<int> update(String table, Map<String, dynamic> data,
       [String? where]) async {
     List<String> set = [];
     data.forEach((field, value) {
@@ -92,7 +93,7 @@ class DBModel extends SqlDb {
     }
 
     try {
-      int response = await updateData(query);
+      int response = await _db.updateData(query);
       return response;
     } catch (e) {
       throw Exception("Error in update: $e");
@@ -101,14 +102,14 @@ class DBModel extends SqlDb {
     }
   }
 
-  @protected
-  Future<int> delete(String table, [String? where]) async {
+  // @protected
+  static Future<int> delete(String table, [String? where]) async {
     String query = 'DELETE FROM $table';
     if (where != null && where.isNotEmpty) {
       query += ' WHERE $where';
     }
     try {
-      int response = await deleteData(query);
+      int response = await _db.deleteData(query);
       return response;
     } catch (e) {
       throw Exception("Error in delete: $e");

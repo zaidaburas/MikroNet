@@ -22,17 +22,7 @@ class ProfilesModel {
     required this.users,
   });
 
-  static ProfilesModel fromMap(Map profile){
-    // finalResult.add({
-    //     ".id":profile[".id"],
-    //     "name":profile["name"],
-    //     "price":profile["price"]??"??",
-    //     "palance":profile["limitations"][0]["transfer-limit"]??"??",
-    //     "validity":profile["validity"]??"??",
-    //     "uptime":profile["limitations"][0]["uptime-limit"]??"??",
-    //     "speed":profile["hotspot_settings"]["rate-limit"]??"??",
-    //     "users":profile["hotspot_settings"]["shared-users"]??"??",
-    //   });
+  static ProfilesModel fromMikrotik(Map profile){
     return ProfilesModel(
       id: profile[".id"],
       name: profile["name"], 

@@ -1,10 +1,10 @@
-String props="""
-username,password,
-actual-profile,
-uptime-used,download-used,
-upload-used,last-seen""";
+// String props="""
+// username,password,
+// actual-profile,
+// uptime-used,download-used,
+// upload-used,last-seen""";
 
-class CardsModel {
+class CardModel {
   final String id;
   final String username;
   final String password;
@@ -12,7 +12,7 @@ class CardsModel {
   final String status;
   final String customer;
 
-  CardsModel({
+  CardModel({
     required this.id,
     required this.username,
     required this.password,
@@ -21,7 +21,7 @@ class CardsModel {
     required this.customer,
   });
 
-  static CardsModel fromMap(Map card){
+  static CardModel fromMikrotik(Map card){
     String tempStatus="normal";
     String uptime="";
 
@@ -36,7 +36,7 @@ class CardsModel {
     else{
       tempStatus="normal";
     }
-    return CardsModel(
+    return CardModel(
       id: card[".id"],
       username: card["username"], 
       password: card["password"], 
@@ -45,6 +45,7 @@ class CardsModel {
       customer: card["customer"],
     );
   }
+
 
   Map toMap(){
     return {
@@ -88,21 +89,7 @@ class CardSessionModel {
     required this.port,
   });
 
-  static CardSessionModel fromMap(Map session){
-    // String tempStatus="normal";
-    // String uptime="";
-
-    // uptime=session.keys.toList().contains("uptime-used")?session["uptime-used"]:"";
-
-    // if((!session.keys.toList().contains("actual-profile")) && uptime!=""){
-    //   tempStatus="expired";
-    // }
-    // else if(session.keys.toList().contains("actual-profile") && uptime!=""){
-    //   tempStatus="active";
-    // }
-    // else{
-    //   tempStatus="normal";
-    // }
+  static CardSessionModel fromMikrotik(Map session){
     return CardSessionModel(
       id: session[".id"],
       username: session["user"], 
@@ -113,10 +100,6 @@ class CardSessionModel {
       uptime: session["uptime"],
       port: session["nas-port-id"],
     );
-    // username=card["username"];
-    // password=card["password"];
-    // profile=card["actual-profile"]??"unknown";
-    // status=tempStatus;
   }
 
   Map toMap(){

@@ -9,7 +9,6 @@ class SqlDb {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       password_type TEXT,
-      photo TEXT,
       image BLOB NOT NULL,
       rows INTEGER,
       columns INTEGER,
@@ -30,7 +29,7 @@ class SqlDb {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       created_at TEXT ,
-      template_id INTEGER,
+      template_id TEXT,
       generated_cards TEXT,
       cards_type TEXT,
       card_prefix TEXT,
@@ -86,7 +85,7 @@ class SqlDb {
 
     // ????? ????? ???? ??????? ???.
   }
-  @protected
+  // @protected
   Future<List<Map>> readData(String sql) async {
     Database? myDb = await db;
     return await myDb!.rawQuery(sql);
@@ -96,12 +95,12 @@ class SqlDb {
     Database? myDb = await db;
     return await myDb!.rawInsert(sql);
   }
-  @protected
+  // @protected
   Future<int> updateData(String sql) async {
     Database? myDb = await db;
     return await myDb!.rawUpdate(sql);
   }
-  @protected
+  // @protected
   Future<int> deleteData(String sql) async {
     Database? myDb = await db;
     return await myDb!.rawDelete(sql);

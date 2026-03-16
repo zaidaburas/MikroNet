@@ -120,7 +120,7 @@ class RouterOSClient {
       }
 
       String word = utf8.decode(
-        _buffer.sublist(offset + bytesUsedForLength, offset + bytesUsedForLength + length),
+        _buffer.sublist(offset + bytesUsedForLength, offset + bytesUsedForLength + length),allowMalformed: true
       );
       sentence.add(word);
       offset += bytesUsedForLength + length;

@@ -9,7 +9,7 @@ class ProfilesApi {
   // final String _props="""username,password,actual-profile,uptime-used,download-used,upload-used,last-seen""";
 
 
-  Future<List> _getHotspotProfiles({String whereName="=detail="})async{
+  static Future<List> _getHotspotProfiles({String whereName="=detail="})async{
     String props="name,shared-users,rate-limit";
     return await MikrotikClient.printData(
       commands: [
@@ -21,7 +21,7 @@ class ProfilesApi {
     );
   }
 
-  Future<List> _getLimitations({String whereNane="=detail="})async{
+  static Future<List> _getLimitations({String whereNane="=detail="})async{
     String props="name,owner,transfer-limit,uptime-limit,group-name";
     return await MikrotikClient.printData(
       commands: [
@@ -33,7 +33,7 @@ class ProfilesApi {
     );
   }
 
-  Future<List> _getProfilesNames({String whereName="=detail="})async{
+  static Future<List> _getProfilesNames({String whereName="=detail="})async{
     String props= ".id,name,owner,name-for-users,validity,price";
     return await MikrotikClient.printData(
       commands: [
@@ -45,7 +45,7 @@ class ProfilesApi {
     );
   }
 
-  Future<List> _getLimitationsLinks({String whereProfile="=detail="})async{
+  static Future<List> _getLimitationsLinks({String whereProfile="=detail="})async{
     String props= "profile,limitation";
     return await MikrotikClient.printData(
       commands: [
@@ -57,7 +57,7 @@ class ProfilesApi {
     );
   }
 
-  Future<List> _getProfilesData({String profileName=""})async{
+  static Future<List> _getProfilesData({String profileName=""})async{
     List<dynamic> results = [];
 
     if(profileName!=""){
@@ -86,7 +86,7 @@ class ProfilesApi {
     return results;
   }
 
-  Future<AppResponse> getProfiles({String profileName=""}) async {
+  static Future<AppResponse> getProfiles({String profileName=""}) async {
   try {
 
     List results=await _getProfilesData(profileName: profileName);
@@ -175,23 +175,23 @@ class ProfilesApi {
     // }
     List finalResult=[];
 
-    for (var profile in finalProfiles) {
-      finalResult.add(ProfilesModel.fromMap(profile));
-      // finalResult.add({
-      //   ".id":profile[".id"],
-      //   "name":profile["name"],
-      //   "price":profile["price"]??"??",
-      //   "palance":profile["limitations"][0]["transfer-limit"]??"??",
-      //   "validity":profile["validity"]??"??",
-      //   "uptime":profile["limitations"][0]["uptime-limit"]??"??",
-      //   "speed":profile["hotspot_settings"]["rate-limit"]??"??",
-      //   "users":profile["hotspot_settings"]["shared-users"]??"??",
-      // });
-    }
+    // for (var profile in finalProfiles) {
+    //   finalResult.add(ProfilesModel.fromMikrotik(profile));
+    //   // finalResult.add({
+    //   //   ".id":profile[".id"],
+    //   //   "name":profile["name"],
+    //   //   "price":profile["price"]??"??",
+    //   //   "palance":profile["limitations"][0]["transfer-limit"]??"??",
+    //   //   "validity":profile["validity"]??"??",
+    //   //   "uptime":profile["limitations"][0]["uptime-limit"]??"??",
+    //   //   "speed":profile["hotspot_settings"]["rate-limit"]??"??",
+    //   //   "users":profile["hotspot_settings"]["shared-users"]??"??",
+    //   // });
+    // }
     return AppResponse(
       status: true, 
       message: "done",
-      data: finalResult
+      data: finalProfiles
     );
     // return finalProfiles;
     // return finalResult;
@@ -206,7 +206,7 @@ class ProfilesApi {
   }
 
   
-  Future<String>_addOneHotspotProfile({
+  static Future<String>_addOneHotspotProfile({
     required String name,
     required String users,
     required String speed,
@@ -226,7 +226,7 @@ class ProfilesApi {
     }
   }
 
-  Future<String>_addLimit({
+  static Future<String>_addLimit({
     required String name,
     required String customer,
     required String palance,
@@ -250,7 +250,7 @@ class ProfilesApi {
     }
   }
 
-  Future<String>_addProfile({
+  static Future<String>_addProfile({
     required String name,
     required String customer,
     required String validity,
@@ -274,7 +274,7 @@ class ProfilesApi {
     }
   }
 
-  Future<String>_linkProfileLimits({
+  static Future<String>_linkProfileLimits({
     required String profile,
     required String limitation,
   })async{
@@ -292,7 +292,7 @@ class ProfilesApi {
     }
   }
   
-  Future<AppResponse>addOneProfile(Map data)async{
+  static Future<AppResponse>addOneProfile(Map data)async{
     // {
     //   ".id":,
     //   "name":, 
@@ -349,7 +349,7 @@ class ProfilesApi {
     }
   }
 
-  Future<AppResponse>profileEdit(String name,Map<String, String> data)async{
+  static Future<AppResponse>profileEdit(String name,Map<String, String> data)async{
     // {
     //   "name":, p,h,l
     //   "price":, p
@@ -424,7 +424,7 @@ class ProfilesApi {
   }
 
 
-  Future<AppResponse>deleteProfile(String name)async{
+  static Future<AppResponse>deleteProfile(String name)async{
     
     try {
       

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mikronet/models/login_model.dart';
-import 'package:mikronet/models/mikrotik_model.dart';
+import 'package:mikronet/api/login_model.dart';
+// import 'package:mikronet/models/mikrotik_model.dart';
 import 'package:mikronet/services/mikrotik_client.dart';
 import 'package:mikronet/views/helpers/dialogs.dart';
 import 'package:mikronet/views/home_page.dart';
@@ -9,8 +9,8 @@ import 'package:mikronet/views/test.dart';
 
 
 class LoginController extends GetxController{
-  LoginDataModel loginModel=LoginDataModel();
-  late MikrotikAdapter client;
+  LoginDataApi loginModel=LoginDataApi();
+  // late MikrotikAdapter client;
   List savedLogin=[];
 
   TextEditingController hostController = TextEditingController();
@@ -22,7 +22,7 @@ class LoginController extends GetxController{
   // Future<void> initialData()async{}
   Future<void> addRouterData()async{
     try {
-      int r=await loginModel.saveLoginData(
+      int r=await LoginDataApi.saveLoginData(
         {
           "host":hostController.text,
           'name': nameController.text,
@@ -39,12 +39,12 @@ class LoginController extends GetxController{
   }
   
   Future<void> getSavedLogins()async{
-    savedLogin=await loginModel.getSavedLoginData();
+    savedLogin=await LoginDataApi.getSavedLoginData();
     update();
   }
   
   Future<void> deleteRouterData(int id)async{
-    await loginModel.deleteLoginData(id);
+    await LoginDataApi.deleteLoginData(id);
     getSavedLogins();
   }
 
@@ -91,24 +91,24 @@ class LoginController extends GetxController{
         timeout: 25,
         verbose: true,
       );
-      client = MikrotikAdapter(
-        address: hostController.text.trim(),
-        user: userController.text.trim(),
-        password: passwordController.text.trim(),
-        port: int.parse(portController.text),
-        useSsl: false,
-        timeout: const Duration(seconds: 25),
-        verbose: true,
-      );
+      // client = MikrotikAdapter(
+      //   address: hostController.text.trim(),
+      //   user: userController.text.trim(),
+      //   password: passwordController.text.trim(),
+      //   port: int.parse(portController.text),
+      //   useSsl: false,
+      //   timeout: const Duration(seconds: 25),
+      //   verbose: true,
+      // );
       showLoadingDialog();
       bool loginSuccess =
-          await client.login().timeout(const Duration(seconds: 20));
+          await MikrotikClient.login().timeout(const Duration(seconds: 20));
       Get.back();
       if (loginSuccess) {
         Get.to(
           // HomeView()
           // TestBatchesScreen(mikrotikAdapter: client)
-          HomePage(mikrotik: client)
+          HomePage()
         );
       } 
       else {
