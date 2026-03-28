@@ -1,22 +1,36 @@
-import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 class SqlDb {
   static Database? _db;
+  // String profiles = '''
+  //   CREATE TABLE profiles (
+  //     username INTEGER,
+  //     password INTEGER,
+  //     rows INTEGER,
+  //     columns INTEGER,
+  //     // usernamelength INTEGER,
+  //     // passwordlength INTEGER,
+  //     usernamefont REAL,
+  //     passwordfont REAL,
+  //     usernamelocationx REAL,
+  //     usernamelocationy REAL,
+  //     passwordlocationx REAL,
+  //     passwordlocationy REAL
+  //   );
+  //   ''';
+  // password = {0,1}
   String templates="""
     CREATE TABLE templates (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      password_type TEXT,
+      password INTEGER,
+      serial INTEGER DEFAULT 0,
       image BLOB NOT NULL,
       rows INTEGER,
       columns INTEGER,
-      username_length INTEGER,
-      password_length INTEGER,
-      fontsize INTEGER,
-      username_pattern TEXT,
-      password_pattern TEXT,
+      username_fontsize REAL,
+      password_fontsize REAL,
       username_location_x REAL,
       username_location_y REAL,
       password_location_x REAL,
@@ -31,7 +45,7 @@ class SqlDb {
       created_at TEXT ,
       template_id TEXT,
       generated_cards TEXT,
-      cards_type TEXT,
+      cards_profile TEXT,
       card_prefix TEXT,
       card_suffix TEXT
     );

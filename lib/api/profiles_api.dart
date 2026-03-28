@@ -1,6 +1,5 @@
-import 'package:mikronet/models/profiles_model.dart';
-import 'package:mikronet/services/mikrotik_client.dart';
-import 'package:mikronet/services/response.dart';
+import '/services/mikrotik_client.dart';
+import '/services/response.dart';
 
 class ProfilesApi {
   int version;
@@ -173,7 +172,7 @@ class ProfilesApi {
     //     shared-users: unlimited
     //   }
     // }
-    List finalResult=[];
+    // List finalResult=[];
 
     // for (var profile in finalProfiles) {
     //   finalResult.add(ProfilesModel.fromMikrotik(profile));

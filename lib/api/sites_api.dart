@@ -1,4 +1,4 @@
-import 'package:mikronet/services/mikrotik_client.dart';
+import '/services/mikrotik_client.dart';
 
 class SitesApi {
 

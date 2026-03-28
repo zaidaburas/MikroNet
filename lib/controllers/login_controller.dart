@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mikronet/api/login_model.dart';
-// import 'package:mikronet/models/mikrotik_model.dart';
-import 'package:mikronet/services/mikrotik_client.dart';
-import 'package:mikronet/views/helpers/dialogs.dart';
-import 'package:mikronet/views/home_page.dart';
-import 'package:mikronet/views/test.dart';
+import '/api/login_model.dart';
+// import '/models/mikrotik_model.dart';
+import '/services/mikrotik_client.dart';
+import '/views/helpers/dialogs.dart';
+import '/views/home_page.dart';
+// import '/views/test.dart';
 
 
 class LoginController extends GetxController{

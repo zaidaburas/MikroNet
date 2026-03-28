@@ -1,6 +1,6 @@
 
-import 'package:mikronet/api/cards_api.dart';
-import 'package:mikronet/api/database_api.dart';
+import '/api/cards_api.dart';
+import '/api/database_api.dart';
 
 class PrintTemplatesApi {
  static Future<List> getAllTemplates()async{

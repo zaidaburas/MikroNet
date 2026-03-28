@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mikronet/api/cards_api.dart';
-import 'package:mikronet/api/profiles_api.dart';
-import 'package:mikronet/api/users_api.dart';
-import 'package:mikronet/models/cards_model.dart';
-import 'package:mikronet/models/users_model.dart';
-import 'package:mikronet/models/profiles_model.dart';
-import 'package:mikronet/services/mikrotik_client.dart';
-import 'package:mikronet/views/helpers/dialogs.dart';
-import 'package:mikronet/views/test.dart';
+import '/api/cards_api.dart';
+import '/api/profiles_api.dart';
+import '/api/users_api.dart';
+import '/models/cards_model.dart';
+import '/models/users_model.dart';
+import '/models/profiles_model.dart';
+import '/services/mikrotik_client.dart';
+import '/views/helpers/dialogs.dart';
+import '/views/prints/add_template.dart';
+import '/views/prints/saved_templates_view.dart';
+// import '/views/test.dart';
 
 import 'widgets/menu_item_card.dart';
 
@@ -43,7 +45,7 @@ class _HomePage extends State<HomePage> {
       floatingActionButton: MaterialButton(
         onPressed: () async{
           try {
-            Get.to(TestTemplatesScreen());
+            // Get.to(TestTemplatesScreen());
             // List data=[];
             // await MikrotikClient.login();
             // UsersApi model=UsersApi();
@@ -69,7 +71,7 @@ class _HomePage extends State<HomePage> {
         },
         onLongPress : () async{
           try {
-            Get.to(TestBatchesScreen());
+            // Get.to(TestBatchesScreen());
             // List data=[];
             // await MikrotikClient.login();
             // UsersApi model=UsersApi();
@@ -100,21 +102,7 @@ class _HomePage extends State<HomePage> {
   }
   
   Future<void> fun1()async{
-    try {
-      List d=[];
-      await MikrotikClient.login();
-      var r=await UsersApi.editDevice(
-        "*48A",
-        label: "zainon",
-        server: "hs-vlan-4"
-      );
-      if(r.status){
-        d.add(r.data);
-      }
-      showErrorDialog(content: d.toString());
-    } catch (e) {
-      showErrorDialog(content: e.toString());
-    }
+    Get.to(SavedTemplatesView());
   }
 
   Future<void> fun2()async{
@@ -198,7 +186,7 @@ class _HomePage extends State<HomePage> {
 
   Widget _buildGridMenu(BuildContext context) {
       final List<Map<String, dynamic>> menuData = [
-        {"title": "add", "icon": Icons.credit_card_rounded, "view": fun1 },
+        {"title": "template", "icon": Icons.credit_card_rounded, "view": fun1 },
         {"title": "edit", "icon": Icons.people_alt_rounded, "view": fun2 },
         {"title": "delete", "icon": Icons.print_rounded, "view": fun3 },
         {"title": "getProfilesLimitations", "icon": Icons.dns_rounded, "view": fun4 },

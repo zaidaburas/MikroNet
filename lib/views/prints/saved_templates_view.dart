@@ -1,11 +1,17 @@
+// import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import '../../Controllers/print_controller.dart';
-import 'page_preview.dart';
+import 'package:get/get.dart';
+import '/controllers/print/templates_controller.dart';
+import '/models/print_model.dart';
+import '/views/helpers/dialogs.dart';
+import '/views/prints/add_template.dart';
+// import '../print/page_preview.dart';
 
 class SavedTemplatesView extends StatelessWidget {
-  final PrintTemplatesController c;
 
-  const SavedTemplatesView({super.key, required this.c});
+  SavedTemplatesView({super.key});
+  final TemplatesController controller=Get.put(TemplatesController());
 
   @override
   Widget build(BuildContext context) {
@@ -16,32 +22,49 @@ class SavedTemplatesView extends StatelessWidget {
         body: Column(
           children: [
             _circleAvatarHeader(context), // نفس الهيدر المعتمد
-            Expanded(
-              child: AnimatedBuilder(
-                animation: c,
-                builder: (_, __) {
-                  if (c.savedTemplates.isEmpty) {
-                    return _buildEmptyState();
-                  }
-
-                  return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    itemCount: c.savedTemplates.length,
-                    itemBuilder: (_, i) {
-                      final t = c.savedTemplates[i];
-                      final rows = t['rows'] ?? 0;
-                      final cols = t['cols'] ?? 0;
-                      final total = rows * cols;
-                      final templateName = t['name'] ?? "قالب بدون اسم";
-
-                      return _buildTemplateCard(context, t, i, templateName, total, rows, cols);
+            GetBuilder<TemplatesController>(
+              init: controller,
+              builder: (controller) {
+                return Expanded(
+                  child: AnimatedBuilder(
+                    animation: controller,
+                    builder: (_, __) {
+                      if (controller.allTemplates.isEmpty) {
+                        return _buildEmptyState();
+                      }
+                
+                      return ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        itemCount: controller.allTemplates.length,
+                        itemBuilder: (_, i) {
+                          final t = controller.allTemplates[i];
+                          final rows = t.numOfRows ;
+                          final cols = t.numOfColumns ;
+                          final total = rows * cols;
+                          final templateName = t.name; // ?? "قالب بدون اسم";
+                
+                          return _buildTemplateCard(
+                            context, 
+                            t, i, 
+                            templateName, 
+                            total, rows, cols,
+                            // controller.preview,
+                            // controller.delete,
+                            // controller.openEditForm 
+                          );
+                        },
+                      );
                     },
-                  );
-                },
-              ),
+                  ),
+                );
+              }
             ),
             _footer(), // نفس الفوتر المعتمد
           ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: controller.openAddForm,
+          child: const Icon(Icons.add),
         ),
       ),
     );
@@ -96,7 +119,18 @@ class SavedTemplatesView extends StatelessWidget {
       );
 
   /* ================= كرت القالب ================= */
-  Widget _buildTemplateCard(BuildContext context, Map t, int index, String name, int total, int rows, int cols) {
+  Widget _buildTemplateCard(
+    BuildContext context, 
+    PrintTemplatesModel t, 
+    int index, 
+    String name, 
+    int total, 
+    int rows, 
+    int cols,
+    // Function(int id) onPreview ,
+    // Function(int id) onDelete,
+    // Function(int index) onEdit
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -115,7 +149,9 @@ class SavedTemplatesView extends StatelessWidget {
               width: double.infinity,
               decoration: BoxDecoration(
                 gradient: LinearGradient(colors: [Colors.blue.shade900, Colors.blue.shade600]),
-                image: t['background'] != null ? DecorationImage(image: t['background'], fit: BoxFit.cover) : null,
+                image: DecorationImage(
+                  image: MemoryImage(t.image)
+                ),// != null ? DecorationImage(image: t.image, fit: BoxFit.cover) : null,
               ),
               child: Container(color: Colors.black.withOpacity(0.2)),
             ),
@@ -138,7 +174,7 @@ class SavedTemplatesView extends StatelessWidget {
                       const SizedBox(width: 15),
                       _gridDetail(Icons.view_column_rounded, "أعمدة: $cols"),
                       const Spacer(),
-                      Text(t['date'] ?? "", style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                      const Text('date' ?? "", style: TextStyle(fontSize: 11, color: Colors.grey)),
                     ],
                   ),
                   const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(height: 1, thickness: 0.5)),
@@ -150,15 +186,30 @@ class SavedTemplatesView extends StatelessWidget {
                           icon: Icons.remove_red_eye_rounded,
                           color: const Color(0xff1E3C72),
                           onTap: () {
-                            final dummyBatchData = {'total': total, 'prefix': 'USR-', 'suffix': '', 'name': name};
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => TemplatePreviewPage(
-                              controller: c, templateIndex: index, batchData: dummyBatchData,
-                            )));
+                            // final dummyBatchData = {'total': total, 'prefix': 'USR-', 'suffix': '', 'name': name};
+                            // onPreview(t.id);
+                            controller.preview(t.id);
+                            // Navigator.push(context, MaterialPageRoute(builder: (_) => TemplatePreviewPage(
+                            //   controller: c, templateIndex: index, batchData: dummyBatchData,
+                            // )));
                           },
                         ),
                       ),
                       const SizedBox(width: 10),
-                      _deleteButton(() => _confirmDelete(context, index)),
+
+                      _editButton(() {
+                        // showErrorDialog(content: t.name);
+                        // onEdit(index);
+                        controller.openEditForm(index);
+                        // Get.to(PrintTemplatesDesignView(
+                        //   designerController: TemplatesController(),
+                        //   isEdit: false,
+                        // ));
+                      }),
+
+                      const SizedBox(width: 10),
+                      
+                      _deleteButton(() => _confirmDelete(context,t.id,controller.delete)),
                     ],
                   ),
                 ],
@@ -212,6 +263,16 @@ class SavedTemplatesView extends StatelessWidget {
     ),
   );
 
+  Widget _editButton(VoidCallback onTap) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(12),
+    child: Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.red.shade100)),
+      child: const Icon(Icons.mode_edit_outline_outlined, color: Colors.purple, size: 22),
+    ),
+  );
+
   Widget _buildEmptyState() => Center(
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -225,7 +286,7 @@ class SavedTemplatesView extends StatelessWidget {
 
   Widget _footer() => Container(height: 30, width: double.infinity, color: const Color(0xff0F172A), child: const Center(child: Text("Micronet Professional Edition v4.5", style: TextStyle(color: Colors.white38, fontSize: 10, fontWeight: FontWeight.bold))));
 
-  void _confirmDelete(BuildContext context, int index) async {
+  void _confirmDelete(BuildContext context, int id,Function(int) onDelete) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -238,6 +299,8 @@ class SavedTemplatesView extends StatelessWidget {
         ],
       ),
     );
-    if (confirm == true) c.deleteTemplate(index);
+    if (confirm == true) {
+      onDelete(id);
+    }
   }
 }

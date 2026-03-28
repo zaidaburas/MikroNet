@@ -1,8 +1,8 @@
 
 
-import 'package:mikronet/models/cards_model.dart';
-import 'package:mikronet/services/mikrotik_client.dart';
-import 'package:mikronet/services/response.dart';
+import '/models/cards_model.dart';
+import '/services/mikrotik_client.dart';
+import '/services/response.dart';
 
 class CardsApi {
   int version;

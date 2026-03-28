@@ -1,6 +1,5 @@
-import 'package:mikronet/models/users_model.dart';
-import 'package:mikronet/services/mikrotik_client.dart';
-import 'package:mikronet/services/response.dart';
+import '/services/mikrotik_client.dart';
+import '/services/response.dart';
 
 class UsersApi {
   // UsersApi({});
