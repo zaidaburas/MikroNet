@@ -95,7 +95,7 @@ class MikrotikClient {
     required String command,
     required Map<String, String> data,
     required String condition,
-  }) async {
+  }) async { 
     String userId = await _getElementId(command, condition);
     return await fetch(command: [command, "=.id=$userId"], params: data);
   }
