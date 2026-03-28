@@ -1,0 +1,7 @@
+# بصفتك المشرف، أنت تملك الصلاحية على كل المشروع
+* @zaidaburas
+
+# تحديد مسؤولية كل مجلد للمطور الخاص به
+/lib/models/ @ModelDevUsername
+/lib/views/ @ViewDevUsername
+/lib/controllers/ @ziadaburas
