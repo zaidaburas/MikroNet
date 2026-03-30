@@ -9,8 +9,8 @@ import 'package:image_picker/image_picker.dart';
 import '/api/print_api.dart';
 import '/models/print_model.dart';
 import '/views/helpers/dialogs.dart';
-import '/views/prints/add_template.dart';
-import '/views/prints/pdf_view.dart';
+import '../../views/prints/templates/templates_form.dart';
+import '../../views/prints/templates/pdf_view.dart';
 import 'package:pdf/pdf.dart';
 
 class TemplatesController extends GetxController {

@@ -4,13 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '/controllers/print/templates_controller.dart';
 import '/models/print_model.dart';
-import '/views/helpers/dialogs.dart';
-import '/views/prints/add_template.dart';
+
+// import '/views/helpers/dialogs.dart';
+// import 'templates_form.dart';
 // import '../print/page_preview.dart';
 
-class SavedTemplatesView extends StatelessWidget {
+class TemplatesView extends StatelessWidget {
 
-  SavedTemplatesView({super.key});
+  TemplatesView({super.key});
   final TemplatesController controller=Get.put(TemplatesController());
 
   @override

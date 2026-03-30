@@ -5,7 +5,7 @@ import 'cards/add_single_card_view.dart';
 import 'cards/cards_view.dart';
 import 'reports/sites_page.dart';
 import 'reports/reports_page.dart';
-import 'print/print_page.dart';
+import 'prints/print_page.dart';
 import 'backups/backup_view.dart';
 
 // استيراد الـ Widgets الجديدة

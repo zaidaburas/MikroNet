@@ -42,8 +42,8 @@ class SqlDb {
     CREATE TABLE batches (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      created_at TEXT ,
-      template_id TEXT,
+      created_at INTEGER ,
+      template_id INTEGER,
       generated_cards TEXT,
       cards_profile TEXT,
       card_prefix TEXT,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mikronet/views/prints/print_page.dart';
 import '/api/cards_api.dart';
 import '/api/profiles_api.dart';
 import '/api/users_api.dart';
@@ -8,8 +9,8 @@ import '/models/users_model.dart';
 import '/models/profiles_model.dart';
 import '/services/mikrotik_client.dart';
 import '/views/helpers/dialogs.dart';
-import '/views/prints/add_template.dart';
-import '/views/prints/saved_templates_view.dart';
+import 'prints/templates/templates_form.dart';
+import 'prints/templates/all_templates_view.dart';
 // import '/views/test.dart';
 
 import 'widgets/menu_item_card.dart';
@@ -102,7 +103,7 @@ class _HomePage extends State<HomePage> {
   }
   
   Future<void> fun1()async{
-    Get.to(SavedTemplatesView());
+    Get.to(PrintOperationsView());
   }
 
   Future<void> fun2()async{

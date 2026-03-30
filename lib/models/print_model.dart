@@ -148,95 +148,15 @@ class PrintTemplatesModel {
   
 }
 
-// class PrintTemplatesModel {
-
-//   final int id;
-//   final String name;
-//   final String passwordType;
-//   final Uint8List imageData;
-//   final double rows;
-//   final double columns;
-//   final double usernameLength;
-//   final double passwordLength;
-//   final double fontsize;
-//   final String usernamePattern;
-//   final String passwordPattern;
-//   final Map usernameLocation;
-//   final Map passwordLocation;
-
-//   PrintTemplatesModel({
-//     required this.id,
-//     required this.name,
-//     required this.passwordType,
-//     required this.imageData,
-//     required this.rows,
-//     required this.columns,
-//     required this.usernameLength,
-//     required this.passwordLength,
-//     required this.fontsize,
-//     required this.usernamePattern,
-//     required this.passwordPattern,
-//     required this.usernameLocation,
-//     required this.passwordLocation,
-//   });
-
-//   static PrintTemplatesModel fromDatabase(Map data){
-//     return PrintTemplatesModel(
-//       id: data["id"], 
-//       name: data["name"], 
-//       passwordType: data["password_type"], 
-//       imageData: base64Decode(data["image"]), 
-//       rows: data["rows"], 
-//       columns: data["columns"], 
-//       usernameLength: data["username_length"], 
-//       passwordLength: data["password_length"], 
-//       fontsize: data["fontsize"], 
-//       usernamePattern:data["username_pattern"] , 
-//       passwordPattern: data["password_pattern"], 
-//       usernameLocation: {
-//         "x": data["username_location_x"] ,
-//         "y": data["username_location_y"] ,
-//       }, 
-//       passwordLocation: {
-//         "x": data["password_location_x"] ,
-//         "y": data["password_location_y"] ,
-//       }, 
-//     );
-//   }
-
-//   Map<String, dynamic> toDatabase(){
-//     return {
-//       "name": name, 
-//       "password_type": passwordType, 
-//       "image": base64Encode(imageData), 
-//       "rows": rows, 
-//       "columns": columns, 
-//       "username_length": usernameLength , 
-//       "password_length": passwordLength, 
-//       "fontsize": fontsize, 
-//       "username_pattern":usernamePattern , 
-//       "password_pattern": passwordPattern, 
-//       "username_location_x":usernameLocation["x"],
-//       "username_location_y":usernameLocation["y"],
-//       "password_location_x":passwordLocation["x"],
-//       "password_location_y":passwordLocation["y"],
-//     };
-//   }
- 
-// }
-
-
-
-
 
 
 
 class PrintBatchesModel {
   final int id;
   final String name;
-  final String createdAt;
-  final PrintTemplatesModel? template;
-  final String generatedCards;
+  final DateTime createdAt;
+  final int templateId;
+  final List<String> generatedCards;
   final String cardsProfile;
   final String cardPrefix;
   final String cardSuffix;
@@ -245,24 +165,24 @@ class PrintBatchesModel {
     required this.id,
     required this.name,
     required this.createdAt,
-    this.template,
+    this.templateId=0,
     required this.generatedCards,
     required this.cardsProfile,
-    required this.cardPrefix,
-    required this.cardSuffix,
+    this.cardPrefix="",
+    this.cardSuffix="",
   });
 
-  static Future<PrintBatchesModel> fromDatabase(Map data)async{
-    PrintTemplatesModel? model;
-    // PrintTemplatesApi api=PrintTemplatesApi();
-    Map templateData=await PrintTemplatesApi.getTemplateData(data["template_id"]);
-    model=templateData.isEmpty? null : PrintTemplatesModel.fromDataForm(templateData);
+  static PrintBatchesModel fromDatabase(Map data){
+    List<String> parsedCards = [];
+    if (data['generated_cards'] != null && data['generated_cards'].toString().isNotEmpty) {
+      parsedCards = data['generated_cards'].toString().split(',');
+    }
     return PrintBatchesModel(
       id: data["id"], 
       name: data["name"], 
-      createdAt: data["created_at"], 
-      template: model, 
-      generatedCards: data["generated_cards"], 
+      createdAt: DateTime.fromMicrosecondsSinceEpoch(data["created_at"]) , 
+      templateId: data["template_id"], 
+      generatedCards: parsedCards , 
       cardsProfile: data["cards_profile"], 
       cardPrefix: data["card_prefix"], 
       cardSuffix: data["card_suffix"], 
@@ -270,13 +190,13 @@ class PrintBatchesModel {
   }
 
   Map toDatabase(){
-    String templateId="unknown";
-    if(template!=null)templateId=template!.id.toString();
+    // String templateId="unknown";
+    // if(template!=null)templateId=template!.id.toString();
     return {
       "name": name, 
-      "created_at": createdAt, 
+      "created_at": createdAt.microsecondsSinceEpoch, 
       "template_id": templateId, 
-      "generated_cards": generatedCards, 
+      "generated_cards": generatedCards.join(","), 
       "cards_profile": cardsProfile, 
       "card_prefix": cardPrefix , 
       "card_suffix": cardSuffix, 
@@ -285,7 +205,6 @@ class PrintBatchesModel {
  
 
 }
-
 
 
 

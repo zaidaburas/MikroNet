@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../Controllers/print_controller.dart';
-import '../prints/saved_templates_view.dart';
+import 'saved_templates_view.dart';
 
 class PrintTemplatesView extends StatefulWidget {
   const PrintTemplatesView({super.key});

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../Controllers/batches_controller.dart';
+import 'package:mikronet/models/print_model.dart';
+import '/controllers/print/batches_controller.dart';
 import 'add_batch.dart';
-import 'page_preview.dart'; // استيراد صفحة المعاينة
+// import '../packages/add_batch.dart';
+// import 'page_preview.dart'; // استيراد صفحة المعاينة
 
 class BatchesView extends StatefulWidget {
   const BatchesView({super.key});
@@ -19,17 +21,20 @@ class _BatchesViewState extends State<BatchesView> {
   @override
   Widget build(BuildContext context) {
     // جلب البيانات من الكنترولر
-    var batches = controller.batches; 
+    var batches = controller.allBatches; 
 
     // منطق البحث
     if (searchCtrl.text.isNotEmpty) {
-      batches = batches.where((b) => b['name'].toLowerCase().contains(searchCtrl.text.toLowerCase())).toList();
+      batches = batches.where((b) => b.name.toLowerCase().contains(searchCtrl.text.toLowerCase())).toList();
     }
 
     // منطق الفلترة (تم تعديل الوصول للبيانات لتناسب Map)
     batches = batches.where((b) {
-      final sold = b['sold'] ?? 0;
-      final remaining = b['remaining'] ?? (b['total'] ?? 0);
+      // final sold = b['sold'] ?? 0;
+      // final remaining = b['remaining'] ?? (b['total'] ?? 0);
+
+      const sold = 1;
+      const remaining = 0;
       
       if (filter == "FULL") return sold == 0;
       if (filter == "USING") return remaining > 0 && sold > 0;
@@ -193,7 +198,7 @@ class _BatchesViewState extends State<BatchesView> {
   }
 
   /* ================= قائمة الدفعات ================= */
-  Widget _buildBatchesList(List batches) {
+  Widget _buildBatchesList(List<PrintBatchesModel> batches) {
     if (batches.isEmpty) return const Center(child: Text("لا توجد دفعات حالياً"));
 
     return ListView.builder(
@@ -211,17 +216,19 @@ class _BatchesViewState extends State<BatchesView> {
           child: Column(
             children: [
               ListTile(
-                title: Text(b['name'] ?? "", style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-                subtitle: Text("اللاحقة: ${b['suffix']?.isEmpty ?? true ? '-' : b['suffix']} | البادئة: ${b['prefix']?.isEmpty ?? true ? '-' : b['prefix']}", style: const TextStyle(fontSize: 11)),
+                title: Text(b.name, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                subtitle: Text("اللاحقة: ${b.cardSuffix} | البادئة: ${b.cardPrefix}", style: const TextStyle(fontSize: 11)),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    IconButton(icon: const Icon(Icons.edit_note_rounded, color: Colors.blue), onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => AddBatchView(controller: controller, editIndex: i, batch: b)))
-                          .then((_) => setState(() {}));
+                    IconButton(icon: const Icon(Icons.edit_note_rounded, color: Colors.blue), 
+                    onPressed: () {
+                      // Navigator.push(context, MaterialPageRoute(builder: (_) => AddBatchView(controller: controller, editIndex: i, batch: b)))
+                      //     .then((_) => setState(() {}));
                     }),
-                    IconButton(icon: const Icon(Icons.delete_sweep_rounded, color: Colors.redAccent), onPressed: () {
-                      controller.batches.removeAt(i);
+                    IconButton(icon: const Icon(Icons.delete_sweep_rounded, color: Colors.redAccent), 
+                    onPressed: () {
+                      // controller.batches.removeAt(i);
                       setState(() {});
                     }),
                   ],
@@ -234,14 +241,14 @@ class _BatchesViewState extends State<BatchesView> {
                   spacing: 20,
                   runSpacing: 10,
                   children: [
-                    _buildStatMini(Icons.confirmation_number_outlined, "الإجمالي", b['total'] ?? 0),
-                    _buildStatMini(Icons.sell_outlined, "المباعة", b['sold'] ?? 0),
-                    _buildStatMini(Icons.task_alt_rounded, "المستخدمة", b['used'] ?? 0),
-                    _buildStatMini(Icons.hourglass_empty_rounded, "المتبقية", b['remaining'] ?? (b['total'] ?? 0)),
+                    _buildStatMini(Icons.confirmation_number_outlined, "الإجمالي", b.generatedCards.length),
+                    _buildStatMini(Icons.sell_outlined, "المباعة",  0),
+                    _buildStatMini(Icons.task_alt_rounded, "المستخدمة",  0),
+                    _buildStatMini(Icons.hourglass_empty_rounded, "المتبقية", 0 ),
                   ],
                 ),
               ),
-              _buildPrintAction(b),
+              _buildPrintAction( b.toDatabase() ),
             ],
           ),
         );
@@ -268,25 +275,25 @@ class _BatchesViewState extends State<BatchesView> {
     );
   }
 
-  Widget _buildPrintAction(Map<String, dynamic> b) {
+  Widget _buildPrintAction(Map b) {
     return InkWell(
       onTap: () {
         // الانتقال لصفحة المعاينة مع تمرير بيانات الدفعة المختارة
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => TemplatePreviewPage(
-              controller: controller.printTemplatesController,
-              templateIndex: 0, // يمكن تغييره ليسمح باختيار القالب قبل الطباعة
-              batchData: {
-                'total': b['total'],
-                'prefix': b['prefix'],
-                'suffix': b['suffix'],
-                'name': b['name'],
-              },
-            ),
-          ),
-        );
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (_) => TemplatePreviewPage(
+        //       controller: controller.printTemplatesController,
+        //       templateIndex: 0, // يمكن تغييره ليسمح باختيار القالب قبل الطباعة
+        //       batchData: {
+        //         'total': b['total'],
+        //         'prefix': b['prefix'],
+        //         'suffix': b['suffix'],
+        //         'name': b['name'],
+        //       },
+        //     ),
+        //   ),
+        // );
       },
       child: Container(
         width: double.infinity,

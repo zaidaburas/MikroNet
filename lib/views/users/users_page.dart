@@ -1,4 +1,12 @@
 import 'package:flutter/material.dart';
+
+// استيراد الـ Widgets الموحدة
+import '../widgets/shared/layouts/main_gate_header.dart';
+import '../widgets/shared/layouts/app_mini_footer.dart';
+import '../widgets/shared/cards/main_action_card.dart';
+import '../widgets/shared/typography/section_title.dart';
+
+// استيراد الصفحات الفرعية
 import 'connected_users.dart';
 import 'devices_manager.dart';
 
@@ -13,289 +21,53 @@ class UsersManagementView extends StatelessWidget {
         backgroundColor: const Color(0xFFF8FAFC),
         body: Column(
           children: [
-            _buildPremiumHeader(context),
+            // 1. الهيدر الموحد
+            const MainGateHeader(
+              title: "إدارة المستخدمين",
+              subtitle: "مراقبة الجلسات النشطة والتحكم بالأجهزة",
+              icon: Icons.manage_accounts_rounded,
+            ),
 
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 20, vertical: 25),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                physics: const BouncingScrollPhysics(),
                 children: [
-
-                  _buildSectionHeader("المراقبة المباشرة"),
-                  const SizedBox(height: 12),
-
-                  _buildActionRow(
-                    context,
-                    icon: Icons.wifi_tethering_rounded,
+                  
+                  const SectionTitle(title: "المراقبة المباشرة"),
+                  
+                  MainActionCard(
                     title: "المتصلين حالياً",
-                    subtitle:
-                        "عرض الجلسات النشطة وسرعة الاستهلاك",
+                    subtitle: "عرض الجلسات النشطة وسرعة الاستهلاك",
+                    icon: Icons.wifi_tethering_rounded,
                     color: const Color(0xFF10B981),
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (_) =>
-                              const ActiveUsersView()),
+                      MaterialPageRoute(builder: (_) => const ActiveUsersView()),
                     ),
                   ),
 
-                  const SizedBox(height: 25),
+                  const SizedBox(height: 15),
 
-                  _buildSectionHeader("التحكم والأمان"),
-                  const SizedBox(height: 12),
-
-                  _buildActionRow(
-                    context,
-                    icon:
-                        Icons.important_devices_rounded,
+                  const SectionTitle(title: "التحكم والأمان"),
+                  
+                  MainActionCard(
                     title: "إدارة الأجهزة",
-                    subtitle:
-                        "التحكم في MAC Address وحظر الأجهزة",
+                    subtitle: "التحكم في MAC Address وحظر الأجهزة",
+                    icon: Icons.important_devices_rounded,
                     color: const Color(0xFF6366F1),
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (_) =>
-                              const DevicesView()),
+                      MaterialPageRoute(builder: (_) => const DevicesView()),
                     ),
                   ),
                 ],
               ),
             ),
 
-            _buildMiniFooter(),
+            // 4. الفوتر مع تمرير اسم القسم المطلوب (حل المشكلة)
+            const AppMiniFooter(sectionName: "إدارة المستخدمين"),
           ],
-        ),
-      ),
-    );
-  }
-
-  /* ================= PREMIUM HEADER ================= */
-
-  Widget _buildPremiumHeader(BuildContext context) {
-    return Container(
-      height: 200,
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF0F172A), Color(0xFF1E3A8A)],
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-        ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(45),
-          bottomRight: Radius.circular(45),
-        ),
-        boxShadow: [
-          BoxShadow(
-              color: Color(0x441E3A8A),
-              blurRadius: 20,
-              offset: Offset(0, 10))
-        ],
-      ),
-      child: SafeArea(
-        child: Stack(
-          children: [
-            Center(
-              child: Column(
-                mainAxisAlignment:
-                    MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.all(15),
-                    decoration: BoxDecoration(
-                      color:
-                          Colors.white.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                          color: Colors.white24,
-                          width: 2),
-                    ),
-                    child: const Icon(
-                      Icons.manage_accounts_rounded,
-                      size: 40,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    "إدارة المستخدمين",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight:
-                          FontWeight.w900,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Positioned(
-              top: 10,
-              right: 15,
-              child: IconButton(
-                icon: const Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  color: Colors.white,
-                  size: 22,
-                ),
-                onPressed: () =>
-                    Navigator.pop(context),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /* ================= SECTION HEADER ================= */
-
-  Widget _buildSectionHeader(String title) {
-    return Row(
-      children: [
-        Container(
-          width: 4,
-          height: 18,
-          decoration: BoxDecoration(
-            color: const Color(0xFF38BDF8),
-            borderRadius:
-                BorderRadius.circular(10),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Text(
-          title,
-          style: const TextStyle(
-            fontWeight: FontWeight.w900,
-            fontSize: 16,
-            color: Color(0xFF1E293B),
-          ),
-        ),
-      ],
-    );
-  }
-
-  /* ================= ACTION ROW ================= */
-
-  Widget _buildActionRow(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color:
-                Colors.black.withOpacity(0.04),
-            blurRadius: 15,
-            offset:
-                const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius:
-              BorderRadius.circular(24),
-          onTap: onTap,
-          child: Padding(
-            padding:
-                const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  padding:
-                      const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color:
-                        color.withOpacity(0.1),
-                    borderRadius:
-                        BorderRadius.circular(
-                            18),
-                  ),
-                  child: Icon(icon,
-                      color: color,
-                      size: 28),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment
-                            .start,
-                    children: [
-                      Text(
-                        title,
-                        style:
-                            const TextStyle(
-                          fontWeight:
-                              FontWeight.bold,
-                          fontSize: 16,
-                          color:
-                              Color(0xFF1E293B),
-                        ),
-                      ),
-                      const SizedBox(
-                          height: 4),
-                      Text(
-                        subtitle,
-                        style: TextStyle(
-                          color: Colors
-                              .blueGrey
-                              .shade400,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(Icons.chevron_left_rounded,
-                    color:
-                        Colors.blueGrey.shade200),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /* ================= FOOTER ================= */
-
-  Widget _buildMiniFooter() {
-    return Container(
-      padding:
-          const EdgeInsets.symmetric(
-              vertical: 15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(
-              color:
-                  Colors.blueGrey.shade50),
-        ),
-      ),
-      child: Center(
-        child: Text(
-          "نظام مايكرونت • إدارة المستخدمين",
-          style: TextStyle(
-            color:
-                Colors.blueGrey.shade300,
-            fontSize: 11,
-            fontWeight:
-                FontWeight.bold,
-          ),
         ),
       ),
     );
