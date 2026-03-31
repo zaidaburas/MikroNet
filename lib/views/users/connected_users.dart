@@ -1,76 +1,80 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../Controllers/users_controller.dart';
-import '../../model/active_user.dart';
+import 'package:get/get.dart'; // 1. استيراد GetX بدلاً من Provider
+import 'package:mikronet/controllers/helpers/functions.dart';
+import 'package:mikronet/controllers/users/users_controller.dart';
+import 'package:mikronet/models/users_model.dart';
 
 // استيراد المكونات الموحدة
-import '../widgets/shared/layouts/sub_page_header.dart'; // الهيدر الفرعي
-import '../widgets/shared/layouts/app_mini_footer.dart'; // الفوتر الموحد
-import '../widgets/shared/typography/section_title.dart'; // عنوان الأقسام
+import '../widgets/shared/layouts/sub_page_header.dart';
+import '../widgets/shared/layouts/app_mini_footer.dart';
+import '../widgets/shared/typography/section_title.dart';
 
 class ActiveUsersView extends StatelessWidget {
-  const ActiveUsersView({super.key});
-
+  ActiveUsersView({super.key});
+  final UsersController controller=Get.put(UsersController());
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => ActiveUsersVM(),
-      child: Directionality(
-        textDirection: TextDirection.rtl,
-        child: Scaffold(
-          backgroundColor: const Color(0xffF8FAFC),
-          body: Column(
-            children: [
-              // 1. الهيدر الفرعي الموحد
-              const PremiumHeader(
-                title: "المتصلين حالياً",
-                subtitle: "مراقبة وإدارة أجهزة الشبكة النشطة",
-                icon: Icons.wifi_tethering_rounded,
-              ),
+    // 2. حقن الكنترولر في الذاكرة (يقوم مقام ChangeNotifierProvider)
+    
 
-              // 2. قسم الفلترة (تم تحسينه ليكون بداخل ListView أو كـ Static)
-              _buildFilters(),
-
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: SectionTitle(title: "قائمة الأجهزة المتصلة"),
-              ),
-
-              // 3. القائمة الرئيسية
-              Expanded(child: _buildList()),
-
-              // 4. الفوتر الموحد v4.5
-              const AppMiniFooter(sectionName: "Active Users Monitor"),
-            ],
-          ),
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: const Color(0xffF8FAFC),
+        body: GetBuilder<UsersController>(
+          init: controller,
+          builder: (controller) {
+            return Column(
+              children: [
+                const PremiumHeader(
+                  title: "المتصلين حالياً",
+                  subtitle: "مراقبة وإدارة أجهزة الشبكة النشطة",
+                  icon: Icons.wifi_tethering_rounded,
+                ),
+                
+                _buildFilters(),
+            
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: SectionTitle(title: "قائمة الأجهزة المتصلة "),
+                ),
+            
+                Expanded(child: _buildUsersList(context,controller.filter=="ALL")),
+            
+                const AppMiniFooter(sectionName: "Active Users Monitor"),
+              ],
+            );
+          }
         ),
       ),
     );
   }
 
-  /* ================= 2. قسم الفلترة المطور ================= */
+  /* ================= قسم الفلترة ================= */
   Widget _buildFilters() {
-    return Consumer<ActiveUsersVM>(
-      builder: (context, vm, _) {
+    // 3. استبدال Consumer بـ GetBuilder
+    // return GetBuilder<UsersController>(
+    //   init: controller,
+    //   builder: (controller) {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           child: Row(
             children: [
-              _filterBtn(vm, "ALL", "جميع المتصلين", Icons.group_rounded),
+              _filterBtn("ALL", "جميع المتصلين", Icons.group_rounded),
               const SizedBox(width: 12),
-              _filterBtn(vm, "CARD", "مستخدمي الكروت", Icons.style_rounded),
+              _filterBtn("CARD", "مستخدمي الكروت", Icons.style_rounded),
             ],
           ),
         );
-      },
-    );
+    //   },
+    // );
   }
 
-  Widget _filterBtn(ActiveUsersVM vm, String key, String title, IconData icon) {
-    bool active = vm.filter == key;
+  Widget _filterBtn( String key, String title, IconData icon) {
+    bool active = controller.filter == key;
     return Expanded(
       child: InkWell(
-        onTap: () => vm.setFilter(key),
+        onTap: () => controller.setFilter(key),
         borderRadius: BorderRadius.circular(15),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
@@ -106,20 +110,73 @@ class ActiveUsersView extends StatelessWidget {
     );
   }
 
-  /* ================= 3. القائمة مع العمليات ================= */
-  Widget _buildList() {
-    return Consumer<ActiveUsersVM>(
-      builder: (context, vm, _) {
-        final users = vm.filteredUsers;
-        if (users.isEmpty)
-          return const Center(child: Text("لا يوجد متصلين حالياً"));
+  /* ================= القائمة الرئيسية ================= */
+  Widget _buildHostsList(BuildContext context) {
+    if (controller.isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: Color(0xFF1E3A8A)),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: controller.hostUsers.length,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      physics: const BouncingScrollPhysics(),
+      itemBuilder: (_, i) {
+        final user = controller.hostUsers[i];
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: Colors.blue.shade50),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10)
+            ],
+          ),
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: (user.type=="unauth" ? Colors.red :user.type=="auth"?Colors.blue: Colors.green).withOpacity(0.1),
+              child: Icon(user.type=="unauth" ? Icons.link_off : user.type=="auth"?Icons.link : Icons.done_outline,
+                  color: user.type=="unauth" ? Colors.red : user.type=="auth"?Colors.blue : Colors.green),
+            ),
+            title: Text(
+              // "${user.macAddress} ${user.label!='Unknown'?' • ${user.label}':''}",
+              "${user.label} \n ${user.macAddress} ",
+                style: const TextStyle(
+                    fontWeight: FontWeight.w900, color: Color(0xFF1E293B))),
+            titleAlignment: ListTileTitleAlignment.center,
+            subtitle: Text(
+              "${user.srcAddress} • ${formatBytes(int.parse(user.upload))}/${formatBytes(int.parse(user.download))}",
+                style: const TextStyle(fontSize: 11, color: Colors.blueGrey)),
+            trailing: const Icon(Icons.more_horiz_rounded, color: Colors.blueGrey),
+            onTap: () => _showOptionsHostsSheet(context, user),
+          ),
+        );
+      },
+    );
+        
+  }
+
+  Widget _buildActiveList(BuildContext context) {
+    // 4. استبدال Consumer بـ GetBuilder
+    return GetBuilder<UsersController>(
+      init: controller,
+      builder: (controller) {
+        // final users = controller.filteredUsers;
+        // final users = controller.activeUsers;
+        if (controller.isLoading) {
+          return const Center(
+            child: CircularProgressIndicator(color: Color(0xFF1E3A8A)),
+          );
+        }
 
         return ListView.builder(
-          itemCount: users.length,
+          itemCount: controller.activeUsers.length,
           padding: const EdgeInsets.symmetric(horizontal: 20),
           physics: const BouncingScrollPhysics(),
           itemBuilder: (_, i) {
-            final u = users[i];
+            final user = controller.activeUsers[i];
             return Container(
               margin: const EdgeInsets.only(bottom: 12),
               decoration: BoxDecoration(
@@ -127,26 +184,26 @@ class ActiveUsersView extends StatelessWidget {
                 borderRadius: BorderRadius.circular(22),
                 border: Border.all(color: Colors.blue.shade50),
                 boxShadow: [
-                  BoxShadow(
-                      color: Colors.black.withOpacity(0.02), blurRadius: 10)
+                  BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10)
                 ],
               ),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: (u.isBlocked ? Colors.red : Colors.green)
-                      .withOpacity(0.1),
-                  child: Icon(u.isBlocked ? Icons.block : Icons.person,
-                      color: u.isBlocked ? Colors.red : Colors.green),
+                  backgroundColor: ( Colors.green).withOpacity(0.1),
+                  child: const Icon(Icons.person,
+                      color:  Colors.green),
                 ),
-                title: Text(u.name,
+                title: Text(
+                  "${user.username} \n ${user.label!="Unknown"?user.label:user.macAddress} ",
                     style: const TextStyle(
                         fontWeight: FontWeight.w900, color: Color(0xFF1E293B))),
-                subtitle: Text("${u.ip} • ${u.speed}",
-                    style:
-                        const TextStyle(fontSize: 11, color: Colors.blueGrey)),
-                trailing: const Icon(Icons.more_horiz_rounded,
-                    color: Colors.blueGrey),
-                onTap: () => _showOptionsSheet(context, vm, u),
+                subtitle: Text(
+                  "${user.address} • ${formatBytes(int.parse(user.upload))}/${formatBytes(int.parse(user.download))}",
+                    style: const TextStyle(fontSize: 11, color: Colors.blueGrey)),
+                trailing: const Icon(Icons.more_horiz_rounded, color: Colors.blueGrey),
+                onTap: (){ 
+                  _showOptionsActiveSheet(context, controller, user);
+                },
               ),
             );
           },
@@ -155,9 +212,18 @@ class ActiveUsersView extends StatelessWidget {
     );
   }
 
+  Widget _buildUsersList(BuildContext context,bool hosts){
+    if(hosts){
+      return _buildHostsList(context);
+    }
+    return _buildActiveList(context);
+  }
+  // ملاحظة: دوال _showOptionsSheet و _showRenameDialog و _actionTile تبقى كما هي تماماً!
+  // ...
+
   /* ================= 4. قائمة العمليات (Actions Sheet) ================= */
-  void _showOptionsSheet(
-      BuildContext context, ActiveUsersVM vm, ActiveUser user) {
+  void _showOptionsHostsSheet(
+      BuildContext context, HostUserModel user) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -178,7 +244,7 @@ class ActiveUsersView extends StatelessWidget {
                     color: Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(10))),
             const SizedBox(height: 25),
-            Text(user.name,
+            Text(user.label,
                 style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w900,
@@ -187,24 +253,82 @@ class ActiveUsersView extends StatelessWidget {
             _actionTile("تعديل مسمى الجهاز", Icons.edit_note_rounded,
                 const Color(0xFF6366F1), () {
               Navigator.pop(context);
-              _showRenameDialog(context, vm, user);
+              _showHostRenameDialog(context, controller, user);
             }),
             _actionTile(
                 "قطع الاتصال فوراً", Icons.link_off_rounded, Colors.orange, () {
-              vm.disconnect(user);
+              controller.disconnect(user.id);
               Navigator.pop(context);
             }),
             _actionTile(
-                user.isBlocked ? "فك حظر المستخدم" : "حظر المستخدم",
-                user.isBlocked ? Icons.lock_open_rounded : Icons.block_flipped,
-                user.isBlocked ? Colors.green : Colors.red, () {
-              user.isBlocked ? vm.unblock(user) : vm.block(user);
+                user.type=="blocked" ? "فك حظر المستخدم" : "حظر المستخدم",
+                user.type=="blocked" ? Icons.lock_open_rounded : Icons.block_flipped,
+                user.type=="blocked" ? Colors.green : Colors.red, () {
+              user.type=="blocked" ? controller.unblock(user.id) : controller.block(user.id);
               Navigator.pop(context);
             }),
             _actionTile(
                 "تحويل لمستخدم مجاني", Icons.card_giftcard_rounded, Colors.blue,
                 () {
-              vm.makeFree(user);
+              controller.makeFree(user.id);
+              Navigator.pop(context);
+            }),
+            const SizedBox(height: 15),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showOptionsActiveSheet(
+      BuildContext context, UsersController controller, ActiveUserModel user) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(35)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+                width: 45,
+                height: 5,
+                decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(10))),
+            const SizedBox(height: 25),
+            Text(user.label,
+                style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF0F172A))),
+            const Divider(height: 40),
+            _actionTile("تعديل مسمى الجهاز", Icons.edit_note_rounded,
+                const Color(0xFF6366F1), () {
+              Navigator.pop(context);
+              // _showRenameDialog(context, controller, user);
+            }),
+            _actionTile(
+                "قطع الاتصال فوراً", Icons.link_off_rounded, Colors.orange, () {
+              controller.disconnect(user.id,isActive: true);
+              Navigator.pop(context);
+            }),
+            _actionTile(
+              "حظر المستخدم",
+              Icons.person,
+              Colors.red, () {
+              controller.block(user.id,isActive: true);
+              Navigator.pop(context);
+            }),
+            _actionTile(
+                "تحويل لمستخدم مجاني", Icons.card_giftcard_rounded, Colors.blue,
+                () {
+              controller.makeFree(user.id,isActive: true);
               Navigator.pop(context);
             }),
             const SizedBox(height: 15),
@@ -215,10 +339,10 @@ class ActiveUsersView extends StatelessWidget {
   }
 
   /* ================= 5. نافذة التسمية المباشرة ================= */
-  void _showRenameDialog(
-      BuildContext context, ActiveUsersVM vm, ActiveUser user) {
+  void _showHostRenameDialog(
+      BuildContext context, UsersController controller, HostUserModel user) {
     final TextEditingController nameCtrl =
-        TextEditingController(text: user.name);
+        TextEditingController(text: user.label);
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -251,7 +375,10 @@ class ActiveUsersView extends StatelessWidget {
                 elevation: 0,
               ),
               onPressed: () {
-                vm.updateUserName(user, nameCtrl.text);
+                user.label=="Unknown"?
+                controller.labelUserDevice(user, nameCtrl.text)
+                :
+                controller.updateUserName(user, nameCtrl.text);
                 Navigator.pop(context);
               },
               child: const Text("حفظ",
@@ -261,6 +388,55 @@ class ActiveUsersView extends StatelessWidget {
       ),
     );
   }
+
+  void _showActiveRenameDialog(
+      BuildContext context, UsersController controller, ActiveUserModel user) {
+    final TextEditingController nameCtrl =
+        TextEditingController(text: user.label);
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+        title: const Text("تسمية الجهاز",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.w900)),
+        content: TextField(
+          controller: nameCtrl,
+          textAlign: TextAlign.center,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: const Color(0xffF1F5F9),
+            hintText: "أدخل الاسم الجديد",
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: BorderSide.none),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("إلغاء", style: TextStyle(color: Colors.grey))),
+          ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF10B981),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
+              ),
+              onPressed: () {
+                // controller.updateUserName(user, nameCtrl.text);
+                Navigator.pop(context);
+              },
+              child: const Text("حفظ",
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold))),
+        ],
+      ),
+    );
+  }
+
+  // void _showActiveRenameDialog
 
   Widget _actionTile(String t, IconData i, Color c, VoidCallback f) {
     return ListTile(
@@ -280,4 +456,6 @@ class ActiveUsersView extends StatelessWidget {
           size: 14, color: Colors.black12),
     );
   }
+
+
 }

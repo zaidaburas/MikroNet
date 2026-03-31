@@ -276,7 +276,8 @@ class UsersApi {
     }
   }
 
-  static Future<AppResponse> editDevice(String id,{
+  static Future<AppResponse> editDevice(
+    String id,{
     String macAddress="",
     String srcAddress="",
     String dstAddress="",
@@ -285,7 +286,7 @@ class UsersApi {
     String type="regular",
   })async{
     try {
-      var data=await getAlISavedUsers(where: "?.id=$id");
+      var data=await getAlISavedUsers(where: "=.id=$id");
       Map result=data.data[0].toMap();
       await MikrotikClient.fetch(
         command: [
@@ -313,6 +314,31 @@ class UsersApi {
     }
   }
 
+  static Future<String> getUserId(Map user)async{
+    try {
+      List usersData=await MikrotikClient.printData(
+        commands: [
+          "/ip/hotspot/ip-binding/print",
+        ],
+        conditions: [
+          // '?address=${user["address"]}',
+          // '?to-address=${user["to-address"]}',
+          '?mac-address=${user["mac-address"]}',
+          // '?server=${user["server"]}',
+          '?comment=${user["comment"]}',
+        ]
+
+        // fields: ".id,address,to-address,mac-address,disabled,server,type,comment"
+      );
+      if(usersData.isEmpty){
+        return "empty";
+      }
+      return usersData.first[".id"];
+    } catch (e) {
+      return e.toString();
+    }
+    // return {};
+  }
 
 }
 

@@ -4,12 +4,14 @@ class MainGateHeader extends StatelessWidget {
   final String title;
   final String subtitle;
   final IconData icon;
+  final bool showButton;
 
   const MainGateHeader({
     super.key,
     required this.title,
     required this.subtitle,
     required this.icon,
+    this.showButton=true
   });
 
   @override
@@ -90,23 +92,26 @@ class MainGateHeader extends StatelessWidget {
           ),
           
           // زر الخروج (الرجوع) الموجه لليمين
-          Positioned(
-            top: 45,
-            right: 20,
-            child: InkWell(
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white12),
-                ),
-                // تم تعديل الأيقونة هنا لتشير لليمين في نظام RTL
-                child: const Icon(
-                  Icons.arrow_back_ios_new_rounded, 
-                  color: Colors.white, 
-                  size: 18
+          Visibility(
+            visible: showButton,
+            child: Positioned(
+              top: 45,
+              right: 20,
+              child: InkWell(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white12),
+                  ),
+                  // تم تعديل الأيقونة هنا لتشير لليمين في نظام RTL
+                  child: const Icon(
+                    Icons.arrow_back_ios_new_rounded, 
+                    color: Colors.white, 
+                    size: 18
+                  ),
                 ),
               ),
             ),

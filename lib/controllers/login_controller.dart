@@ -123,8 +123,8 @@ class LoginController extends GetxController{
   @override
   void onInit() {
     super.onInit();
-    // hostController.text = '1.1.1.1'; 
-    hostController.text = 'localhost'; 
+    hostController.text = '1.1.1.1'; 
+    // hostController.text = 'localhost'; 
     userController.text = 'user'; 
     passwordController.text = 'userpass'; 
     portController.text = '8727'; 

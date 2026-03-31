@@ -103,15 +103,15 @@ class HostUserModel {
   Map toMap(){
     return {
       "id":id,
-      "srcAddress":srcAddress,
-      "dstAddress":dstAddress,
-      "macAddress":macAddress,
+      "address":srcAddress,
+      "to-address":dstAddress,
+      "mac-address":macAddress,
       "uptime":uptime,
       "server":server,
-      "download":download,
-      "upload":upload,
-      "type":type,
-      "label":label,
+      "bytes-out":download,
+      "bytes-in":upload,
+      // "type":type,
+      "comment":label,
     };
   }
 }

@@ -8,7 +8,7 @@ import '../widgets/shared/typography/section_title.dart';
 
 // استيراد الصفحات الفرعية
 import 'connected_users.dart';
-import 'devices_manager.dart';
+// import 'devices_manager.dart';
 
 class UsersManagementView extends StatelessWidget {
   const UsersManagementView({super.key});
@@ -43,7 +43,7 @@ class UsersManagementView extends StatelessWidget {
                     color: const Color(0xFF10B981),
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const ActiveUsersView()),
+                      MaterialPageRoute(builder: (_) => ActiveUsersView()),
                     ),
                   ),
 
@@ -56,10 +56,11 @@ class UsersManagementView extends StatelessWidget {
                     subtitle: "التحكم في MAC Address وحظر الأجهزة",
                     icon: Icons.important_devices_rounded,
                     color: const Color(0xFF6366F1),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const DevicesView()),
-                    ),
+                    onTap: () {},
+                    // => Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(builder: (_) => const DevicesView()),
+                    // ),
                   ),
                 ],
               ),

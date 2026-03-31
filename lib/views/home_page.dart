@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mikronet/views/prints/print_page.dart';
+import 'package:mikronet/views/users/users_page.dart';
 import '/api/cards_api.dart';
 import '/api/profiles_api.dart';
 import '/api/users_api.dart';
@@ -107,19 +108,7 @@ class _HomePage extends State<HomePage> {
   }
 
   Future<void> fun2()async{
-    try {
-      List d=[];
-      await MikrotikClient.login();
-      var r=await UsersApi.labelDevice(
-        macAddress: "12:9A:C4:EB:D7:E2"
-      );
-      if(r.status){
-        d.add(r.message);
-      }
-      showErrorDialog(content: d.toString());
-    } catch (e) {
-      showErrorDialog(content: e.toString());
-    }
+    Get.to(UsersManagementView());
   }
 
   Future<void> fun3()async{
@@ -188,7 +177,7 @@ class _HomePage extends State<HomePage> {
   Widget _buildGridMenu(BuildContext context) {
       final List<Map<String, dynamic>> menuData = [
         {"title": "template", "icon": Icons.credit_card_rounded, "view": fun1 },
-        {"title": "edit", "icon": Icons.people_alt_rounded, "view": fun2 },
+        {"title": "Users", "icon": Icons.people_alt_rounded, "view": fun2 },
         {"title": "delete", "icon": Icons.print_rounded, "view": fun3 },
         {"title": "getProfilesLimitations", "icon": Icons.dns_rounded, "view": fun4 },
         {"title": "getProfile", "icon": Icons.analytics_rounded, "view": fun5 },
