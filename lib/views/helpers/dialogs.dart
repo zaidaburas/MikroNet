@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-void showErrorDialog({String title="Error",Color titleColor=Colors.black,String content="...",String action="Done"}){
+void showErrorDialog({String title="Error",Color titleColor=Colors.red,String content="...",String action="Done"}){
   Get.dialog(
     AlertDialog(
       title: Text(title,style: TextStyle(color: titleColor)),

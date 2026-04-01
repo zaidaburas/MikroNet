@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:charset/charset.dart';
 import 'package:crypto/crypto.dart'; // مطلوبة من أجل Legacy Login (MD5)
 import 'package:logger/logger.dart';
 
@@ -119,8 +120,8 @@ class RouterOSClient {
         return null; // الكلمة لم تصل كاملة بعد
       }
 
-      String word = utf8.decode(
-        _buffer.sublist(offset + bytesUsedForLength, offset + bytesUsedForLength + length),allowMalformed: true
+      String word = windows1256.decode(
+        _buffer.sublist(offset + bytesUsedForLength, offset + bytesUsedForLength + length),allowInvalid: true
       );
       sentence.add(word);
       offset += bytesUsedForLength + length;
@@ -184,7 +185,7 @@ class RouterOSClient {
         List<int> challenge = _hexToBytes(retStr);
         
         // حساب الـ MD5 : 0x00 + password + challenge
-        var md5Hash = md5.convert([0, ...utf8.encode(password), ...challenge]);
+        var md5Hash = md5.convert([0, ...windows1256.encode(password), ...challenge]);
         String responseHash = '00${md5Hash.toString()}';
 
         var legacyReply = await _communicate(['/login', '=name=$user', '=response=$responseHash']);
@@ -213,7 +214,7 @@ class RouterOSClient {
 
     for (var word in sentence) {
       _sendLength(socket, word.length);
-      socket.add(utf8.encode(word));
+      socket.add(windows1256.encode(word));
       logger.d('>>> $word');
     }
     _sendLength(socket, 0); // End of sentence indicator
@@ -235,7 +236,7 @@ class RouterOSClient {
 
     for (var word in sentenceToSend) {
       _sendLength(socket, word.length);
-      socket.add(utf8.encode(word));
+      socket.add(windows1256.encode(word));
       logger.d('>>> $word');
     }
     _sendLength(socket, 0); // End of sentence

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../Controllers/devices_controller.dart';
-import '../../model/device.dart';
+import 'package:get/get.dart'; // تم استبدال Provider بـ GetX
+import 'package:mikronet/controllers/users/devices_controller.dart';
+import 'package:mikronet/models/users_model.dart';
+
+
 
 // استيراد المكونات الموحدة v4.5
 import '../widgets/shared/layouts/sub_page_header.dart';
@@ -13,75 +15,88 @@ class DevicesView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => DevicesVM(),
-      child: Directionality(
-        textDirection: TextDirection.rtl,
-        child: Scaffold(
-          backgroundColor: const Color(0xffF8FAFC),
+    // حقن المتحكم هنا ليكون متاحاً لجميع الـ GetBuilder في الصفحة
+    // Get.put(DevicesController());
+    // Get.put(DevicesController());
 
-          // زر الإضافة جهة اليسار بارتفاع متناسق
-          floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
-          floatingActionButton: Consumer<DevicesVM>(
-            builder: (context, vm, _) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 50, left: 10),
-                child: FloatingActionButton(
-                  backgroundColor: const Color(0xff1E3A8A),
-                  elevation: 10,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18)),
-                  onPressed: () => _showAddDeviceSheet(context, vm),
-                  child: const Icon(Icons.add_rounded,
-                      color: Colors.white, size: 30),
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: GetBuilder<DevicesController>(
+        init: DevicesController(),
+        builder: (controller) {
+          return Scaffold(
+            backgroundColor: const Color(0xffF8FAFC),
+          
+            // زر الإضافة جهة اليسار بارتفاع متناسق
+            floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+            floatingActionButton: GetBuilder<DevicesController>(
+              builder: (controller) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 50, left: 10),
+                  child: FloatingActionButton(
+                    backgroundColor: const Color(0xff1E3A8A),
+                    elevation: 10,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18)),
+                    onPressed: () => _showAddDeviceSheet(context, controller),
+                    child: const Icon(Icons.add_rounded,
+                        color: Colors.white, size: 30),
+                  ),
+                );
+              },
+            ),
+          
+            body: Column(
+              children: [
+                // 1. الهيدر الفرعي الموحد
+                const PremiumHeader(
+                  title: "إدارة الأجهزة",
+                  subtitle: "التحكم في الأجهزة المسجلة والمحظورة",
+                  icon: Icons.devices_other_rounded,
                 ),
-              );
-            },
-          ),
-
-          body: Column(
-            children: [
-              // 1. الهيدر الفرعي الموحد
-              const PremiumHeader(
-                title: "إدارة الأجهزة",
-                subtitle: "التحكم في الأجهزة المسجلة والمحظورة",
-                icon: Icons.devices_other_rounded,
-              ),
-
-              // 2. الفلاتر بستايل الكبسولة الموحد
-              _buildFiltersSection(),
-
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: SectionTitle(title: "قائمة الأجهزة"),
-              ),
-
-              // 3. القائمة الرئيسية
-              Expanded(child: _buildDevicesList()),
-
-              // 4. الفوتر الموحد v4.5
-              const AppMiniFooter(sectionName: "Devices Management"),
-            ],
-          ),
-        ),
+          
+                // 2. الفلاتر بستايل الكبسولة الموحد
+                _buildFiltersSection(),
+          
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  // child: SectionTitle(title: "قائمة الأجهزة ${controller.filteredDevices.length}"),
+                  child: Row(children: [
+                    SectionTitle(title: "${controller.filteredDevices.length} جهاز "),
+                    const Text("( أحمر=محظور - ",style: TextStyle(color: Colors.red),),
+                    const Text("أصفر=عادي - ",style: TextStyle(color: Colors.orange),),
+                    const Text("أخضر=مجان )",style: TextStyle(color: Colors.green),),
+                  ],),
+                ),
+          
+                // 3. القائمة الرئيسية
+                Expanded(child: _buildDevicesList(context)),
+          
+                // 4. الفوتر الموحد v4.5
+                const AppMiniFooter(sectionName: "Devices Management"),
+              ],
+            ),
+          );
+        }
       ),
     );
   }
 
   /* ================= 2. FILTERS SECTION ================= */
   Widget _buildFiltersSection() {
-    return Consumer<DevicesVM>(
-      builder: (context, vm, _) {
+    return GetBuilder<DevicesController>(
+      builder: (controller) {
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
           physics: const BouncingScrollPhysics(),
           child: Row(
             children: [
-              _filterTab(vm, "ALL", "الكل"),
-              _filterTab(vm, "SAVED", "محفوظة"),
-              _filterTab(vm, "BLOCKED", "محظورة"),
-              _filterTab(vm, "FREE", "مجانية"),
+              _filterTab(controller, "ALL", "الكل"),
+              _filterTab(controller, "SAVED", "محفوظة"),
+              _filterTab(controller, "UNSAVED", "غير محفوظة"),
+              _filterTab(controller, "BLOCKED", "محظورة"),
+              _filterTab(controller, "FREE", "مجانية"),
             ],
           ),
         );
@@ -89,10 +104,10 @@ class DevicesView extends StatelessWidget {
     );
   }
 
-  Widget _filterTab(DevicesVM vm, String key, String title) {
-    bool isSelected = vm.filter == key;
+  Widget _filterTab(DevicesController controller, String key, String title) {
+    bool isSelected = controller.filter == key;
     return InkWell(
-      onTap: () => vm.setFilter(key),
+      onTap: () => controller.setFilter(key),
       borderRadius: BorderRadius.circular(12),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
@@ -121,12 +136,19 @@ class DevicesView extends StatelessWidget {
   }
 
   /* ================= 3. DEVICES LIST ================= */
-  Widget _buildDevicesList() {
-    return Consumer<DevicesVM>(
-      builder: (context, vm, _) {
-        final devices = vm.filteredDevices;
-        if (devices.isEmpty)
+  Widget _buildDevicesList(BuildContext context) {
+    return GetBuilder<DevicesController>(
+      builder: (controller) {
+        final devices = controller.filteredDevices;
+        if (controller.isLoading) {
+          return const Center(
+            child: CircularProgressIndicator(color: Color(0xFF1E3A8A)),
+          );
+        }
+
+        if (devices.isEmpty) {
           return const Center(child: Text("لا توجد أجهزة حالياً"));
+        }
 
         return ListView.builder(
           itemCount: devices.length,
@@ -154,15 +176,15 @@ class DevicesView extends StatelessWidget {
                   child: Icon(Icons.smartphone_rounded,
                       color: _getStatusColor(d), size: 22),
                 ),
-                title: Text(d.name,
+                title: Text(d.label,
                     style: const TextStyle(
                         fontWeight: FontWeight.w900, color: Color(0xFF1E293B))),
-                subtitle: Text("${d.ip} • ${d.mac}",
+                subtitle: Text("${d.clientIp} • ${d.macAddress}",
                     style:
                         const TextStyle(fontSize: 11, color: Colors.blueGrey)),
                 trailing: const Icon(Icons.more_horiz_rounded,
                     color: Colors.blueGrey),
-                onTap: () => _showOptionsSheet(context, vm, d),
+                onTap: () => _showOptionsSheet(context, controller, d, i),
               ),
             );
           },
@@ -171,18 +193,14 @@ class DevicesView extends StatelessWidget {
     );
   }
 
-  Color _getStatusColor(Device d) {
-    if (d.isBlocked) return Colors.red;
-    if (d.isFree) return Colors.blue;
-    return Colors.green;
+  Color _getStatusColor(DevicesModel d) {
+    if (d.type.isBlocked) return Colors.red;
+    if (d.type.isFree) return Colors.green;
+    return Colors.orange;
   }
 
   /* ================= 4. ADD DEVICE SHEET ================= */
-  void _showAddDeviceSheet(BuildContext context, DevicesVM vm) {
-    final nameCtrl = TextEditingController();
-    final ipCtrl = TextEditingController();
-    final macCtrl = TextEditingController();
-    String status = "NORMAL";
+  void _showAddDeviceSheet(BuildContext context, DevicesController controller) {
 
     showModalBottomSheet(
       context: context,
@@ -218,11 +236,37 @@ class DevicesView extends StatelessWidget {
                           fontWeight: FontWeight.w900,
                           color: Color(0xFF0F172A))),
                   const SizedBox(height: 25),
-                  _modernField(nameCtrl, "اسم الجهاز", Icons.badge_outlined),
-                  _modernField(ipCtrl, "IP Address", Icons.wifi_rounded),
-                  _modernField(macCtrl, "MAC Address", Icons.memory_rounded),
+                  _modernField(controller.nameCtrl, "اسم الجهاز", Icons.badge_outlined),
+                  _modernField(controller.ipCtrl, "IP Address", Icons.wifi_rounded),
+                  _modernField(controller.macCtrl, "MAC Address", Icons.memory_rounded),
 
                   // Dropdown المنسق
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 15),
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    decoration: BoxDecoration(
+                        color: const Color(0xffF1F5F9),
+                        borderRadius: BorderRadius.circular(15)),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: controller.selectedStatus,
+                        isExpanded: true,
+                        items: const [
+                          DropdownMenuItem(
+                              value: "regular", child: Text("عادي")),
+                          DropdownMenuItem(value: "bypassed", child: Text("مجاني")),
+                          DropdownMenuItem(
+                              value: "blocked", child: Text("محظور")),
+                        ],
+                        onChanged: (v) => setStateSheet(() {
+                          controller.selectedStatus = v!;
+                          controller.update();
+                        }),
+                      ),
+                    ),
+                  ),
+
+                  // Dropdown المنسق 2
                   Container(
                     margin: const EdgeInsets.only(bottom: 25),
                     padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -231,16 +275,15 @@ class DevicesView extends StatelessWidget {
                         borderRadius: BorderRadius.circular(15)),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
-                        value: status,
+                        value: controller.selectedServer,
                         isExpanded: true,
-                        items: const [
-                          DropdownMenuItem(
-                              value: "NORMAL", child: Text("عادي")),
-                          DropdownMenuItem(value: "FREE", child: Text("مجاني")),
-                          DropdownMenuItem(
-                              value: "BLOCKED", child: Text("محظور")),
-                        ],
-                        onChanged: (v) => setStateSheet(() => status = v!),
+                        items: List.generate(controller.servers.length, (i){
+                          return DropdownMenuItem(value: controller.servers[i], child: Text(controller.servers[i]));
+                        }),
+                        onChanged: (v) => setStateSheet(() {
+                          controller.selectedServer = v!;
+                          controller.update();
+                        }),
                       ),
                     ),
                   ),
@@ -257,11 +300,7 @@ class DevicesView extends StatelessWidget {
                         elevation: 0,
                       ),
                       onPressed: () {
-                        vm.addManualDevice(
-                            name: nameCtrl.text,
-                            ip: ipCtrl.text,
-                            mac: macCtrl.text,
-                            status: status);
+                        controller.addManualDevice();
                         Navigator.pop(context);
                       },
                       child: const Text("حفظ الجهاز",
@@ -281,8 +320,9 @@ class DevicesView extends StatelessWidget {
   }
 
   /* ================= 5. OPTIONS SHEET ================= */
-  void _showOptionsSheet(BuildContext context, DevicesVM vm, Device d) {
-    final TextEditingController nameCtrl = TextEditingController(text: d.name);
+  void _showOptionsSheet(BuildContext context, DevicesController controller, DevicesModel d,int index) {
+    // final TextEditingController nameCtrl = TextEditingController(text: d.label);
+    controller.nameCtrl.text=d.label;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -309,7 +349,7 @@ class DevicesView extends StatelessWidget {
             const Text("إدارة الجهاز",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
             const SizedBox(height: 25),
-            _modernField(nameCtrl, "أدخل مسمى للجهاز", Icons.edit_note_rounded),
+            _modernField(controller.nameCtrl, "أدخل مسمى للجهاز", Icons.edit_note_rounded),
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -320,7 +360,7 @@ class DevicesView extends StatelessWidget {
                         borderRadius: BorderRadius.circular(15)),
                     elevation: 0),
                 onPressed: () {
-                  vm.rename(d, nameCtrl.text);
+                  controller.rename(d, controller.nameCtrl.text);
                   Navigator.pop(context);
                 },
                 child: const Text("حفظ المسمى الجديد",
@@ -332,21 +372,21 @@ class DevicesView extends StatelessWidget {
                 padding: EdgeInsets.symmetric(vertical: 15),
                 child: Divider(thickness: 0.8)),
             _actionTile("حظر الجهاز", Icons.block, Colors.red, () {
-              vm.block(d);
+              controller.block(d);
               Navigator.pop(context);
             }),
             _actionTile("فك الحظر", Icons.lock_open_rounded, Colors.green, () {
-              vm.unblock(d);
+              controller.unblock(d);
               Navigator.pop(context);
             }),
             _actionTile(
                 "تحويل لمجاني", Icons.card_giftcard_rounded, Colors.blue, () {
-              vm.makeFree(d);
+              controller.makeFree(d);
               Navigator.pop(context);
             }),
             _actionTile("حذف الجهاز", Icons.delete_forever_rounded, Colors.grey,
                 () {
-              vm.delete(d);
+              controller.delete(d);
               Navigator.pop(context);
             }),
           ],

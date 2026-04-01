@@ -1,44 +1,66 @@
+class DeviceType{
+  bool isBlocked;
+  bool isFree;
+  bool isNormal;
+  DeviceType({
+    this.isBlocked=false,
+    this.isFree=false,
+    this.isNormal=true,
+  });
 
-class SavedUserModel {
-  final String id;
-  final String srcAddress;
-  final String dstAddress;
-  final String macAddress;
-  final String server;
-  final String type;
-  final String label;
+  static DeviceType fromMikrotik(String type){
+    // bool blo
+    return DeviceType(
+      isBlocked: type=="blocked",
+      isFree: type=="bypassed",
+      isNormal: (type!="blocked" && type!="bypassed")
+    );
+  }
 
-  SavedUserModel({
+  String toMikrotik(){
+    return (isBlocked?"blocked":isFree?"bypassed":"regular");
+  }
+}
+class DevicesModel {
+  String id;
+  String clientIp;
+  String address;
+  String macAddress;
+  String server;
+  DeviceType type;
+  String label;
+
+  DevicesModel({
     required this.id,
-    this.srcAddress="0.0.0.0",
-    this.dstAddress="0.0.0.0",
+    this.clientIp="0.0.0.0",
+    this.address="0.0.0.0",
     required this.macAddress,
     this.server="all",
     required this.type,
     required this.label,
   });
 
-  static SavedUserModel fromMikrotik(Map data){
-    return SavedUserModel(
+  static DevicesModel fromMikrotik(Map data){
+    return DevicesModel(
       id: data[".id"]??"Unknown", 
-      srcAddress: data["address"]??"any ip", 
-      dstAddress: data["to-address"]??"any ip", 
+      clientIp: data["address"]??"any ip", 
+      address: data["to-address"]??"any ip", 
       macAddress: data["mac-address"]??"any mac", 
       server: data["server"]??"all",
-      type: data["type"]??"normal", 
+      type: DeviceType.fromMikrotik(data["type"]??"normal"), 
       label: data["comment"]??"Unknown",
     );
   }
 
-  Map toMap(){
+  Map toMikrotik(){
     return {
-      "id":id,
-      "srcAddress":srcAddress,
-      "dstAddress":dstAddress,
-      "macAddress":macAddress,
+      // ".id":id,
+      "address":clientIp,
+      "to-address":address,
+      "mac-address":macAddress,
       "server":server,
-      "type":type,
-      "label":label,
+      "type":type.toMikrotik(),
+      "comment":label,
     };
   }
 
@@ -50,21 +72,21 @@ class SavedUserModel {
 
 
 class HostUserModel {
-  final String id;
-  final String srcAddress;
-  final String dstAddress;
-  final String macAddress;
-  final String uptime;
-  final String server;
-  final String download;
-  final String upload;
-  final String type;
-  final String label;
+  String id;
+  String clientIp;
+  String address;
+  String macAddress;
+  String uptime;
+  String server;
+  String download;
+  String upload;
+  String type;
+  String label;
   
   HostUserModel({
     required this.id,
-    required this.srcAddress,
-    required this.dstAddress,
+    required this.clientIp,
+    required this.address,
     required this.macAddress,
     required this.uptime,
     required this.server,
@@ -88,23 +110,23 @@ class HostUserModel {
     }
     return HostUserModel(
       id: user[".id"]??"Unknown",
-      srcAddress: user["address"]??"Unknown", 
-      dstAddress: user["to-address"]??"Unknown", 
+      clientIp: user["address"]??"Unknown", 
+      address: user["to-address"]??"Unknown", 
       macAddress: user["mac-address"]??"Unknown", 
-      uptime: user["uptime"]??"Unknown", 
+      uptime: user["uptime"]??0, 
       server: user["server"]??"Unknown", 
-      download: user["bytes-out"]??"Unknown",
-      upload: user["bytes-in"]??"Unknown",
+      download: user["bytes-out"]??0,
+      upload: user["bytes-in"]??0,
       type: user["type"]??"Unknown",
       label: user["comment"]??"Unknown",
     );
   }
 
-  Map toMap(){
+  Map toMikrotik(){
     return {
       "id":id,
-      "address":srcAddress,
-      "to-address":dstAddress,
+      "address":clientIp,
+      "to-address":address,
       "mac-address":macAddress,
       "uptime":uptime,
       "server":server,
@@ -123,17 +145,17 @@ class HostUserModel {
 
 
 class ActiveUserModel {
-  final String id;
-  final String address;
-  final String macAddress;
-  final String uptime;
-  final String server;
-  final String download;
-  final String upload;
-  final String label;
-  final String username;
-  final String timeLeft;
-  final String totalPalance;
+  String id;
+  String address;
+  String macAddress;
+  String uptime;
+  String server;
+  String download;
+  String upload;
+  String label;
+  String username;
+  String timeLeft;
+  String totalPalance;
   
   ActiveUserModel({
     required this.id,
@@ -154,10 +176,10 @@ class ActiveUserModel {
       id: user[".id"]??"Unknown",
       address: user["address"]??"Unknown", 
       macAddress: user["mac-address"]??"Unknown", 
-      uptime: user["uptime"]??"Unknown", 
+      uptime: user["uptime"]??0, 
       server: user["server"]??"Unknown", 
-      download: user["bytes-out"]??"Unknown",
-      upload: user["bytes-in"]??"Unknown",
+      download: user["bytes-out"]??0,
+      upload: user["bytes-in"]??0,
       label: user["comment"]??"Unknown",
       username: user["user"]??"Unknown",
       totalPalance: user["limit-bytes-total"]??"Unknown", 
@@ -165,19 +187,19 @@ class ActiveUserModel {
     );
   }
 
-  Map toMap(){
+  Map toMikrotik(){
     return {
-      "id":id,
+      // ".id":id,
       "address":address,
-      "macAddress":macAddress,
+      "mac-address":macAddress,
       "uptime":uptime,
       "server":server,
-      "download":download,
-      "upload":upload,
-      "label":label,
-      "username":username,
-      "totalPalance":totalPalance,
-      "timeLeft":timeLeft,
+      "bytes-out":download,
+      "bytes-in":upload,
+      "comment":label,
+      "user":username,
+      "limit-bytes-total":totalPalance,
+      "session-time-left":timeLeft,
     };
   }
 }

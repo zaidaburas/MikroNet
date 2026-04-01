@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:mikronet/controllers/users/devices_controller.dart';
+import 'package:mikronet/controllers/users/users_controller.dart';
+import 'package:mikronet/views/users/devices_manager.dart';
 
 // استيراد الـ Widgets الموحدة
 import '../widgets/shared/layouts/main_gate_header.dart';
@@ -56,11 +60,11 @@ class UsersManagementView extends StatelessWidget {
                     subtitle: "التحكم في MAC Address وحظر الأجهزة",
                     icon: Icons.important_devices_rounded,
                     color: const Color(0xFF6366F1),
-                    onTap: () {},
-                    // => Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(builder: (_) => const DevicesView()),
-                    // ),
+                    onTap: () 
+                    => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const DevicesView()),
+                    ).then((_){DevicesController().dispose();}),
                   ),
                 ],
               ),

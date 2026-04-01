@@ -15,7 +15,7 @@ class UsersController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // 2. استدعاء دالة مخصصة للتحميل الأولي
+    filter = "ALL";
     getInitialData(); 
   }
 
@@ -64,12 +64,13 @@ class UsersController extends GetxController {
       showErrorDialog(content: response.message);
       return; // إيقاف التنفيذ في حال الخطأ
     }
-    
     List<HostUserModel> result = [];
     for (var i in response.data) {
       result.add(HostUserModel.fromMikrotik(i));
     }
-    
+
+
+
     hostUsers = result;
     if (showDialog) update();
   }
@@ -88,41 +89,151 @@ class UsersController extends GetxController {
     }
   }
 
-  void disconnect(String userId, {bool isActive = false}) {}
-  void unblock(String userId, {bool isActive = false}) {}
-  void block(String userId, {bool isActive = false}) {}
-  void makeFree(String userId, {bool isActive = false}) {}
+  Future<void> removeHost(HostUserModel user) async{
+    isLoading=true;
+    update();
+    AppResponse response= await UsersApi.removeOneHost(user.clientIp);
+    showErrorDialog(title: response.message);
+    isLoading=false;
+    if (response.status) {
+      hostUsers.remove(user);
+    }
+    update();
+    // await getAllHosts();
+  }
 
-  // Future<void> updateUserName(HostUserModel user, String text)async{
-  //   try {
-  //     String getUserId=await UsersApi.getUserId(user.toMap());
-  //     showErrorDialog(content: getUserId,title: "fine");
-  //   } catch (e) {
-  //     showErrorDialog(content: e.toString());
-  //   }
-  // }
+  Future<void> removeActive(ActiveUserModel user) async{
+    isLoading=true;
+    update();
+    AppResponse response= await UsersApi.removeOneActive(user.username);
+    showErrorDialog(title: response.message);
+    isLoading=false;
+    if (response.status) {
+      activeUsers.remove(user);
+    }
+    update();
+    // await getAllHosts();
+  }
+
+  Future<void> disconnect(String userId, {bool isActive = false}) async{
+    if (isActive) {
+      var user=activeUsers.firstWhere((a)=>a.id==userId);
+      removeActive(user);
+      return;
+    }
+    var user=hostUsers.firstWhere((a)=>a.id==userId);
+    removeHost(user);
+  }
+  
+  Future<void> block(String userId, {bool isActive = false}) async{
+    isLoading=true;
+    update();
+    if (isActive) {
+      var active=activeUsers.firstWhere((a)=>a.id==userId);
+      var host=hostUsers.firstWhere((a)=>a.address==active.address);
+      AppResponse response= await UsersApi.blockDevice(
+        macAddress: host.macAddress,
+        srcAddress: host.clientIp,
+        dstAddress: host.address,
+        label: "zaid block"
+      );
+      showErrorDialog(title: response.message);
+      isLoading=false;
+      await getAllActive();
+      return;
+    }
+    var host=hostUsers.firstWhere((a)=>a.id==userId);
+    AppResponse response= await UsersApi.blockDevice(
+      macAddress: host.macAddress,
+      srcAddress: host.clientIp,
+      dstAddress: host.address,
+      label: "zaid block"
+    );
+    showErrorDialog(title: response.message);
+    isLoading=false;
+    await getAllHosts();
+  }
+
+  void unblock(String userId, {bool isActive = false}) {}
+  // void block(String userId, {bool isActive = false}) {}
+  // void makeFree(String userId, {bool isActive = false}) {}
+
+  Future<void> makeFree(String userId, {bool isActive = false}) async{
+    isLoading=true;
+    update();
+    if (isActive) {
+      var active=activeUsers.firstWhere((a)=>a.id==userId);
+      var host=hostUsers.firstWhere((a)=>a.address==active.address);
+      AppResponse response= await UsersApi.bypassDevice(
+        macAddress: host.macAddress,
+        srcAddress: host.clientIp,
+        dstAddress: host.address,
+        label: "zaid bybass"
+      );
+      showErrorDialog(title: response.message);
+      isLoading=false;
+      await getAllActive();
+      return;
+    }
+    var host=hostUsers.firstWhere((a)=>a.id==userId);
+    AppResponse response= await UsersApi.bypassDevice(
+      macAddress: host.macAddress,
+      srcAddress: host.clientIp,
+      dstAddress: host.address,
+      label: "zaid bybass"
+    );
+    showErrorDialog(title: response.message);
+    isLoading=false;
+    await getAllHosts();
+  }
+
+  
+  
+
+
   Future<void> updateUserName(HostUserModel user, String text)async {
     isLoading=true;
     update();
-    String getUserId=await UsersApi.getUserId(user.toMap());
-    AppResponse response =await UsersApi.editDevice(getUserId,label: text);
-    Get.back();
+
+    String getUserId=await UsersApi.getUserId(user.toMikrotik());
+    AppResponse response =await UsersApi.editDevice(getUserId,{"comment":text} );
+    // 
     isLoading=false;
     if (!response.status) {
       showErrorDialog(content: response.message);
+      return;
     }
+    await getInitialData();
     showErrorDialog(title: "done",content: response.message);
+  }
+
+  Future<void> getBlock()async{
+    isLoading=true;
+    update();
+    AppResponse response=await UsersApi.getBlockedHosts();
+    isLoading=false;
+    update();
+    showErrorDialog(title: "${response.data.length}_${response.message}",content: response.data.toString());
+    // { address: 172.16.253.2, mac-address: , 
+    // interface: LAN1,published: false, status: permanent,
+    // vrf: main, invalid: false, dhcp: false, 
+    // dynamic: false, complete: true, disabled: false},
   }
 
   Future<void> labelUserDevice(HostUserModel user, String text)async {
     isLoading=true;
     update();
+    if (text==user.label) {
+      isLoading=false;
+      showErrorDialog(title: "done",content: "done");
+      return;
+    }
     AppResponse response =await UsersApi.labelDevice(
       macAddress: user.macAddress,
       label: text
       // srcAddress: user.srcAddress,
     );
-    Get.back();
+    // Get.back();
     isLoading=false;
     if (!response.status) {
       showErrorDialog(content: response.message);
