@@ -184,7 +184,8 @@ class DevicesView extends StatelessWidget {
                         const TextStyle(fontSize: 11, color: Colors.blueGrey)),
                 trailing: const Icon(Icons.more_horiz_rounded,
                     color: Colors.blueGrey),
-                onTap: () => _showOptionsSheet(context, controller, d, i),
+                // onTap: () => _showOptionsSheet(context, controller, d, i),
+                onTap: () => _showEditDeviceSheet(context, controller, d, i),
               ),
             );
           },
@@ -315,6 +316,135 @@ class DevicesView extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _showEditDeviceSheet(BuildContext context,DevicesController controller, DevicesModel d,int index) {
+    // final TextEditingController nameCtrl = TextEditingController(text: d.label);
+    controller.nameCtrl.text=d.label;
+    controller.selectedStatus=d.toMikrotik()["type"];
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => GetBuilder<DevicesController>(
+        builder: (controller) {
+          return Container(
+            padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 20,
+                bottom: MediaQuery.of(_).viewInsets.bottom + 30),
+            decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(35))),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                    width: 45,
+                    height: 5,
+                    decoration: BoxDecoration(
+                        color: Colors.blueGrey.shade100,
+                        borderRadius: BorderRadius.circular(10))),
+                const SizedBox(height: 25),
+                const Text("إدارة الجهاز",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 25),
+                _modernField(controller.nameCtrl, "أدخل مسمى للجهاز", Icons.edit_note_rounded),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF6366F1),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15)),
+                        elevation: 0),
+                    onPressed: () {
+                      controller.rename(d, controller.nameCtrl.text);
+                      Navigator.pop(context);
+                    },
+                    child: const Text("حفظ المسمى الجديد",
+                        style: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 15),
+                    child: Divider(thickness: 0.8)),
+                _customDropDowm(
+                  items: ["regular","bypassed","blocked"], 
+                  selectedServer: controller.selectedStatus, 
+                  onChanged: (v){
+                    controller.selectedStatus=v;
+                    controller.update();
+                  }
+                ),
+                _actionTile("حذف الجهاز", Icons.delete_forever_rounded, Colors.grey,
+                    () {
+                  controller.delete(d);
+                  Navigator.pop(context);
+                }),
+              ],
+            ),
+          );
+        }
+      ),
+    );
+  }
+
+  Widget _saveButton({
+    String text ="حفظ الجهاز",
+    required void Function() onPressed
+  }){
+    return
+    SizedBox(
+      width: double.infinity,
+      height: 55,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF10B981),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15)),
+          elevation: 0,
+        ),
+        onPressed: onPressed,
+        child: Text(text,
+            style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16)),
+      ),
+    );
+  }
+
+  Widget _customDropDowm({
+    required List<String> items,
+    required String selectedServer,
+    required void Function(String) onChanged
+  }){
+    return
+    Container(
+      margin: const EdgeInsets.only(bottom: 25),
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      decoration: BoxDecoration(
+          color: const Color(0xffF1F5F9),
+          borderRadius: BorderRadius.circular(15)),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: selectedServer,
+          isExpanded: true,
+          items: List.generate(items.length, (i){
+            return DropdownMenuItem(value: items[i], child: Text(items[i]));
+          }),
+          onChanged:(value) => onChanged,
+          // => setStateSheet(() {
+          //   controller.selectedServer = v!;
+          //   controller.update();
+          // }),
+        ),
       ),
     );
   }

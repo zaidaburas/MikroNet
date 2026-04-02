@@ -36,9 +36,29 @@ class ActiveUsersView extends StatelessWidget {
                   
                   _buildFilters(controller),
               
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: SectionTitle(title: "قائمة الأجهزة المتصلة "),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    // child: SectionTitle(title: "قائمة الأجهزة المتصلة "),
+                    child: Row(
+                      children: [
+                        SectionTitle(title: "${controller.filteredDevices} جهاز "),
+                        
+                      ],
+                    ),
+                  ),
+                  Visibility(
+                    visible: controller.filter=="ALL",
+                    child: const SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                      Text("( أحمر=محظور - ",style: TextStyle(color: Colors.red),),
+                      Text("أزرق=متصل بكرت - ",style: TextStyle(color: Colors.blue),),
+                      Text("أصفر=بدون كرت - ",style: TextStyle(color: Colors.orange),),
+                      Text("أخضر=مجان )",style: TextStyle(color: Colors.green),),
+                                        ],),
+                    ),
                   ),
               
                   Expanded(child: _buildUsersList(context,controller.filter=="ALL",controller)),
@@ -120,31 +140,42 @@ class ActiveUsersView extends StatelessWidget {
 
   /* ================= القائمة الرئيسية ================= */
     Widget _buildHostsList(BuildContext context,UsersController controller) {
-    return _buildSharedUsersList(
-      isLoading: controller.isLoading,
-      items: controller.hostUsers,
-      emptyMessage: "لا توجد أجهزة حالياً",
-      iconColorBuilder: (user) => user.type == "unauth" ? Colors.red : (user.type == "auth" ? Colors.blue : Colors.green),
-      iconDataBuilder: (user) => user.type == "unauth" ? Icons.link_off : (user.type == "auth" ? Icons.link : Icons.done_outline),
-      titleBuilder: (user) => "${user.label} \n ${user.macAddress} ",
-      subtitleBuilder: (user) => "${user.address == user.clientIp ? user.address : '${user.clientIp} <=> ${user.address}'} • ${formatBytes(int.parse(user.upload))}/${formatBytes(int.parse(user.download))}",
-      onTap: (user) => _showOptionsHostsSheet(context, user,controller),
+    return GetBuilder<UsersController>(
+      builder: (controller) {
+        return _buildSharedUsersList(
+          isLoading: controller.isLoading,
+          items: controller.hostUsers,
+          emptyMessage: "لا توجد أجهزة حالياً",
+          iconColorBuilder: (user) => _getHostColor(user),
+          iconDataBuilder: (user) => Icons.person,
+          titleBuilder: (user) => user.label=='Unknown'?'بلا تسمية':user.label,
+          titleBuilder2: (user) => user.macAddress,
+          // subtitleBuilder: (user) => "${user.address == user.clientIp ? user.address : '${user.clientIp} <=> ${user.address}'} • ${formatBytes(int.parse(user.upload))}/${formatBytes(int.parse(user.download))}",
+          upload: (user) => formatBytes(int.parse(user.upload)),
+          download: (user) => formatBytes(int.parse(user.download)),
+          address: (user) => user.address,
+          onTap: (user) => _showOptionsSheet(controller,user)
+        );
+      }
     );
   }
 
   Widget _buildActiveList(BuildContext context,UsersController controller) {
     return GetBuilder<UsersController>(
-      init: controller,
       builder: (controller) {
         return _buildSharedUsersList(
           isLoading: controller.isLoading,
           items: controller.activeUsers,
           emptyMessage: "لا يوجد مستخدمين نشطين", // أضفت رسالة افتراضية هنا
-          iconColorBuilder: (user) => Colors.green,
+          iconColorBuilder: (user) => Colors.blue,
           iconDataBuilder: (user) => Icons.person,
-          titleBuilder: (user) => "${user.username} \n ${user.label != "Unknown" ? user.label : user.macAddress} ",
-          subtitleBuilder: (user) => "${user.address} • ${formatBytes(int.parse(user.upload))}/${formatBytes(int.parse(user.download))}",
-          onTap: (user) => _showOptionsActiveSheet(context, controller, user),
+          titleBuilder: (user) => user.username,
+          titleBuilder2: (user) => user.label != "Unknown" ? user.label : user.macAddress,
+          // subtitleBuilder: (user) => "${user.address} • ${formatBytes(int.parse(user.upload))}/${formatBytes(int.parse(user.download))}",
+          upload: (user) => formatBytes(int.parse(user.upload)),
+          download: (user) => formatBytes(int.parse(user.download)),
+          address: (user) => user.address,
+          onTap: (user) => _showOptionsSheet(controller,user)
         );
       },
     );
@@ -157,7 +188,15 @@ class ActiveUsersView extends StatelessWidget {
     required Color Function(T item) iconColorBuilder,
     required IconData Function(T item) iconDataBuilder,
     required String Function(T item) titleBuilder,
-    required String Function(T item) subtitleBuilder,
+    required String Function(T item) titleBuilder2,
+    required String Function(T item) upload,
+    required String Function(T item) download,
+    required String Function(T item) address,
+    IconData uploadIcon=Icons.arrow_upward,
+    IconData downloadIcon=Icons.arrow_downward,
+    // Widget titleBuilder2=const Text(
+    //   "",style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF1E293B)),),
+    // required String Function(T item) subtitleBuilder,
     required void Function(T item) onTap,
   }) {
     if (isLoading) {
@@ -194,15 +233,39 @@ class ActiveUsersView extends StatelessWidget {
               backgroundColor: iconColor.withOpacity(0.1),
               child: Icon(iconData, color: iconColor),
             ),
-            title: Text(
-              titleBuilder(item),
-              style: const TextStyle(
-                  fontWeight: FontWeight.w900, color: Color(0xFF1E293B)),
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(titleBuilder(item),style: const TextStyle(
+                      fontWeight: FontWeight.w900, color: Color(0xFF1E3A8A)),
+                ),
+                Text(titleBuilder2(item),style: const TextStyle(
+                      fontWeight: FontWeight.w900, color: Color(0xFF1E293B)),
+                ),
+                // titleBuilder2
+                
+              ],
             ),
-            titleAlignment: ListTileTitleAlignment.center,
-            subtitle: Text(
-              subtitleBuilder(item),
-              style: const TextStyle(fontSize: 11, color: Colors.blueGrey),
+            // titleAlignment: ListTileTitleAlignment.center,
+            subtitle: Row(
+              children: [
+                Text(
+                  "ip: ${address(item)}",
+                  style: const TextStyle(fontSize: 11, color: Colors.black),
+                ),
+                Text(
+                  " ${upload(item)}",
+                  style: const TextStyle(fontSize: 11, color: Colors.red),
+                ),
+                Icon(uploadIcon,size: 11,color: Colors.red,),
+                // const Text(" )",style: TextStyle(fontSize: 11, color: Colors.blueGrey),),
+                Text(
+                  " ${download(item)}",
+                  style: const TextStyle(fontSize: 11, color: Colors.blue),
+                ),
+                Icon(downloadIcon,size: 11,color: Colors.blue),
+                // const Text(" )",style: TextStyle(fontSize: 11, color: Colors.blueGrey),),
+              ],
             ),
             trailing: const Icon(Icons.more_horiz_rounded, color: Colors.blueGrey),
             onTap: () => onTap(item),
@@ -224,130 +287,166 @@ class ActiveUsersView extends StatelessWidget {
   // ...
 
   /* ================= 4. قائمة العمليات (Actions Sheet) ================= */
-  void _showOptionsHostsSheet(
-      BuildContext context, HostUserModel user,UsersController controller) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(35)),
+  void _showOptionsSheet(UsersController controller,dynamic user){
+    buildCustomOptionsSheet(
+      title: user.label,
+      actions: [
+        ActionItem(
+          title: "تعديل مسمى الجهاز",
+          icon: Icons.edit_note_rounded,
+          color: const Color(0xFF6366F1),
+          onTap: () {
+            // استبدل الـ context هنا أيضاً بـ Get.dialog إذا أمكن
+            _showHostRenameDialog(controller, user);
+          },
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-                width: 45,
-                height: 5,
-                decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(10))),
-            const SizedBox(height: 25),
-            Text(user.label,
-                style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF0F172A))),
-            const Divider(height: 40),
-            _actionTile("تعديل مسمى الجهاز", Icons.edit_note_rounded,
-                const Color(0xFF6366F1), () {
-              Navigator.pop(context);
-              _showHostRenameDialog(context, controller, user);
-            }),
-            _actionTile(
-                "قطع الاتصال فوراً", Icons.link_off_rounded, Colors.orange, () {
-              controller.disconnect(user.id);
-              Navigator.pop(context);
-            }),
-            _actionTile(
-                user.type=="blocked" ? "فك حظر المستخدم" : "حظر المستخدم",
-                user.type=="blocked" ? Icons.lock_open_rounded : Icons.block_flipped,
-                user.type=="blocked" ? Colors.green : Colors.red, () {
-              user.type=="blocked" ? controller.unblock(user.id) : controller.block(user.id);
-              Navigator.pop(context);
-            }),
-            _actionTile(
-                "تحويل لمستخدم مجاني", Icons.card_giftcard_rounded, Colors.blue,
-                () {
-              controller.makeFree(user.id);
-              Navigator.pop(context);
-            }),
-            const SizedBox(height: 15),
-          ],
+        ActionItem(
+          title: "قطع الاتصال فوراً",
+          icon: Icons.link_off_rounded,
+          color: Colors.orange,
+          onTap: () => controller.disconnect(user.id),
         ),
-      ),
+        // ActionItem(
+        //   title: user.type == "blocked" ? "فك حظر المستخدم" : "حظر المستخدم",
+        //   icon: user.type == "blocked" ? Icons.lock_open_rounded : Icons.block_flipped,
+        //   color: user.type == "blocked" ? Colors.green : Colors.red,
+        //   onTap: () {
+        //     user.type == "blocked"
+        //         ? controller.unblock(user.id)
+        //         : controller.block(user.id);
+        //   },
+        // ),
+        // ActionItem(
+        //   title: "تحويل لمستخدم مجاني",
+        //   icon: Icons.card_giftcard_rounded,
+        //   color: Colors.blue,
+        //   onTap: () => controller.makeFree(user.macAddress),
+        // ),
+      ],
+      controller: controller,
+      mac: user.macAddress
     );
   }
 
-  void _showOptionsActiveSheet(
-      BuildContext context, UsersController controller, ActiveUserModel user) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(35)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-                width: 45,
-                height: 5,
-                decoration: BoxDecoration(
+  void buildCustomOptionsSheet({
+    required String title,
+    required List<ActionItem> actions,
+    required UsersController controller,
+    required String mac
+  }) {
+    Get.bottomSheet(
+      GetBuilder<UsersController>(
+        builder: (controller) {
+          return Container(
+            padding: const EdgeInsets.all(24),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(35)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 45,
+                  height: 5,
+                  decoration: BoxDecoration(
                     color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(10))),
-            const SizedBox(height: 25),
-            Text(user.label,
-                style: const TextStyle(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                const SizedBox(height: 25),
+                Text(
+                  title,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w900,
-                    color: Color(0xFF0F172A))),
-            const Divider(height: 40),
-            _actionTile("تعديل مسمى الجهاز", Icons.edit_note_rounded,
-                const Color(0xFF6366F1), () {
-              Navigator.pop(context);
-              // _showRenameDialog(context, controller, user);
-            }),
-            _actionTile(
-                "قطع الاتصال فوراً", Icons.link_off_rounded, Colors.orange, () {
-              controller.disconnect(user.id,isActive: true);
-              Navigator.pop(context);
-            }),
-            _actionTile(
-              "حظر المستخدم",
-              Icons.person,
-              Colors.red, () {
-              controller.block(user.id,isActive: true);
-              Navigator.pop(context);
-            }),
-            _actionTile(
-                "تحويل لمستخدم مجاني", Icons.card_giftcard_rounded, Colors.blue,
-                () {
-              controller.makeFree(user.id,isActive: true);
-              Navigator.pop(context);
-            }),
-            const SizedBox(height: 15),
-          ],
-        ),
+                    color: Color(0xFF0F172A),
+                  ),
+                ),
+                const Divider(height: 40),
+                // توليد عناصر القائمة ديناميكياً
+                ...actions.map((action) => _actionTile(
+                      action.title,
+                      action.icon,
+                      action.color,
+                      () {
+                        Get.back(); // إغلاق BottomSheet أولاً
+                        action.onTap(); // ثم تنفيذ الدالة الممررة
+                      },
+                    )),
+                const SizedBox(height: 15),
+                const Text("تغيير حالة الجهاز",style:
+                TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF0F172A),
+                  ),),
+                const SizedBox(height: 15),
+                Container(
+                  margin: const EdgeInsets.only(bottom: 15),
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  decoration: BoxDecoration(
+                      color: const Color(0xffF1F5F9),
+                      borderRadius: BorderRadius.circular(15)),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: controller.selectedStatus,
+                      isExpanded: true,
+                      items: const [
+                        DropdownMenuItem(
+                            value: "regular", child: Text("عادي")),
+                        DropdownMenuItem(value: "bypassed", child: Text("مجاني")),
+                        DropdownMenuItem(
+                            value: "blocked", child: Text("محظور")),
+                      ],
+                      onChanged: (v) {
+                        controller.selectedStatus = v!;
+                        controller.update();
+                      },
+                    ),
+                  ),
+                ),
+          
+                // زر الحفظ الموحد
+                SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF10B981),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15)),
+                      elevation: 0,
+                    ),
+                    onPressed: () {
+                      controller.editStatus(mac);
+                      Get.back();
+                    },
+                    child: const Text("حفظ التعديل",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16)),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
       ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
     );
   }
 
   /* ================= 5. نافذة التسمية المباشرة ================= */
-  void _showHostRenameDialog(
-      BuildContext context, UsersController controller, HostUserModel user) {
+  void _showHostRenameDialog(UsersController controller, dynamic user) {
     final TextEditingController nameCtrl =
         TextEditingController(text: user.label);
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
+    Get.dialog(
+      // context: context,
+      // builder: (_) => 
+      AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
         title: const Text("تسمية الجهاز",
             textAlign: TextAlign.center,
@@ -367,7 +466,7 @@ class ActiveUsersView extends StatelessWidget {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Get.back(),
               child: const Text("إلغاء", style: TextStyle(color: Colors.grey))),
           ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -381,64 +480,33 @@ class ActiveUsersView extends StatelessWidget {
                 controller.labelUserDevice(user, nameCtrl.text)
                 :
                 controller.updateUserName(user, nameCtrl.text);
-                Navigator.pop(context);
+                Get.back();
               },
               child: const Text("حفظ",
                   style: TextStyle(
                       color: Colors.white, fontWeight: FontWeight.bold))),
         ],
       ),
+
     );
   }
 
-  void _showActiveRenameDialog(
-      BuildContext context, UsersController controller, ActiveUserModel user) {
-    final TextEditingController nameCtrl =
-        TextEditingController(text: user.label);
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-        title: const Text("تسمية الجهاز",
-            textAlign: TextAlign.center,
-            style: TextStyle(fontWeight: FontWeight.w900)),
-        content: TextField(
-          controller: nameCtrl,
-          textAlign: TextAlign.center,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: const Color(0xffF1F5F9),
-            hintText: "أدخل الاسم الجديد",
-            border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(15),
-                borderSide: BorderSide.none),
-          ),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("إلغاء", style: TextStyle(color: Colors.grey))),
-          ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF10B981),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                elevation: 0,
-              ),
-              onPressed: () {
-                // controller.updateUserName(user, nameCtrl.text);
-                Navigator.pop(context);
-              },
-              child: const Text("حفظ",
-                  style: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold))),
-        ],
-      ),
-    );
+  
+
+  Color _getHostColor(HostUserModel user) {
+    return 
+    user.type == "blocked" ? Colors.red 
+    : (user.type == "bypass" ? Colors.green 
+    : user.type == "auth" ? Colors.blue 
+    : Colors.orange);
   }
 
-  // void _showActiveRenameDialog
+  // IconData _getHostIcon(HostUserModel user) {
+  //   return 
+  //   user.type == "bypass" ? Icons.done_outline 
+  //   : (user.type == "auth" ? Icons.link 
+  //   : Icons.link_off);
+  // }
 
   Widget _actionTile(String t, IconData i, Color c, VoidCallback f) {
     return ListTile(
@@ -460,4 +528,24 @@ class ActiveUsersView extends StatelessWidget {
   }
 
 
+
+
+
+  
+  
+
+}
+
+class ActionItem {
+  final String title;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  ActionItem({
+    required this.title,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
 }
