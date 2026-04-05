@@ -51,7 +51,7 @@ class SystemStatusReportView extends StatelessWidget {
                       const SizedBox(height: 15),
 
                       // 2. كارت الذاكرة (Memory)
-                      _buildMemoryCard(state.totalMemory.formatBytes(), state.freeMemory.formatBytes()),
+                      _buildMemoryCard(state.totalMemory.formatBytes, state.freeMemory.formatBytes),
                       const SizedBox(height: 15),
 
                       // 3. كروت المعلومات الإضافية (وقت التشغيل والإصدار) مقسومة نصفين

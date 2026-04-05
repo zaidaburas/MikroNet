@@ -35,7 +35,6 @@ class CardsListController extends GetxController {
     super.onClose();
   }
 
-  
   void goBack() {
     Get.back();
   }
@@ -50,16 +49,17 @@ class CardsListController extends GetxController {
     _applyFilters();
   }
 
+  // التعديل الرئيسي لفصل الحالات
   void _applyFilters() {
     var result = allCards.toList();
 
     if (filter.value != "الكل") {
-      String statusToFilter = filter.value == "نشطة" ? "active" : "expired";
       result = result.where((c) {
-        if (filter.value == "نشطة") {
-          return c.status == "active" || c.status == "normal";
-        }
-        return c.status == statusToFilter;
+        if (filter.value == "نشطة") return c.status == "active";
+        if (filter.value == "جديدة") return c.status == "normal";
+        // افتراض أن أي حالة غير active أو normal تعتبر منتهية
+        if (filter.value == "منتهية") return c.status != "active" && c.status != "normal"; 
+        return false;
       }).toList();
     }
 
@@ -82,7 +82,6 @@ class CardsListController extends GetxController {
     Get.toNamed(AppRoutes.cardSessions, arguments: username);
   }
 
-  
   void showAddCardDialog() {
     userCtrl.clear();
     passCtrl.clear();
@@ -130,7 +129,6 @@ class CardsListController extends GetxController {
       ),
     );
   }
-
 
   Future<void> _fetchCards() async {
     final currentId = ++_requestCounter;
@@ -192,6 +190,11 @@ class CardsListController extends GetxController {
 
 extension CardModelExt on CardModel {
   String get package => profile;
-  String get statusDisplay => (status == "active" || status == "normal") ? "نشطة" : "منتهية";
-  bool get isActive => (status == "active" || status == "normal");
+  
+  // التعديل هنا ليعكس الحالات الثلاث
+  String get statusDisplay {
+    if (status == "active") return "نشطة";
+    if (status == "normal") return "جديدة";
+    return "منتهية";
+  }
 }

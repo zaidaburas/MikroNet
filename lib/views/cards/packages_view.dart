@@ -75,7 +75,7 @@ class PackagesView extends GetView<PackagesController> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _infoCell(Icons.timer_outlined, "الصلاحية", p.validity),
-                _infoCell(Icons.data_usage_rounded, "البيانات", p.palance.formatBytes()),
+                _infoCell(Icons.data_usage_rounded, "البيانات", p.palance.formatBytes),
                 _infoCell(Icons.speed_rounded, "السرعة", p.speed),
               ],
             ),

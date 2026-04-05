@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '/controllers/sites/blocked_sites_controller.dart'; // مسار المتحكم الجديد
+import '/controllers/sites/blocked_sites_controller.dart'; 
 import '/models/sites_model.dart';
 
-// استيراد الويجيت الموحدة v4.5 لضمان التوريث البصري
+// تأكد من مسارات الويدجت المشتركة
 import '../widgets/shared/layouts/sub_page_header.dart';
 import '../widgets/shared/layouts/app_mini_footer.dart';
 import '../widgets/shared/typography/section_title.dart';
@@ -14,12 +14,14 @@ class BlockedSitesView extends GetView<BlockedSitesController> {
 
   @override
   Widget build(BuildContext context) {
+    // تهيئة المتحكم في حال لم يتم حقنه مسبقاً
+    Get.put(BlockedSitesController());
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: const Color(0xFFF1F5F9),
 
-        // 1. الزر العائم الديناميكي
         floatingActionButton: Padding(
           padding: const EdgeInsets.only(bottom: 90),
           child: FloatingActionButton.extended(
@@ -40,7 +42,6 @@ class BlockedSitesView extends GetView<BlockedSitesController> {
 
         body: Column(
           children: [
-            // 2. الهيدر الموحد يأخذ نصوصه من المتحكم حسب نوع الحظر
             PremiumHeader(
               title: controller.pageTitle,
               subtitle: controller.pageSubtitle,
@@ -71,7 +72,6 @@ class BlockedSitesView extends GetView<BlockedSitesController> {
               }),
             ),
 
-            // 3. الفوتر الموحد v4.5
             const AppMiniFooter(sectionName: "Security Engine"),
           ],
         ),
@@ -79,7 +79,6 @@ class BlockedSitesView extends GetView<BlockedSitesController> {
     );
   }
 
-  /* ================= كرت الموقع بتصميم "أمني" عصري ================= */
   Widget _buildSiteCard(BlockedSiteModel site) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -102,7 +101,7 @@ class BlockedSitesView extends GetView<BlockedSitesController> {
           child: const Icon(Icons.public_off_rounded, color: Colors.red, size: 20),
         ),
         title: Text(
-          site.blockValue, // القيمة (الآي بي، الدومين، أو الكلمة)
+          site.blockValue, 
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 15,
@@ -112,21 +111,25 @@ class BlockedSitesView extends GetView<BlockedSitesController> {
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4.0),
           child: Text(
-            site.name, // التعليق أو اسم القائمة
+            site.name, 
             style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
           ),
         ),
         trailing: IconButton(
           icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
-          onPressed: () => controller.removeBlock(site.id),
+          // تم التعديل هنا: تمرير الكائن (site) بدلاً من site.id
+          onPressed: () => controller.removeBlock(site),
         ),
       ),
     );
   }
 
-  /* ================= نافذة إضافة موقع جديد ================= */
+  /* ================= نافذة إضافة موقع جديد (محدثة) ================= */
   void _showAddSiteDialog(BuildContext context) {
-    final ctrl = TextEditingController();
+    // تصفير الحقول قبل فتح النافذة لتكون فارغة دائماً
+    controller.nameCtrl.clear();
+    controller.valueCtrl.clear();
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -135,18 +138,41 @@ class BlockedSitesView extends GetView<BlockedSitesController> {
           "إضافة ${controller.pageTitle}",
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
-        content: TextField(
-          controller: ctrl,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: controller.inputHint, // تلميح ديناميكي حسب نوع الحظر
-            filled: true,
-            fillColor: Colors.grey.shade100,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-              borderSide: BorderSide.none,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // الحقل الأول: الاسم (اختياري/توضيحي)
+            TextField(
+              controller: controller.nameCtrl,
+              decoration: InputDecoration(
+                hintText: "اسم القاعدة (مثال: Facebook Block)",
+                filled: true,
+                fillColor: Colors.grey.shade100,
+                prefixIcon: const Icon(Icons.label_outline_rounded, color: Colors.grey),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: BorderSide.none,
+                ),
+              ),
             ),
-          ),
+            const SizedBox(height: 15),
+            
+            // الحقل الثاني: القيمة المراد حظرها (إجباري)
+            TextField(
+              controller: controller.valueCtrl,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: controller.inputHint, 
+                filled: true,
+                fillColor: Colors.grey.shade100,
+                prefixIcon: const Icon(Icons.block_rounded, color: Colors.redAccent),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -160,11 +186,7 @@ class BlockedSitesView extends GetView<BlockedSitesController> {
                   borderRadius: BorderRadius.circular(12)),
               elevation: 0,
             ),
-            onPressed: () {
-              if (ctrl.text.isNotEmpty) {
-                controller.addBlock(ctrl.text);
-              }
-            },
+            onPressed: () => controller.addBlock(),
             child: const Text("حظر الآن", style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -172,7 +194,6 @@ class BlockedSitesView extends GetView<BlockedSitesController> {
     );
   }
 
-  /* ================= واجهة الحالة الفارغة ================= */
   Widget _buildEmptyState() {
     return Center(
       child: Column(

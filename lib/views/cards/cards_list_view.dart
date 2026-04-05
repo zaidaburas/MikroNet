@@ -117,29 +117,35 @@ class CardsListView extends GetView<CardsListController> {
   }
 
   Widget _buildFilterChips() {
-    final items = ["الكل", "نشطة", "منتهية"];
+    final items = ["الكل", "جديدة", "نشطة", "منتهية"];
+    
     return Obx(() => Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      // مسحنا mainAxisAlignment لأن Expanded سيتكفل بتعبئة الصف بالكامل
       children: items.map((f) {
-        // التحقق من الفلتر المختار من خلال المتحكم
         final active = controller.filter.value == f;
-        return GestureDetector(
-          onTap: () => controller.setFilter(f),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            margin: const EdgeInsets.symmetric(horizontal: 5),
-            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
-            decoration: BoxDecoration(
-              color: active ? const Color(0xFF1E3A8A) : Colors.white,
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: active ? Colors.transparent : Colors.blueGrey.shade50),
-            ),
-            child: Text(
-              f,
-              style: TextStyle(
-                color: active ? Colors.white : Colors.blueGrey, 
-                fontWeight: FontWeight.w900, 
-                fontSize: 12
+        
+        return Expanded( // 👈 تم التغليف بـ Expanded هنا
+          child: GestureDetector(
+            onTap: () => controller.setFilter(f),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              margin: const EdgeInsets.symmetric(horizontal: 4), // مسافة خفيفة بين الأزرار
+              padding: const EdgeInsets.symmetric(vertical: 12), // حشوة من الأعلى والأسفل فقط
+              alignment: Alignment.center, // 👈 مهم جداً لتوسيط النص داخل المساحة الممتدة
+              decoration: BoxDecoration(
+                color: active ? const Color(0xFF1E3A8A) : Colors.white,
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: active ? Colors.transparent : Colors.blueGrey.shade50),
+              ),
+              child: Text(
+                f,
+                style: TextStyle(
+                  color: active ? Colors.white : Colors.blueGrey, 
+                  fontWeight: FontWeight.w900, 
+                  fontSize: 12 // يمكنك تكبير الخط إلى 13 إذا أردت
+                ),
+                maxLines: 1, // لمنع النص من النزول لسطر جديد في الشاشات الصغيرة جداً
+                overflow: TextOverflow.ellipsis, // وضع نقاط إذا كان النص أكبر من الشاشة (نادر الحدوث هنا)
               ),
             ),
           ),

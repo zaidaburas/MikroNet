@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+// تأكد من صحة مسارات الاستيراد لمشروعك
 import '/models/sites_model.dart';
-import '/api/sites_api.dart';
-import '/models/response.dart';
+import '/api/sites_api.dart'; 
+import '/services/response.dart'; 
 
-// تأكد من تعديل هذا المسار ليطابق مكان تواجد ملف dialog_helper.dart عندك
+// مسار ملف dialog_helper
 import '/controllers/dialog_helper.dart'; 
 
 class BlockedSitesController extends GetxController {
-  String blockType = 'Domain'; // القيمة الافتراضية
+  String blockType = 'Domain'; 
 
   RxList<BlockedSiteModel> blockedList = <BlockedSiteModel>[].obs;
   RxBool isLoading = true.obs;
+
+  // إضافة حقول الإدخال هنا
+  final nameCtrl = TextEditingController();
+  final valueCtrl = TextEditingController();
 
   @override
   void onInit() {
@@ -23,54 +28,49 @@ class BlockedSitesController extends GetxController {
     fetchBlockedData();
   }
 
+  @override
+  void onClose() {
+    // التخلص من الحقول عند إغلاق الصفحة لتفريغ الذاكرة
+    nameCtrl.dispose();
+    valueCtrl.dispose();
+    super.onClose();
+  }
+
   // ================= 1. خريطة النصوص والواجهة =================
   late final Map<String, Map<String, String>> uiConfig = {
-    'IP': {
-      'title': "حظر العناوين (IP)",
-      'subtitle': "منع وصول أجهزة محددة للشبكة",
-      'hint': "مثال: 192.168.88.50",
-    },
     'Domain': {
-      'title': "حظر النطاقات (Domain)",
-      'subtitle': "إدارة قائمة المواقع المحظورة في الشبكة",
-      'hint': "مثال: youtube.com",
+      'title': "حظر النطاقات (Domain / SSL)",
+      'subtitle': "إدارة المواقع المحظورة باستخدام SSL المتقدم",
+      'hint': "مثال: facebook.com",
     },
     'Content': {
-      'title': "حظر المحتوى (Filter)",
-      'subtitle': "إسقاط الحزم التي تحتوي على كلمات محددة",
-      'hint': "مثال: porn أو movies",
+      'title': "حظر المحتوى (Layer7)",
+      'subtitle': "إسقاط الحزم بناءً على الكلمات أو المحتوى",
+      'hint': "مثال: netflix أو pubg",
     },
   };
 
-  // دوال استدعاء النصوص بسطر واحد
   String get pageTitle => uiConfig[blockType]?['title'] ?? "";
   String get pageSubtitle => uiConfig[blockType]?['subtitle'] ?? "";
   String get inputHint => uiConfig[blockType]?['hint'] ?? "";
 
   // ================= 2. خرائط دوال الـ API =================
-  
-  // خريطة دوال الجلب
   late final Map<String, Future<AppResponse<List<BlockedSiteModel>>> Function()> fetchActions = {
-    'IP': SitesApi.getAllBlockedByIps,
-    'Domain': SitesApi.getAllBlockedByDomains,
-    'Content': SitesApi.getAllBlockedByContent,
+    'Domain': SitesApi.getSSLBlockedSites,
+    'Content': SitesApi.getLayer7BlockedSites,
   };
 
-  // خريطة دوال الإضافة
-  late final Map<String, Future<AppResponse<bool>> Function(String, String)> addActions = {
-    'IP': SitesApi.blockByIp,
-    'Domain': SitesApi.blockByDomain,
-    'Content': SitesApi.blockByContent,
+  late final Map<String, Future<AppResponse> Function(BlockedSiteModel)> addActions = {
+    'Domain': SitesApi.addBlockBySSL,
+    'Content': SitesApi.addBlockByLayer7,
   };
 
-  // خريطة دوال الحذف
-  late final Map<String, Future<AppResponse<bool>> Function(String)> removeActions = {
-    'IP': SitesApi.unblockByIp,
-    'Domain': SitesApi.unblockByDomain,
-    'Content': SitesApi.unblockByContent,
+  late final Map<String, Future<AppResponse> Function(BlockedSiteModel)> removeActions = {
+    'Domain': SitesApi.deleteBlockBySSL,
+    'Content': SitesApi.deleteBlockByLayer7,
   };
 
-  // ================= 3. الدوال الرئيسية (استدعاء ديناميكي) =================
+  // ================= 3. الدوال الرئيسية =================
 
   Future<void> fetchBlockedData() async {
     isLoading.value = true;
@@ -81,7 +81,7 @@ class BlockedSitesController extends GetxController {
         if (response.status == true && response.data != null) {
           blockedList.value = response.data!;
         } else {
-          Get.snackbar("خطأ", response.message ?? "حدث خطأ في الجلب");
+          Get.snackbar("خطأ", response.message ?? "حدث خطأ في الجلب", snackPosition: SnackPosition.BOTTOM);
         }
       }
     } finally {
@@ -89,46 +89,71 @@ class BlockedSitesController extends GetxController {
     }
   }
 
-  Future<void> addBlock(String value) async {
+  // دالة الإضافة تم تعديلها لتقرأ من الـ Controllers مباشرة
+  Future<void> addBlock({String interface = "all-ethernet"}) async {
+    String name = nameCtrl.text.trim();
+    String value = valueCtrl.text.trim();
+
+    if (value.isEmpty) {
+      Get.snackbar("تنبيه", "يرجى إدخال القيمة المراد حظرها");
+      return;
+    }
+
     Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
     
+    // إنشاء اسم تلقائي إذا تُرك حقل الاسم فارغاً
+    String cleanName = name.isNotEmpty 
+        ? name 
+        : "Block_${value.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}";
+
+    BlockedSiteModel newSite = BlockedSiteModel(
+      id: "", 
+      name: cleanName,
+      blockType: blockType,
+      blockValue: value,
+      interface: interface,
+      filterId: "",
+      linkId: "",
+      layer7Id: "",
+    );
+
     final action = addActions[blockType];
     if (action != null) {
-      final response = await action(value, "تمت الإضافة عبر MicroNet");
+      final response = await action(newSite);
       
       Get.back(); // إغلاق دائرة التحميل
       
       if (response.status == true) {
         Get.back(); // إغلاق نافذة الإضافة
+        
+        // تصفير الحقول بعد الإضافة الناجحة
+        nameCtrl.clear();
+        valueCtrl.clear();
+        
         fetchBlockedData();
-        Get.snackbar("نجاح", response.message ?? "تمت العملية", backgroundColor: Colors.green.shade600, colorText: Colors.white);
+        Get.snackbar("نجاح", "تمت إضافة الحظر بنجاح", backgroundColor: Colors.green.shade600, colorText: Colors.white);
       } else {
         Get.snackbar("فشل", response.message ?? "حدث خطأ أثناء الإضافة");
       }
     }
   }
 
-  // التعديل تم هنا: استخدام showConfirmDialog
-  void removeBlock(String id) {
+  void removeBlock(BlockedSiteModel site) {
     showConfirmDialog(
-      message: "هل أنت متأكد من رغبتك في إزالة هذا الحظر؟ لا يمكن التراجع عن هذه الخطوة.",
+      message: "هل أنت متأكد من رغبتك في فك الحظر؟ لا يمكن التراجع عن هذه الخطوة.",
       onConfirm: () async {
-        
-        // تأخير بسيط جداً للسماح لـ Get.back() الموجودة في ملف المساعد بإغلاق نافذة التأكيد أولاً
         await Future.delayed(const Duration(milliseconds: 150));
-
-        // إظهار دائرة التحميل
         Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
         
         final action = removeActions[blockType];
         if (action != null) {
-          final response = await action(id);
+          final response = await action(site);
           
-          Get.back(); // إغلاق دائرة التحميل
+          Get.back();
           
           if (response.status == true) {
             fetchBlockedData();
-            Get.snackbar("نجاح", response.message ?? "تم الحذف", backgroundColor: Colors.green.shade600, colorText: Colors.white);
+            Get.snackbar("نجاح", "تم فك الحظر بنجاح", backgroundColor: Colors.green.shade600, colorText: Colors.white);
           } else {
             Get.snackbar("فشل", response.message ?? "حدث خطأ أثناء الحذف");
           }

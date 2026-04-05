@@ -8,7 +8,7 @@ import '/models/cards_model.dart';
 // استيراد الويدجت الجاهزة
 import '/views/widgets/shared/layouts/sub_page_header.dart';
 import '/views/widgets/widgetsCard/session_info_card.dart';
-
+import '/core/extensions/string_extensions.dart';
 class CardSessionsView extends GetView<CardSessionsController> {
   final String username;
 
@@ -61,14 +61,14 @@ class CardSessionsView extends GetView<CardSessionsController> {
                         if (index == 0) _buildSectionTitle("السجلات الأخيرة"),
                         
                         SessionInfoCard(
-                          from: session.fromTime,
-                          to: session.toTime,
+                          from: session.fromTime.formatDate,
+                          to: session.toTime.formatDate,
                           ip: session.ip,
                           mac: session.macAddress,
                           // ملاحظة: الموديل الحالي لا يحتوي على Upload/Download
                           // سنعرض الـ Uptime مكانها أو نتركها كقيم افتراضية
-                          upload: session.upload, 
-                          download:session.download, 
+                          upload: session.upload.formatBytes, 
+                          download:session.download.formatBytes, 
                         ),
                         const SizedBox(height: 10),
                       ],
