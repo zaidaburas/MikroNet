@@ -67,15 +67,15 @@ class _AddBatchViewState extends State<AddBatchView> {
     // if (total <= 0) return;
 
     // if (widget.editIndex == null) {
-    //   // widget.controller.addBatch(nameCtrl.text, total, selectedProfile,
+    //   // controller.addBatch(nameCtrl.text, total, selectedProfile,
     //   //     prefixCtrl.text, suffixCtrl.text,
     //   //     charType: selectedGenType);
     // } else {
-    //   // widget.controller.updateBatch(widget.editIndex!, nameCtrl.text, total,
+    //   // controller.updateBatch(widget.editIndex!, nameCtrl.text, total,
     //   //     selectedProfile, prefixCtrl.text, suffixCtrl.text,
     //   //     charType: selectedGenType);
     // }
-    // // widget.controller.generateBatchByTemplate(nameCtrl.text, selectedTemplate,
+    // // controller.generateBatchByTemplate(nameCtrl.text, selectedTemplate,
     // //     type: selectedGenType);
     // if (mounted) _showSuccessDialog();
   }
@@ -97,7 +97,7 @@ class _AddBatchViewState extends State<AddBatchView> {
     //   context,
     //   MaterialPageRoute(
     //     builder: (_) => TemplatePreviewPage(
-    //       controller: widget.controller.printTemplatesController,
+    //       controller: controller.printTemplatesController,
     //       templateIndex: templateIndex,
     //       batchData: batchData,
     //     ),
@@ -114,7 +114,7 @@ class _AddBatchViewState extends State<AddBatchView> {
       child: Scaffold(
         backgroundColor: const Color(0xFFF8FAFC),
         body: GetBuilder<BatchesController>(
-          init: widget.controller,
+          init: BatchesController(),
           builder: (controller) {
             return Column(
               children: [
@@ -133,7 +133,7 @@ class _AddBatchViewState extends State<AddBatchView> {
                     child: Column(
                       children: [
                         const SectionTitle(title: "إعدادات الدفعة الجديدة"),
-                        _buildFormCard(),
+                        _buildFormCard(controller),
                       ],
                     ),
                   ),
@@ -149,7 +149,7 @@ class _AddBatchViewState extends State<AddBatchView> {
     );
   }
 
-  Widget _buildFormCard() {
+  Widget _buildFormCard(BatchesController controller) {
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
@@ -166,58 +166,67 @@ class _AddBatchViewState extends State<AddBatchView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildFieldLabel("المعلومات الأساسية"),
+          _buildFieldLabel("المعلومات الأساسية",controller),
           const SizedBox(height: 15),
           _buildModernInput(
-              widget.controller.batchName, "اسم الدفعة (مثال: دفعة الشتاء)", Icons.badge_outlined),
+              controller.batchName, "اسم الدفعة (مثال: دفعة الشتاء)", Icons.badge_outlined,controller),
           _buildModernInput(
-              widget.controller.numOfCards, "عدد الكروت المطلوب توليدها", Icons.pin_outlined,
+              controller.numOfCards, "عدد الكروت المطلوب توليدها", Icons.pin_outlined,controller,
               isNumber: true),
           const Divider(height: 40),
-          _buildFieldLabel("إعدادات الربط والتصميم"),
+          _buildFieldLabel("إعدادات الربط والتصميم",controller),
           const SizedBox(height: 15),
-          _buildProfileDropdown(),
+          _buildProfileDropdown(controller),
           const SizedBox(height: 12),
-          _buildTemplateDropdown(),
+          _buildTemplateDropdown(controller),
           const Divider(height: 40),
-          _buildFieldLabel("نمط كلمة المرور"),
+          _buildFieldLabel("نمط كلمة المرور",controller),
           const SizedBox(height: 12),
-          _buildGenerationTypeSelector(),
+          _buildGenerationTypeSelector(controller),
           const Divider(height: 40),
           // 
-          _buildFieldLabel("طول الرموز"),
+          _buildFieldLabel("طول الرموز",controller),
+          const SizedBox(height: 15),
+          const Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(child: Text("طول اسم المستخدم")),
+              SizedBox(width: 12),
+              Expanded(child: Text("طول كلمة المرور")),
+            ],
+          ),
           const SizedBox(height: 15),
           Row(
             children: [
               Expanded(
                   child: _buildModernInput(
-                      widget.controller.usernameLength, "طول اسم المستخدم", Icons.person)),
+                      controller.usernameLength, "طول اسم المستخدم", Icons.person,controller)),
               const SizedBox(width: 12),
               Expanded(
                   child: _buildModernInput(
-                      widget.controller.passwordLength, "طول كلمة المرور", Icons.password)),
+                      controller.passwordLength, "طول كلمة المرور", Icons.password,controller)),
             ],
           ),
           const Divider(height: 40),
           // 
-          Text(widget.controller.dataInsert.toString()),
+          Text(controller.dataInsert.toString()),
           const Divider(height: 40),
           // 
-          _buildFieldLabel("تخصيص الرموز (اختياري)"),
+          _buildFieldLabel("تخصيص الرموز (اختياري)",controller),
           const SizedBox(height: 15),
           Row(
             children: [
               Expanded(
                   child: _buildModernInput(
-                      widget.controller.prefix, "بادئة (Prefix)", Icons.login_rounded)),
+                      controller.prefix, "بادئة (Prefix)", Icons.login_rounded,controller)),
               const SizedBox(width: 12),
               Expanded(
                   child: _buildModernInput(
-                      widget.controller.suffix, "لاحقة (Suffix)", Icons.logout_rounded)),
+                      controller.suffix, "لاحقة (Suffix)", Icons.logout_rounded,controller)),
             ],
           ),
           const SizedBox(height: 35),
-          _buildActionButtons(),
+          _buildActionButtons(controller),
         ],
       ),
     );
@@ -225,7 +234,7 @@ class _AddBatchViewState extends State<AddBatchView> {
 
   /* ميثودات مساعدة تم تعديلها لتتناسب مع الـ UI الموحد */
 
-  Widget _buildFieldLabel(String text) {
+  Widget _buildFieldLabel(String text,BatchesController controller) {
     return Text(text,
         style: const TextStyle(
             fontSize: 13,
@@ -234,7 +243,7 @@ class _AddBatchViewState extends State<AddBatchView> {
   }
 
   Widget _buildModernInput(
-      TextEditingController ctrl, String hint, IconData icon,
+      TextEditingController ctrl, String hint, IconData icon,BatchesController controller,
       {bool isNumber = false}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
@@ -252,13 +261,15 @@ class _AddBatchViewState extends State<AddBatchView> {
               const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
         onChanged: (value) {
-          widget.controller.update();
+          controller.update();
         } ,
       ),
     );
   }
 
-  Widget _buildDropdownRow({
+  Widget _buildDropdownRow(
+    BatchesController controller,
+    {
     required double screenWidth,
     double padding=10,
     required Widget child,
@@ -280,17 +291,17 @@ class _AddBatchViewState extends State<AddBatchView> {
       );
   }
 
-  Widget _buildProfileDropdown() => 
-  _buildDropdownRow(
+  Widget _buildProfileDropdown(BatchesController controller) => 
+  _buildDropdownRow(controller,
     screenWidth: Navigator.of(context).context.width , 
     padding: 45,
     label: "اختر باقة",
     child: MySelectedMenu(
-      items: widget.controller.allProfiles.map((p)=>{"id":p.id ,"name":p.name}).toList(),
+      items: controller.allProfiles.map((p)=>{"id":p.id ,"name":p.name}).toList(),
       onSave: (val) {
         // showErrorDialog(content: val.toString());
-        widget.controller.selectedProfile.value=val.toString();
-        widget.controller.update();
+        controller.selectedProfile.value=val.toString();
+        controller.update();
       },
       hintText: "اختر باقة",
       selectedKeyName: "id",
@@ -301,16 +312,16 @@ class _AddBatchViewState extends State<AddBatchView> {
 
   );
 
-  Widget _buildTemplateDropdown() => 
-  _buildDropdownRow(
+  Widget _buildTemplateDropdown(BatchesController controller) => 
+  _buildDropdownRow(controller,
     screenWidth: Navigator.of(context).context.width , 
     padding: 45,
     label: "اختر قالب",
     child: MySelectedMenu(
-      items: widget.controller.allTemplates.map((t)=>{"id":t.id ,"name":t.name}).toList(),
+      items: controller.allTemplates.map((t)=>{"id":t.id ,"name":t.name}).toList(),
       onSave: (val) {
-        widget.controller.selectedTemplate.value=int.parse(val);
-        widget.controller.update();
+        controller.selectedTemplate.value=int.parse(val);
+        controller.update();
       },
       hintText: "اختر قالب" ,
       selectedKeyName: "id",
@@ -380,15 +391,15 @@ class _AddBatchViewState extends State<AddBatchView> {
   //   );
   // }
 
-  Widget _buildGenerationTypeSelector() {
+  Widget _buildGenerationTypeSelector(BatchesController controller) {
     return Row(
-      children: widget.controller.passwordTypes.map((opt) {
-        bool isSelected = widget.controller.selectedPasswordType == opt['id'];
+      children: controller.passwordTypes.map((opt) {
+        bool isSelected = controller.selectedPasswordType == opt['id'];
         return Expanded(
           child: GestureDetector(
             onTap: () {
-              widget.controller.selectedPasswordType=opt['id'];
-              widget.controller.update();
+              controller.selectedPasswordType=opt['id'];
+              controller.update();
             },
             // => setState(() => selectedGenType = opt['id']),
             child: AnimatedContainer(
@@ -428,7 +439,7 @@ class _AddBatchViewState extends State<AddBatchView> {
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(BatchesController controller) {
     return Row(
       children: [
         Expanded(
@@ -437,21 +448,24 @@ class _AddBatchViewState extends State<AddBatchView> {
                 "إنشاء وتوليد",
                 const [Color(0xFF0F172A), Color(0xFF1E3A8A)],
                 Icons.bolt_rounded,
-                _handleCreate)),
+                _handleCreate,
+                controller
+              )),
         const SizedBox(width: 12),
         Expanded(
             child: _customButton(
                 "معاينة",
                 const [Color(0xFF10B981), Color(0xFF059669)],
                 Icons.visibility_rounded,
-                widget.controller.preview
+                controller.preview,
+                controller
               )),
       ],
     );
   }
 
   Widget _customButton(
-      String text, List<Color> colors, IconData icon, VoidCallback tap) {
+      String text, List<Color> colors, IconData icon, VoidCallback tap,BatchesController controller) {
     return InkWell(
       onTap: tap,
       child: Container(
@@ -512,7 +526,7 @@ class _AddBatchViewState extends State<AddBatchView> {
                               borderRadius: BorderRadius.circular(12))),
                       onPressed: () {
                         // Navigator.pop(ctx);
-                        // widget.controller
+                        // controller
                         //     .printBatchToPdf(nameCtrl.text, selectedTemplate);
                         // Navigator.pop(context);
                       },

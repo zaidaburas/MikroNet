@@ -51,7 +51,7 @@ class _HomePage extends State<HomePage> {
           try {
             // var r=await SitesApi.getSSLBlockedSites();
             // showErrorDialog(title: r.data.length.toString(),content: r.data.toString());
-            var r=await SitesApi.getAllBlockedSites();
+            var r=await ReportsApi.getSallesReport();
             showErrorDialog(title: r.data.length.toString(),content: r.data.toString());
 
           }catch (e) {
@@ -60,7 +60,7 @@ class _HomePage extends State<HomePage> {
         },
         onLongPress : () async{
           try {
-            var r=await SitesApi.deleteBlockByLayer7(filterId: "*E7", layer7Id: "*9");
+            var r=await ReportsApi.getSystemState();
             showErrorDialog(title: "hhh",content: r.message.toString());
 
           }catch (e) {

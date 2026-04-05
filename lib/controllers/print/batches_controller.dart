@@ -91,6 +91,7 @@ class BatchesController extends GetxController{
   @override
   void onInit() {
     super.onInit();
+    init();
     getAllBatches();
     getAllTemplates();
     getallProfiles();
@@ -115,6 +116,8 @@ class BatchesController extends GetxController{
 
   void init(){
     usernameLength.text="7";
+    passwordLength.text="5";
+    update();
     // selectedTemplate=allTemplates.isEmpty?0.obs:allTemplates[0].id.obs;
     // selectedProfile=allProfiles.isEmpty?"".obs:allProfiles[0].name.obs;
   }
@@ -166,6 +169,19 @@ class BatchesController extends GetxController{
         saveFile: false,
       )
     );
+  }
+
+  void validation(){
+    if(selectedTemplate.value==0){
+      showErrorDialog(content: "please select profile");
+      return;
+    }
+    // var template
+    if(batchName.text.trim().isEmpty ||
+    numOfCards.text.trim().isEmpty ||
+    usernameLength.text.trim().isEmpty){
+      showErrorDialog(content: "fill all fields");
+    }
   }
 
 

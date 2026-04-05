@@ -65,7 +65,7 @@ class SitesApi {
           'id':newMap['.id'],
           'name':temp["name"]??"",
           'interface':newMap['out-interface']??"",
-          'content':temp['regexp']??"",
+          'value':temp['regexp']??"",
           'type':'layer7',
           'layer7-id':temp['.id']??"",
         };
@@ -110,14 +110,14 @@ class SitesApi {
   static Future<AppResponse> addBlockByLayer7({
     required String name,
     String outInterface="all-ethernet",
-    required String content,
+    required String value,
   })async{
 
     try {
       String comment="MikroNet_Block_$name";
       var layer7=await MikrotikClient.addData(
         command: "/ip/firewall/layer7-protocol/add",
-        data: {'name':name,'regexp':content,'comment':comment}
+        data: {'name':name,'regexp':value,'comment':comment}
       );
 
       var filter=await MikrotikClient.addData(
@@ -146,7 +146,7 @@ class SitesApi {
     required String layer7Id,   // layer7-id المرجع من دالة الجلب
     required String name,
     required String outInterface,
-    required String content,
+    required String value,
   }) async {
     try {
       String comment = "MikroNet_Block_$name";
@@ -157,7 +157,7 @@ class SitesApi {
         data: {
           '.id': layer7Id,
           'name': name,
-          'regexp': content,
+          'regexp': value,
           'comment': comment
         }
       );
@@ -282,7 +282,7 @@ class SitesApi {
         var r={
           'id':m['.id'],
           'name':m['address-list'],
-          'domain':m['tls-host'],
+          'value':m['tls-host'],
           'interface':a["tls"]['out-interface'],
           'type':'ssl',
           'filter-id':a["tls"]['.id'],
@@ -302,9 +302,9 @@ class SitesApi {
     }
   }
 
-  static Future<AppResponse> _addSSLMangle(String name,String domain,String comment)async{
+  static Future<AppResponse> _addSSLMangle(String name,String value,String comment)async{
     try {
-      // name,domain,comment
+      // name,value,comment
       var respone=await MikrotikClient.addData(
         command: "/ip/firewall/mangle/add",
         data: {
@@ -313,7 +313,7 @@ class SitesApi {
           'address-list-timeout':'1d',
           'chain':'prerouting',
           'protocol':'tcp',
-          'tls-host':'*$domain*',
+          'tls-host':'*$value*',
           'comment':comment,
         }
       );
@@ -324,16 +324,16 @@ class SitesApi {
     }
   }
 
-  static Future<AppResponse> _addSSLFilterTls(String outInterface,String domain,String comment)async{
+  static Future<AppResponse> _addSSLFilterTls(String outInterface,String value,String comment)async{
     try {
-      // domain,outInterface,comment
+      // value,outInterface,comment
       var respone=await MikrotikClient.addData(
         command: "/ip/firewall/filter/add",
         data: {
           'action':'drop',
           'chain':'forward',
           'protocol':'tcp',
-          'tls-host':'*$domain*',
+          'tls-host':'*$value*',
           'out-interface':outInterface,
           'comment':comment,
         }
@@ -369,12 +369,12 @@ class SitesApi {
   static Future<AppResponse> addBlockBySSL({
     required String name,
     required String outInterface,
-    required String domain,
+    required String value,
   })async{
     try {
       String comment="MikroNet_Block_$name";
-      var mangle=await _addSSLMangle(name,domain,comment);
-      var tls=await _addSSLFilterTls(outInterface,domain,comment);
+      var mangle=await _addSSLMangle(name,value,comment);
+      var tls=await _addSSLFilterTls(outInterface,value,comment);
       var link=await _linkFilterWithMangle(name,outInterface,comment);
       var respone=[mangle,tls,link];
       return AppResponse(status: true, message: "${mangle.message} , ${tls.message} , ${link.message}",data: respone);
@@ -394,7 +394,7 @@ class SitesApi {
     required String linkFilterId, // link-id المرجع من دالة الجلب (Link Filter)
     required String name,
     required String outInterface,
-    required String domain,
+    required String value,
   }) async {
     try {
       String comment = "MikroNet_Block_$name";
@@ -405,7 +405,7 @@ class SitesApi {
         data: {
           '.id': mangleId,
           'address-list': name,
-          'tls-host': '*$domain*',
+          'tls-host': '*$value*',
           'comment': comment,
         }
       );
@@ -415,7 +415,7 @@ class SitesApi {
         command: "/ip/firewall/filter/set",
         data: {
           '.id': tlsFilterId,
-          'tls-host': '*$domain*',
+          'tls-host': '*$value*',
           'out-interface': outInterface,
           'comment': comment,
         }
