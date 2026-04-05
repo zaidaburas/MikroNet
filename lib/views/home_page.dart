@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mikronet/api/reports_api.dart';
+import 'package:mikronet/api/sites_api.dart';
 import 'package:mikronet/views/prints/print_page.dart';
 import 'package:mikronet/views/users/users_page.dart';
 import '/api/cards_api.dart';
@@ -47,52 +49,21 @@ class _HomePage extends State<HomePage> {
       floatingActionButton: MaterialButton(
         onPressed: () async{
           try {
-            // Get.to(TestTemplatesScreen());
-            // List data=[];
-            // await MikrotikClient.login();
-            // UsersApi model=UsersApi();
-            // var r=await model.getAlISavedUsers();
-            // if(r.status){
-            //   for (var i in r.data) {
-            //     data.add(
-            //       i.toMap()
-            //     );
-            //   }
-            // }
-            // else{
-            //   data.add(r.message);
-            // }
-            // // showErrorDialog(title: "hhh",content: r.toString());
-            // showErrorDialog(
-            //   title: data.length.toString(),
-            //   content: data.toString()
-            // );
+            // var r=await SitesApi.getSSLBlockedSites();
+            // showErrorDialog(title: r.data.length.toString(),content: r.data.toString());
+            var r=await SitesApi.getAllBlockedSites();
+            showErrorDialog(title: r.data.length.toString(),content: r.data.toString());
+
           }catch (e) {
             showErrorDialog(content: e.toString());
           }
         },
         onLongPress : () async{
           try {
-            // Get.to(TestBatchesScreen());
-            // List data=[];
-            // await MikrotikClient.login();
-            // UsersApi model=UsersApi();
-            // var r=await model.getAlISavedUsers(where: "?.id=*48A");
-            // if(r.status){
-            //   for (var i in r.data!) {
-            //     data.add(
-            //       i.toMap()
-            //     );
-            //   }
-            // }
-            // else{
-            //   data.add(r.message);
-            // }
-            // showErrorDialog(
-            //   title: data.length.toString(),
-            //   content: data.toString()
-            // );
-          } catch (e) {
+            var r=await SitesApi.deleteBlockByLayer7(filterId: "*E7", layer7Id: "*9");
+            showErrorDialog(title: "hhh",content: r.message.toString());
+
+          }catch (e) {
             showErrorDialog(content: e.toString());
           }
         },
