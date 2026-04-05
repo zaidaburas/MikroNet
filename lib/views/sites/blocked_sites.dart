@@ -1,35 +1,34 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 
-import '../../Controllers/sites_controller.dart';
+import '/controllers/sites/blocked_sites_controller.dart'; // مسار المتحكم الجديد
+import '/models/sites_model.dart';
+
 // استيراد الويجيت الموحدة v4.5 لضمان التوريث البصري
 import '../widgets/shared/layouts/sub_page_header.dart';
 import '../widgets/shared/layouts/app_mini_footer.dart';
 import '../widgets/shared/typography/section_title.dart';
 
-class BlockedSitesView extends StatelessWidget {
+class BlockedSitesView extends GetView<BlockedSitesController> {
   const BlockedSitesView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final vm = Provider.of<DataMgmtVM>(context);
-
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF1F5F9), // الخلفية الرسمية للنظام
+        backgroundColor: const Color(0xFFF1F5F9),
 
-        // 1. الزر العائم في موقعه الطبيعي (الزاوية) مع رفعة احترافية
+        // 1. الزر العائم الديناميكي
         floatingActionButton: Padding(
-          padding: const EdgeInsets.only(
-              bottom: 90), // الرفعة المطلوبة لتجاوز الفوتر
+          padding: const EdgeInsets.only(bottom: 90),
           child: FloatingActionButton.extended(
-            onPressed: () => _showAddSiteDialog(context, vm),
-            backgroundColor: const Color(0xFF1E3A8A), // اللون الكحلي الأمني
+            onPressed: () => _showAddSiteDialog(context),
+            backgroundColor: const Color(0xFF1E3A8A),
             elevation: 8,
             icon: const Icon(Icons.add_moderator_rounded, color: Colors.white),
             label: const Text(
-              "حظر جديد",
+              "إضافة حظر",
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -41,27 +40,35 @@ class BlockedSitesView extends StatelessWidget {
 
         body: Column(
           children: [
-            // 2. الهيدر الموحد لصفحات MikroNet الفرعية
-            const PremiumHeader(
-              title: "جدار الحماية",
-              subtitle: "إدارة قائمة المواقع المحظورة في الشبكة",
+            // 2. الهيدر الموحد يأخذ نصوصه من المتحكم حسب نوع الحظر
+            PremiumHeader(
+              title: controller.pageTitle,
+              subtitle: controller.pageSubtitle,
               icon: Icons.security_rounded,
             ),
 
-            const SectionTitle(title: "المواقع المقيدة حالياً"),
+            SectionTitle(title: "قائمة ${controller.pageTitle} الحالية"),
 
             Expanded(
-              child: vm.blockedSites.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.builder(
-                      // padding سفلي لضمان عدم اختفاء العناصر خلف الزر المرفوع
-                      padding: const EdgeInsets.fromLTRB(20, 10, 20, 160),
-                      itemCount: vm.blockedSites.length,
-                      itemBuilder: (context, i) {
-                        final site = vm.blockedSites[i];
-                        return _buildSiteCard(context, vm, site);
-                      },
-                    ),
+              child: Obx(() {
+                if (controller.isLoading.value) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (controller.blockedList.isEmpty) {
+                  return _buildEmptyState();
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 160),
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: controller.blockedList.length,
+                  itemBuilder: (context, i) {
+                    final site = controller.blockedList[i];
+                    return _buildSiteCard(site);
+                  },
+                );
+              }),
             ),
 
             // 3. الفوتر الموحد v4.5
@@ -73,7 +80,7 @@ class BlockedSitesView extends StatelessWidget {
   }
 
   /* ================= كرت الموقع بتصميم "أمني" عصري ================= */
-  Widget _buildSiteCard(BuildContext context, DataMgmtVM vm, String site) {
+  Widget _buildSiteCard(BlockedSiteModel site) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -89,45 +96,50 @@ class BlockedSitesView extends StatelessWidget {
         ],
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         leading: CircleAvatar(
           backgroundColor: Colors.red.shade50,
-          child:
-              const Icon(Icons.public_off_rounded, color: Colors.red, size: 20),
+          child: const Icon(Icons.public_off_rounded, color: Colors.red, size: 20),
         ),
         title: Text(
-          site,
+          site.blockValue, // القيمة (الآي بي، الدومين، أو الكلمة)
           style: const TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 14,
+            fontSize: 15,
             color: Color(0xFF0F172A),
           ),
         ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4.0),
+          child: Text(
+            site.name, // التعليق أو اسم القائمة
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+          ),
+        ),
         trailing: IconButton(
-          icon:
-              const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
-          onPressed: () => vm.removeBlocked(site),
+          icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
+          onPressed: () => controller.removeBlock(site.id),
         ),
       ),
     );
   }
 
   /* ================= نافذة إضافة موقع جديد ================= */
-  void _showAddSiteDialog(BuildContext context, DataMgmtVM vm) {
+  void _showAddSiteDialog(BuildContext context) {
     final ctrl = TextEditingController();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-        title: const Text(
-          "حظر نطاق جديد",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        title: Text(
+          "إضافة ${controller.pageTitle}",
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         content: TextField(
           controller: ctrl,
           autofocus: true,
           decoration: InputDecoration(
-            hintText: "مثال: youtube.com",
+            hintText: controller.inputHint, // تلميح ديناميكي حسب نوع الحظر
             filled: true,
             fillColor: Colors.grey.shade100,
             border: OutlineInputBorder(
@@ -150,12 +162,10 @@ class BlockedSitesView extends StatelessWidget {
             ),
             onPressed: () {
               if (ctrl.text.isNotEmpty) {
-                vm.addBlocked(ctrl.text);
-                Navigator.pop(ctx);
+                controller.addBlock(ctrl.text);
               }
             },
-            child:
-                const Text("حظر الآن", style: TextStyle(color: Colors.white)),
+            child: const Text("حظر الآن", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -169,11 +179,11 @@ class BlockedSitesView extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.shield_outlined,
-              size: 70, color: Colors.green.withOpacity(0.2)),
+              size: 70, color: Colors.green.withOpacity(0.4)),
           const SizedBox(height: 15),
-          const Text(
-            "لا توجد مواقع محظورة حالياً",
-            style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600),
+          Text(
+            "لا توجد قيود في ${controller.pageTitle} حالياً",
+            style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w600),
           ),
         ],
       ),

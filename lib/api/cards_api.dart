@@ -1,8 +1,7 @@
 
-
-import '/models/cards_model.dart';
-import '/services/mikrotik_client.dart';
-import '/services/response.dart';
+import '../models/cards_model.dart';
+import '../services/mikrotik_client.dart';
+import '../models/response.dart';
 
 class CardsApi {
   int version;
@@ -29,246 +28,186 @@ class CardsApi {
   
 
 
-  static Future<AppResponse> getAllCards({List where=const["=detail="]})async{
-  try {
-      List myCards=await MikrotikClient.printData(
-        commands: ["/tool/user-manager/user/print"],
-        fields: _props
-      );
-      return AppResponse(
-        status: true, 
-        message: "done",
-        data: myCards
-      );
-      // return cards;
-    } catch (e) {
-      return AppResponse(
-        status: false, 
-        message: e.toString() ,
-      );
-    }
-  }
-
-  
-  // Future<AppResponse<CardsModel>> getCardInfo(String username)async{
-  //   try {
-  //     // return await getAllCards2(where: ["?username=$username"])[0];
-  //     var result = await getAllCards2(where: ["?username=$username"]);
-  //     return result[0];
-  //   } catch (e) {
-  //     return {
-  //       "error":e.toString()
-  //     };
-  //   }
-  // }
-
-  static Future<AppResponse> addCardProfile({
-    required String customer,
-    required String username,
-    required String profile,
-  })async{
+  static Future<AppResponse<List<CardModel>>> getAllCards({List where = const ["=detail="]}) async {
     try {
-      await MikrotikClient.addData(
-        command: "/tool/user-manager/user/create-and-activate-profile", 
-        data: {
-          "customer":customer,
-          "numbers":username,
-          "profile":profile,
-        }
-      );
-      return AppResponse(
-        status: true,
-        message: "done",
-      );
+      List myCards = await MikrotikClient.printData(
+          commands: ["/tool/user-manager/user/print"], fields: _props);
+
+      List<CardModel> cards =
+          myCards.map((e) => CardModel.fromMikrotik(e)).toList();
+
+      return AppResponse<List<CardModel>>(
+          status: true, message: "done", data: cards);
     } catch (e) {
-      return AppResponse(
+      return AppResponse<List<CardModel>>(
         status: false,
         message: e.toString(),
       );
     }
-    // return await MikrotikClient.addData(
-    //   command: "/tool/user-manager/user/create-and-activate-profile", 
-    //   data: {
-    //     "customer":customer,
-    //     "numbers":username,
-    //     "profile":profile,
-    //   }
-    // );
   }
 
-  static Future<AppResponse> addOneCard({
+  static Future<AppResponse<void>> addCardProfile({
     required String customer,
     required String username,
-    String password="",
     required String profile,
-  })async{
+  }) async {
     try {
       await MikrotikClient.addData(
-        command: "/tool/user-manager/user/add", 
-        data: {
-          "customer":customer,
-          "username":username,
-          "password":password,
-        }
-      );
-      
+          command: "/tool/user-manager/user/create-and-activate-profile",
+          data: {
+            "customer": customer,
+            "numbers": username,
+            "profile": profile,
+          });
+      return AppResponse<void>(status: true, message: "done", data: null);
+    } catch (e) {
+      return AppResponse<void>(status: false, message: e.toString(), data: null);
+    }
+  }
+
+  static Future<AppResponse<void>> addOneCard({
+    required String customer,
+    required String username,
+    String password = "",
+    required String profile,
+  }) async {
+    try {
+      await MikrotikClient.addData(command: "/tool/user-manager/user/add", data: {
+        "customer": customer,
+        "username": username,
+        "password": password,
+      });
+
       await MikrotikClient.addData(
-        command: "/tool/user-manager/user/create-and-activate-profile", 
-        data: {
-          "customer":customer,
-          "numbers":username,
-          "profile":profile,
-        }
-      );
-      return AppResponse(
+          command: "/tool/user-manager/user/create-and-activate-profile",
+          data: {
+            "customer": customer,
+            "numbers": username,
+            "profile": profile,
+          });
+      return AppResponse<void>(
         status: true,
         message: "done",
       );
     } on Exception catch (e) {
-      return AppResponse(
+      return AppResponse<void>(
         status: false,
         message: e.toString(),
       );
     }
   }
-  
-  static Future<List> getCustomers()async{
-    return await MikrotikClient.printData(
-      commands: ["/tool/user-manager/customer/print"],
-      conditions: ["?disabled=no"]
-    );
+
+  static Future<AppResponse<List<CustomerModel>>> getCustomers() async {
+    try {
+      List myCustomers = await MikrotikClient.printData(
+          commands: ["/tool/user-manager/customer/print"],
+          conditions: ["?disabled=no"]);
+      List<CustomerModel> result =
+          myCustomers.map((e) => CustomerModel.fromMikrotik(e)).toList();
+      return AppResponse<List<CustomerModel>>(
+          status: true, message: "done", data: result);
+    } catch (e) {
+      return AppResponse<List<CustomerModel>>(
+        status: false,
+        message: e.toString(),
+      );
+    }
   }
 
-  static Future<AppResponse> cardEdit({
+  static Future<AppResponse<void>> cardEdit({
     required String username,
     required Map<String, String> data,
-  })async{
+  }) async {
     try {
       await MikrotikClient.editData(
-        command: "/tool/user-manager/user/set", 
-        data: data, 
-        condition: "?username=$username"
-      );
-      return AppResponse(
+          command: "/tool/user-manager/user/set",
+          data: data,
+          condition: "?username=$username");
+      return AppResponse<void>(
         status: true,
         message: "done",
       );
     } on Exception catch (e) {
-      return AppResponse(
-        status: false,
-        message: e.toString(),
-      );
-    }
-  }
-  
-  static Future<AppResponse> deleteCard(String username)async{
-    try {
-      await MikrotikClient.deleteData(
-        command: "/tool/user-manager/user/remove", 
-        condition: "?username=$username"
-      );
-      return AppResponse(
-        status: true,
-        message: "done",
-      );
-    } on Exception catch (e) {
-      return AppResponse(
+      return AppResponse<void>(
         status: false,
         message: e.toString(),
       );
     }
   }
 
-  static Future<AppResponse> deleteCardsBatch(List idsList)async{
+  static Future<AppResponse<void>> deleteCard(String username) async {
+    try {
+      await MikrotikClient.deleteData(
+          command: "/tool/user-manager/user/remove",
+          condition: "?username=$username");
+      return AppResponse<void>(
+        status: true,
+        message: "done",
+      );
+    } on Exception catch (e) {
+      return AppResponse<void>(
+        status: false,
+        message: e.toString(),
+      );
+    }
+  }
+
+  static Future<AppResponse<void>> deleteCardsBatch(List idsList) async {
     try {
       String ids = idsList.join(',');
       await MikrotikClient.fetch(
-        command: [
-          "/tool/user-manager/user/remove",
-          '=numbers=$ids'
-        ], 
+        command: ["/tool/user-manager/user/remove", '=numbers=$ids'],
       );
-      return AppResponse(
+      return AppResponse<void>(
         status: true,
         message: "done",
       );
     } on Exception catch (e) {
-      return AppResponse(
+      return AppResponse<void>(
         status: false,
         message: e.toString(),
       );
     }
   }
 
-  static Future<List> getIdsByUsernames(List usernames) async {
-  List<String> extractedIds = [];
+  static Future<AppResponse<List<String>>> getIdsByUsernames(List usernames) async {
+    List<String> extractedIds = [];
 
-  try {
-    // 1. جلب المعرفات والأسماء فقط من الراوتر (سريع جداً)
-    var allUsers = await MikrotikClient.printData(
-      commands:[
-        '/tool/user-manager/user/print', 
-      ],
-      fields: ".id,username"
-    );
-
-    // 2. المرور على الناتج واستخراج الـ id للكروت المطابقة
-    for (var user in allUsers) {
-      if (usernames.contains(user['username'])) {
-        extractedIds.add(user['.id']!);
-      }
-    }
-
-    return extractedIds;
-
-  } catch (e) {
-    throw Exception(e.toString());
-  }
-}
-
-
-
-  
-
-  // Future<String> cardRenew({
-  //   required String username,
-  //   required String profile,
-  //   required String customer,
-  // })async{
-  //   try {
-      
-  //     await addCardProfile(
-  //       customer: customer, 
-  //       username: username, 
-  //       profile: profile
-  //     );
-  //     return "done";
-  //   } on Exception catch (e) {
-  //     return "error:${e.toString()}";
-  //   }
-  // }
-
-
-  Future<AppResponse> getCardSessions(String username)async{
     try {
-      List sessions =await MikrotikClient.printData(
-        commands: ["/tool/user-manager/session/print"],
-        conditions: ["?user=$username"]
-      );
-      List result=[];
-      for (var session in sessions) {
-        result.add(
-          CardSessionModel.fromMikrotik(session)
-        );
+      // 1. جلب المعرفات والأسماء فقط من الراوتر (سريع جداً)
+      var allUsers = await MikrotikClient.printData(
+          commands: [
+            '/tool/user-manager/user/print',
+          ],
+          fields: ".id,username");
+
+      // 2. المرور على الناتج واستخراج الـ id للكروت المطابقة
+      for (var user in allUsers) {
+        if (usernames.contains(user['username'])) {
+          extractedIds.add(user['.id']!);
+        }
       }
-      return AppResponse(
-        status: true, 
-        message: "done",
-        data: result
-      );
+
+      return AppResponse<List<String>>(status: true, message: "done", data: extractedIds);
     } catch (e) {
-      return AppResponse(
-        status: false, 
+      return AppResponse<List<String>>(status: false, message: e.toString());
+    }
+  }
+
+  static Future<AppResponse<List<CardSessionModel>>> getCardSessions(
+      String username) async {
+    try {
+      List sessions = await MikrotikClient.printData(
+          commands: ["/tool/user-manager/session/print"],
+          conditions: ["?user=$username"]);
+      List<CardSessionModel> result = sessions
+          .map((session) => CardSessionModel.fromMikrotik(session))
+          .toList();
+      return AppResponse<List<CardSessionModel>>(
+          status: true, message: "done", data: result);
+    } catch (e) {
+      return AppResponse<List<CardSessionModel>>(
+        status: false,
         message: e.toString(),
       );
     }

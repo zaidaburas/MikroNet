@@ -122,9 +122,7 @@ class _LoginPageState extends State<LoginPage> {
                         icon: Icons.manage_search_rounded,
                         bgColor: const Color(0xFFE2E8F0), // رمادي فاتح
                         textColor: const Color(0xFF475569), // نص داكن
-                        onPressed: () {
-                          // إجراء عرض البيانات المحفوظة
-                        },
+                        onPressed: controller.showSavedData,
                       ),
                     ],
                   );

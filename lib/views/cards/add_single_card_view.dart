@@ -1,29 +1,23 @@
 import 'package:flutter/material.dart';
-import '../../Controllers/single_card_controller.dart';
-
-
+import 'package:get/get.dart';
+import '/controllers/cards/add_single_card_controller.dart';
 import '../widgets/shared/layouts/sub_page_header.dart';
 import '../widgets/shared/layouts/modern_input.dart';
 
-class AddSingleCardView extends StatefulWidget {
+class AddSingleCardView extends GetView<AddSingleCardController> {
   const AddSingleCardView({super.key});
 
   @override
-  State<AddSingleCardView> createState() => _AddSingleCardViewState();
-}
-
-class _AddSingleCardViewState extends State<AddSingleCardView> {
-  final controller = SingleCardController();
-
-  @override
   Widget build(BuildContext context) {
+    // حقن المتحكم إذا لم يتم حقنه عبر Bindings
+    Get.lazyPut(() => AddSingleCardController());
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: const Color(0xFFF8FAFC),
         body: Column(
           children: [
-            // 1. استخدام الهيدر الموحد مع أيقونة إضافة
             const PremiumHeader(
               title: "إضافة كرت جديد",
               subtitle: "إنشاء حساب مستخدم جديد في الشبكة",
@@ -53,7 +47,6 @@ class _AddSingleCardViewState extends State<AddSingleCardView> {
                       _buildFieldLabel("بيانات الحساب"),
                       const SizedBox(height: 10),
                       
-                      // 2. استخدام الحقول الموحدة (ModernInput)
                       ModernInput(
                         label: "اسم المستخدم",
                         icon: Icons.person_outline_rounded,
@@ -70,31 +63,30 @@ class _AddSingleCardViewState extends State<AddSingleCardView> {
                         child: Divider(),
                       ),
                       
-                      _buildFieldLabel("التفاصيل المالية والربط"),
+                      _buildFieldLabel("اختيار الباقة"),
                       const SizedBox(height: 10),
                       
-                      // دروب داون الباقات (بقيت ميثود داخلية لأنها خاصة)
-                      _buildPackageDropdown(),
+                      // استخدام Obx لمراقبة قائمة الباقات وحالة التحميل
+                      Obx(() => controller.isProfilesLoading.value 
+                        ? const Center(child: LinearProgressIndicator())
+                        : _buildPackageDropdown()),
                       
                       const SizedBox(height: 35),
                       
-                      // 3. زر الحفظ
-                      _buildSaveButton(),
+                      // زر الحفظ مع مراقبة حالة التحميل
+                      Obx(() => _buildSaveButton()),
                     ],
                   ),
                 ),
               ),
             ),
             
-            // 4. الفوتر البسيط
             _buildFooter(),
           ],
         ),
       ),
     );
   }
-
-  /* ================= أدوات الإدخال الخاصة ================= */
 
   Widget _buildFieldLabel(String text) {
     return Text(
@@ -117,18 +109,18 @@ class _AddSingleCardViewState extends State<AddSingleCardView> {
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          value: controller.selectedPackage,
+          value: controller.selectedProfile.value?.name,
           isExpanded: true,
           icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF1E3A8A)),
           hint: const Text("اختر الباقة"),
-          items: controller.packages
-              .map((p) => DropdownMenuItem(
-                    value: p,
-                    child: Text("باقة $p",
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                  ))
-              .toList(),
-          onChanged: (v) => setState(() => controller.selectedPackage = v!),
+          items: controller.profiles.map((p) => DropdownMenuItem(
+            value: p.name,
+            child: Text("باقة ${p.name}", 
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+          )).toList(),
+          onChanged: (v) {
+            controller.selectedProfile.value = controller.profiles.firstWhere((p) => p.name == v);
+          },
         ),
       ),
     );
@@ -136,16 +128,17 @@ class _AddSingleCardViewState extends State<AddSingleCardView> {
 
   Widget _buildSaveButton() {
     return InkWell(
-      onTap: () {
-        if (!controller.validate()) return;
-        controller.clear();
-        Navigator.pop(context);
-      },
-      child: Container(
+      onTap: controller.isLoading.value ? null : () => controller.saveCard(),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
         height: 55,
         width: double.infinity,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [Color(0xFF0F172A), Color(0xFF1E3A8A)]),
+          gradient: LinearGradient(
+            colors: controller.isLoading.value 
+              ? [Colors.grey, Colors.blueGrey]
+              : [const Color(0xFF0F172A), const Color(0xFF1E3A8A)]
+          ),
           borderRadius: BorderRadius.circular(15),
           boxShadow: [
             BoxShadow(
@@ -155,11 +148,13 @@ class _AddSingleCardViewState extends State<AddSingleCardView> {
             )
           ],
         ),
-        child: const Center(
-          child: Text(
-            "حفظ الكرت",
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-          ),
+        child: Center(
+          child: controller.isLoading.value 
+            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+            : const Text(
+                "حفظ الكرت",
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+              ),
         ),
       ),
     );
@@ -171,7 +166,7 @@ class _AddSingleCardViewState extends State<AddSingleCardView> {
       width: double.infinity,
       child: const Center(
         child: Text(
-          "نظام إدارة الكروت الفردية v1.0",
+          "نظام إدارة الكروت الفردية v2.0 - GetX",
           style: TextStyle(color: Colors.blueGrey, fontSize: 10, fontWeight: FontWeight.bold),
         ),
       ),

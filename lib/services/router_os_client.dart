@@ -171,7 +171,7 @@ class RouterOSClient {
       return true;
     } catch (e) {
       logger.e('Login failed: $e');
-      return false;
+      rethrow;
     }
   }
 

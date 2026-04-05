@@ -1,237 +1,215 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mikronet/api/users_api.dart';
-import 'package:mikronet/models/users_model.dart';
-import 'package:mikronet/services/mikrotik_client.dart';
-import 'package:mikronet/services/response.dart';
-import 'package:mikronet/views/helpers/dialogs.dart';
+import '../dialog_helper.dart';
+import '/api/users_api.dart';
+import '/models/users_model.dart';
+import '/models/response.dart';
 
-class DevicesController extends GetxController{
-  final nameCtrl = TextEditingController();
-  final ipCtrl = TextEditingController();
-  final macCtrl = TextEditingController();
-  String selectedStatus = "regular";
+class DevicesController extends GetxController {
+  RxString filter = "ALL".obs;
+  
+  RxList<SavedUserModel> allDevices = <SavedUserModel>[].obs;
+  RxList<SavedUserModel> filteredDevices = <SavedUserModel>[].obs;
 
-
-  List<DevicesModel> _devices=[];
-  bool isLoading=false;
-  String _filter = "ALL";
-  String get filter => _filter;
-  List servers=["all"];
-  String selectedServer="all";
-
-  Future<void> initial()async{
-    await getAll();
-    await getServers();
-  }
-
-  Future<void> getServers() async{
-    List s=await MikrotikClient.printData(commands: ["/ip/hotspot/print","?disabled=no"]);
-    List serversNames=s.map((e)=>e["name"]).toList();
-    servers.addAll(serversNames);
-  }
-
-  Future<void> getAll() async {
-    isLoading=true;
-    update();
-    AppResponse response = await UsersApi.getAlISavedUsers();
-    
-    if (!response.status) {
-      showErrorDialog(content: response.message);
-      isLoading=false;
-      update();
-      return; // إيقاف التنفيذ في حال الخطأ
-    }
-    
-    List<DevicesModel> result = [];
-    for (var i in response.data) {
-      result.add(DevicesModel.fromMikrotik(i));
-    }
-    _devices = result;
-    isLoading=false;
-    update();
-  }
-
-  void setFilter(String value) {
-    _filter = value;
-    update();
-  }
-
-  List<DevicesModel> get filteredDevices {
-    if (_filter == "BLOCKED") {
-      return _devices.where((d) => d.type.isBlocked).toList();
-    }
-
-    if (_filter == "FREE") {
-      return _devices.where((d) => d.type.isFree).toList();
-    }
-
-    if (_filter == "SAVED") {
-      return _devices.where((d) => d.label!="Unknown").toList();
-    }
-
-    if (_filter == "UNSAVED") {
-      return _devices.where((d) => d.label=="Unknown").toList();
-    }
-
-    if (_filter == "NORMAL") {
-      return _devices.where((d) => d.type.isNormal).toList();
-    }
-
-    return _devices;
-  }
+  RxBool isLoading = true.obs;
+  int _requestCounter = 0;
 
   @override
   void onInit() {
-    initial();
     super.onInit();
-    // initial();
+    _fetchDevices();
   }
 
-  /* ================= إضافة جهاز يدوي ================= */
+  void goBack() {
+    Get.back();
+  }
 
-  Future<void> addManualDevice()async {
+  void setFilter(String key) {
+    filter.value = key;
+    _applyFilter();
+  }
 
-    if (macCtrl.text.trim().isEmpty) return;
+  void _applyFilter() {
+    if (filter.value == "ALL") {
+      filteredDevices.assignAll(allDevices);
+    } else if (filter.value == "SAVED") {
+      filteredDevices.assignAll(allDevices.where((d) => d.type == "regular" || d.type == "normal").toList());
+    } else if (filter.value == "BLOCKED") {
+      filteredDevices.assignAll(allDevices.where((d) => d.type == "blocked").toList());
+    } else if (filter.value == "FREE") {
+      filteredDevices.assignAll(allDevices.where((d) => d.type == "bypassed").toList());
+    }
+  }
 
-    bool exists =_devices.any((d) => d.macAddress.toLowerCase() == macCtrl.text.toLowerCase());
-
-    if (exists) return;
-
-    isLoading=true;
-    update();
-
-    AppResponse response=await UsersApi.saveDevice(
-      macAddress: macCtrl.text.trim(),
-      srcAddress: ipCtrl.text.trim(),
-      label: nameCtrl.text.trim(),
-      server: selectedServer,
-      type: selectedStatus
+  /// تأكيد تعديل المسمى
+  void confirmRename(SavedUserModel device, String newName) {
+    if (newName.isEmpty || newName == device.label) return;
+    
+    showConfirmDialog(
+      message: "هل أنت متأكد من رغبتك في تغيير مسمى الجهاز إلى '$newName'؟",
+      onConfirm: () {
+        _executeRename(device, newName);
+      },
     );
-
-    isLoading=false;
-    if (!response.status) {
-      showErrorDialog(content: response.message);
-      return;
-    }
-
-    getAll();
-
-    // update();
   }
 
-  Future<void> rename(DevicesModel d, String newName)async {
-    isLoading=true;
-    update();
-    AppResponse r=await UsersApi.editDevice(d.id,{"comment":newName.trim()});
-    if (!r.status) {
-      showErrorDialog(content: r.message);
-      return;
-    }
-    isLoading=false;
-    d.label=newName.trim();
-    // getAll();
-    update();
+  /// تأكيد الحظر
+  void confirmBlock(SavedUserModel device) {
+    showConfirmDialog(
+      message: "هل أنت متأكد من حظر هذا الجهاز؟ لن يتمكن من الوصول للشبكة.",
+      onConfirm: () {
+        _executeAction(device, type: "blocked", msg: "تم حظر الجهاز بنجاح");
+      },
+    );
   }
 
-  Future<void> block(DevicesModel d)async {
-    if (d.type.isBlocked) {
-      showErrorDialog(content: "already blocked");
-      return;
-    }
-    isLoading=true;
-    update();
-    AppResponse r=await UsersApi.editDevice(d.id, {"type":"blocked"});
-    if (!r.status) {
-      showErrorDialog(content: r.message);
-      return;
-    }
-    isLoading=false;
-    d.type.isBlocked=true;
-    d.type.isNormal=false;
-    d.type.isFree=false;
-    update();
+  /// تأكيد فك الحظر
+  void confirmUnblock(SavedUserModel device) {
+    showConfirmDialog(
+      message: "هل تريد فك الحظر عن هذا الجهاز والسماح له بالاتصال مجدداً؟",
+      onConfirm: () {
+        _executeAction(device, type: "regular", msg: "تم فك الحظر عن الجهاز");
+      },
+    );
   }
 
-  Future<void> unblock(DevicesModel d)async {
-    if (!d.type.isBlocked) {
-      showErrorDialog(content: "already Unblocked");
-      return;
-    }
-    isLoading=true;
-    update();
-    AppResponse r=await UsersApi.editDevice(d.id, {"type":"regular"});
-    if (!r.status) {
-      showErrorDialog(content: r.message);
-      return;
-    }
-    isLoading=false;
-    d.type.isBlocked=false;
-    d.type.isNormal=true;
-    d.type.isFree=false;
-    update();
+  /// تأكيد تحويل لمجاني
+  void confirmMakeFree(SavedUserModel device) {
+    showConfirmDialog(
+      message: "هل أنت متأكد من منح هذا الجهاز وصولاً مجانياً للشبكة؟",
+      onConfirm: () {
+        _executeAction(device, type: "bypassed", msg: "تم تحويل الجهاز إلى مجاني");
+      },
+    );
   }
 
-  Future<void> makeFree(DevicesModel d)async {
-    if (d.type.isFree) {
-      showErrorDialog(content: "already Free");
-      return;
-    }
-    isLoading=true;
-    update();
-    AppResponse r=await UsersApi.editDevice(d.id, {"type":"bypassed"});
-    if (!r.status) {
-      showErrorDialog(content: r.message);
-      return;
-    }
-    isLoading=false;
-    d.type.isBlocked=false;
-    d.type.isNormal=false;
-    d.type.isFree=true;
-    update();
-    // getAll();
+  /// تأكيد الحذف
+  void confirmDelete(SavedUserModel device) {
+    showConfirmDialog(
+      message: "هل أنت متأكد من حذف هذا الجهاز من النظام نهائياً؟",
+      onConfirm: () {
+        _executeDelete(device);
+      },
+    );
   }
 
-  Future<void> delete(DevicesModel d)async {
-    isLoading=true;
-    update();
-    AppResponse r=await UsersApi.removeDevice(id: d.id);
-    if (!r.status) {
-      showErrorDialog(content: r.message);
-      return;
+  /// إضافة جهاز يدوياً
+  Future<void> addManualDevice({required String name, required String ip, required String mac, required String status}) async {
+    Get.dialog(const Center(child: CircularProgressIndicator(color: Color(0xff1E3C72))), barrierDismissible: false);
+    
+    String type = "regular";
+    if(status == "FREE") type = "bypassed";
+    if(status == "BLOCKED") type = "blocked";
+
+    AppResponse<void> response;
+    if(type == "blocked") {
+      response = await UsersApi.blockDevice(macAddress: mac, srcAddress: ip, label: name);
+    } else if (type == "bypassed") {
+      response = await UsersApi.bypassDevice(macAddress: mac, srcAddress: ip, label: name);
+    } else {
+      response = await UsersApi.labelDevice(macAddress: mac, srcAddress: ip, label: name);
     }
-    isLoading=false;
-    _devices.remove(d);
-    update();
-    // getAll();
+
+    if (Get.isDialogOpen ?? false) Get.back();
+
+    if (response.status) {
+      _fetchDevices(); 
+      _showSuccess("تم بنجاح", "تمت إضافة الجهاز الجديد");
+    } else {
+      showMsgDialog(message: response.message);
+    }
   }
 
-  
+  /// جلب البيانات
+  Future<void> _fetchDevices() async {
+    final currentId = ++_requestCounter;
+    isLoading.value = true;
+    
+    try {
+      AppResponse<List<SavedUserModel>> response = await UsersApi.getAlISavedUsers();
+      
+      if (currentId != _requestCounter) return;
 
+      if (response.status && response.data != null) {
+        allDevices.assignAll(response.data!);
+        _applyFilter();
+      } else {
+        showMsgDialog(message: response.message);
+      }
+    } catch (e) {
+      if (currentId == _requestCounter) {
+        showMsgDialog(message: "Error fetching devices: $e");
+      }
+    } finally {
+      if (currentId == _requestCounter) {
+        isLoading.value = false;
+      }
+    }
+  }
 
-  
-  
+  Future<void> _executeRename(SavedUserModel device, String newName) async {
+    Get.dialog(const Center(child: CircularProgressIndicator(color: Color(0xff1E3C72))), barrierDismissible: false);
+    
+    AppResponse<void> response = await UsersApi.editDevice(device.id, label: newName);
+    
+    if (Get.isDialogOpen ?? false) Get.back();
+
+    if (response.status) {
+      int index = allDevices.indexWhere((e) => e.id == device.id);
+      if (index != -1) {
+        allDevices[index] = SavedUserModel(
+          id: device.id, srcAddress: device.srcAddress, dstAddress: device.dstAddress,
+          macAddress: device.macAddress, server: device.server, type: device.type, label: newName
+        );
+      }
+      allDevices.refresh();
+      _applyFilter();
+      _showSuccess("تم بنجاح", "تم تغيير مسمى الجهاز");
+    } else {
+      showMsgDialog(message: response.message);
+    }
+  }
+
+  Future<void> _executeAction(SavedUserModel device, {required String type, required String msg}) async {
+    Get.dialog(const Center(child: CircularProgressIndicator(color: Color(0xff1E3C72))), barrierDismissible: false);
+    
+    AppResponse<void> response = await UsersApi.editDevice(device.id, type: type);
+    
+    if (Get.isDialogOpen ?? false) Get.back();
+
+    if (response.status) {
+      int index = allDevices.indexWhere((e) => e.id == device.id);
+      if (index != -1) {
+        allDevices[index] = SavedUserModel(
+          id: device.id, srcAddress: device.srcAddress, dstAddress: device.dstAddress,
+          macAddress: device.macAddress, server: device.server, type: type, label: device.label
+        );
+      }
+      allDevices.refresh();
+      _applyFilter();
+      _showSuccess("تمت العملية", msg);
+    } else {
+      showMsgDialog(message: response.message);
+    }
+  }
+
+  Future<void> _executeDelete(SavedUserModel device) async {
+    Get.dialog(const Center(child: CircularProgressIndicator(color: Colors.redAccent)), barrierDismissible: false);
+    
+    AppResponse<void> response = await UsersApi.removeDevice(id: device.id);
+    
+    if (Get.isDialogOpen ?? false) Get.back();
+
+    if (response.status) {
+      allDevices.removeWhere((e) => e.id == device.id);
+      _applyFilter();
+      _showSuccess("تم الحذف", "تم حذف الجهاز من النظام");
+    } else {
+      showMsgDialog(message: response.message);
+    }
+  }
+
+  void _showSuccess(String title, String msg) {
+    showMsgDialog(message: msg);
+  }
 }
-
-
-
-
-
-  
-
-
-
-  
-
-  
-
-  
-
-  
-
-  
-
-
-
-
