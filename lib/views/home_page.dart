@@ -1,191 +1,220 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mikronet/api/reports_api.dart';
-import 'package:mikronet/api/sites_api.dart';
-import 'package:mikronet/views/prints/print_page.dart';
-import 'package:mikronet/views/users/users_page.dart';
-import '/api/cards_api.dart';
-import '/api/profiles_api.dart';
-import '/api/users_api.dart';
-import '/models/cards_model.dart';
-import '/models/users_model.dart';
-import '/models/profiles_model.dart';
-import '/services/mikrotik_client.dart';
-import '/views/helpers/dialogs.dart';
-import 'prints/templates/templates_form.dart';
-import 'prints/templates/all_templates_view.dart';
-// import '/views/test.dart';
 
-import 'widgets/menu_item_card.dart';
+import '/controllers/home_controller.dart';
+
+// استيراد الـ Widgets الجديدة
+import './widgets/home_header.dart';
+import './widgets/home_carousel.dart';
+import './widgets/menu_item_card.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({
-    Key? key,
-    }) : super(key: key);
+  const HomePage({super.key});
+
   @override
-  State<StatefulWidget> createState() {
-    return _HomePage();
-  }
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePage extends State<HomePage> {
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
+  
+  // ربط المتحكم بالواجهة
+  final HomeController controller = Get.put(HomeController());
+
+  late PageController _pageController;
+  late AnimationController _pulseController;
+  Timer? _carouselTimer;
+  int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(viewportFraction: 0.9, initialPage: 0);
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+
+    _startCarouselTimer();
+  }
+
+  // نقلنا مؤقت الحركة التلقائية للـ Carousel إلى الواجهة هنا
+  void _startCarouselTimer() {
+    _carouselTimer = Timer.periodic(const Duration(seconds: 4), (Timer timer) {
+      if (_pageController.hasClients) {
+        int nextItem = _currentPage + 1;
+        if (nextItem >= 6) { // 6 هو عدد الكروت الموجودة في الـ Carousel
+          nextItem = 0;
+        }
+        _pageController.animateToPage(
+          nextItem,
+          duration: const Duration(milliseconds: 900),
+          curve: Curves.easeInOutQuart,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _carouselTimer?.cancel();
+    _pageController.dispose();
+    _pulseController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('title'),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _buildGridMenu(context),
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF1F5F9),
+        body: Column(
+          children: [
+            HomeHeader(
+              pulseAnimation: _pulseController,
+              onLogout: () => Navigator.pop(context),
             ),
-          ),
-        ],
-      ),
-      floatingActionButton: MaterialButton(
-        onPressed: () async{
-          try {
-            // var r=await SitesApi.getSSLBlockedSites();
-            // showErrorDialog(title: r.data.length.toString(),content: r.data.toString());
-            var r=await ReportsApi.getSallesReport();
-            showErrorDialog(title: r.data.length.toString(),content: r.data.toString());
-
-          }catch (e) {
-            showErrorDialog(content: e.toString());
-          }
-        },
-        onLongPress : () async{
-          try {
-            var r=await ReportsApi.getSystemState();
-            showErrorDialog(title: "hhh",content: r.message.toString());
-
-          }catch (e) {
-            showErrorDialog(content: e.toString());
-          }
-        },
-        // tooltip: 'Add',
-        child: const Icon(Icons.add),
+            HomeCarousel(
+              controller: _pageController,
+              currentPage: _currentPage,
+              onPageChanged: (i) => setState(() => _currentPage = i),
+              items: _buildCarouselItems(context),
+            ),
+            _buildSectionTitle("إدارة النظام والعمليات"),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: _buildGridMenu(context),
+              ),
+            ),
+          ],
+        ),
       ),
     );
-    //throw UnimplementedError();
-  }
-  
-  Future<void> fun1()async{
-    Get.to(PrintOperationsView());
   }
 
-  Future<void> fun2()async{
-    Get.to(UsersManagementView());
+  List<Widget> _buildCarouselItems(BuildContext context) {
+    return [
+      ActionCarouselItem(
+        category: "إجراء سريع",
+        title: "توليد كرت واحد",
+        subtitle: "إنشاء كرت مستخدم فوري",
+        icon: Icons.add_moderator_rounded,
+        color: const Color(0xFF2563EB),
+        actionText: "ابدأ الإضافة",
+        onTap: () {}
+      ),
+      const ResourceCarouselItem(
+        category: "مراقبة الأداء",
+        label: "حمل المعالج (CPU)",
+        percent: "34%",
+        icon: Icons.speed_rounded,
+        color: Colors.cyanAccent,
+      ),
+      const ResourceCarouselItem(
+        category: "مراقبة الأداء",
+        label: "استهلاك الرام (RAM)",
+        percent: "58%",
+        icon: Icons.memory_rounded,
+        color: Colors.purpleAccent,
+      ),
+      ActionCarouselItem(
+        category: "الأمن والرقابة",
+        title: "قائمة الحظر",
+        subtitle: "مستخدمين تم تقييدهم",
+        value: "14 مستخدم",
+        icon: Icons.block_flipped,
+        color: const Color(0xFFDC2626),
+        actionText: "إدارة الحظر",
+        onTap: () {},
+      ),
+      ActionCarouselItem(
+        category: "تنبيه النظام",
+        title: "مساحة القرص",
+        subtitle: "قاعدة بيانات السيرفر",
+        value: "12% مستخدم",
+        icon: Icons.storage_rounded,
+        color: const Color(0xFF10B981),
+        actionText: "فحص القرص",
+        onTap: () {},
+      ),
+      ActionCarouselItem(
+        category: "تقارير مالية",
+        title: "مبيعات اليوم",
+        subtitle: "إجمالي الكروت المباعة",
+        value: "285 كرت",
+        icon: Icons.auto_graph_rounded,
+        color: const Color(0xFF0EA5E9),
+        actionText: "عرض التقارير",
+        onTap: () {},
+      ),
+    ];
   }
-
-  Future<void> fun3()async{
-    try {
-      List d=[];
-      await MikrotikClient.login();
-      var r=await UsersApi.blockDevice(
-        macAddress: "04:5E:A4:70:06:21",
-        srcAddress: "4.0.0.20",
-        label: "zz7354", 
-        dstAddress: "4.0.0.9", 
-      );
-      if(r.status){
-        d.add(r.message);
-      }
-      showErrorDialog(content: d.toString());
-    } catch (e) {
-      showErrorDialog(content: e.toString());
-    }
-  }
-
-  Future<void> fun4()async{
-    try {
-      List d=[];
-      await MikrotikClient.login();
-      var r=await UsersApi.bypassDevice(
-        macAddress: "04:5E:A4:70:06:21",
-        srcAddress: "4.0.0.20",
-        label: "zz7354", 
-        dstAddress: "4.0.0.9", 
-      );
-      if(r.status){
-        d.add(r.message);
-      }
-      showErrorDialog(content: d.toString());
-    } catch (e) {
-      showErrorDialog(content: e.toString());
-    }
-  }
-
-  Future<void> fun5()async{
-    try {
-      List d=[];
-      await MikrotikClient.login();
-      var r=await UsersApi.removeDevice(id: "*487");
-      if(r.status){
-        d.add(r.message);
-      }
-      showErrorDialog(content: d.toString());
-    } catch (e) {
-      showErrorDialog(content: e.toString());
-    }
-  }
-  
-  Future<void> fun6()async{
-    // try {
-    //   ProfilesModel model=ProfilesModel(mikrotik: widget.mikrotik);
-    //   var r=await model.getAllProfiles();
-    //   showErrorDialog(title: r.length.toString(),content: r.toString());
-    // } catch (e) {
-    //   showErrorDialog(content: e.toString());
-    // }
-  }
-
 
   Widget _buildGridMenu(BuildContext context) {
-      final List<Map<String, dynamic>> menuData = [
-        {"title": "template", "icon": Icons.credit_card_rounded, "view": fun1 },
-        {"title": "Users", "icon": Icons.people_alt_rounded, "view": fun2 },
-        {"title": "delete", "icon": Icons.print_rounded, "view": fun3 },
-        {"title": "getProfilesLimitations", "icon": Icons.dns_rounded, "view": fun4 },
-        {"title": "getProfile", "icon": Icons.analytics_rounded, "view": fun5 },
-        {"title": "getAllProfiles", "icon": Icons.cloud_sync_rounded, "view": fun6 },
-      ];
+    final List<Map<String, dynamic>> menuData = [
+      {
+        "title": "إدارة الكروت",
+        "icon": Icons.credit_card_rounded,
+        "view": "الكروت"
+      },
+      {
+        "title": "المستخدمين",
+        "icon": Icons.people_alt_rounded,
+        "view":  "المستخدمين"
+      },
+      {
+        "title": "ادارة عملية الطباعة",
+        "icon": Icons.print_rounded,
+        "view": "قوالب"
+      },
+      {
+        "title": "بيانات السيرفر",
+        "icon": Icons.dns_rounded,
+        "view": "البيانات"
+      },
+      {
+        "title": "التقارير",
+        "icon": Icons.analytics_rounded,
+        "view": "الإحصائيات"
+      },
+      {
+        "title": "النسخ الاحتياطي",
+        "icon": Icons.cloud_sync_rounded,
+        "view": "النسخ"
+      },
+    ];
 
-      return GridView.builder(
-        padding: const EdgeInsets.only(top: 10, bottom: 30),
-        itemCount: menuData.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 15,
-          crossAxisSpacing: 15,
-          childAspectRatio: 1.1,
-        ),
-        itemBuilder: (context, index) => MenuItemCard(
-          title: menuData[index]['title'],
-          icon: menuData[index]['icon'],
-          onTap: (
-            index==0?fun1:
-            index==1?fun2:
-            index==2?fun3:
-            index==3?fun4:
-            index==4?fun5:
-            fun6
-            ),
-          // (){
-          //   if(index==0){
-          //     fun1();
-          //   }
-          //   menuData[index]['view'];
-          // },
-          // onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => menuData[index]['view'])),
-        ),
-      );
-    }
+    return GridView.builder(
+      padding: const EdgeInsets.only(top: 10, bottom: 30),
+      itemCount: menuData.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 15,
+        crossAxisSpacing: 15,
+        childAspectRatio: 1.1,
+      ),
+      itemBuilder: (context, index) => MenuItemCard(
+        title: menuData[index]['title'],
+        icon: menuData[index]['icon'],
+        // تم إصلاح السطر أدناه بإضافة الدالة المجهولة () => لمنع التنفيذ التلقائي
+        onTap: () => controller.navigateToTarget(menuData[index]['view']),
+      ),
+    );
+  }
 
-
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(25, 25, 25, 10),
+      child: Align(
+          alignment: Alignment.centerRight,
+          child: Text(title,
+              style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF1E293B)))),
+    );
+  }
 }
-

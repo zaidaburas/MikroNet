@@ -1,5 +1,6 @@
+import '/models/profiles_model.dart';
 import '/services/mikrotik_client.dart';
-import '/services/response.dart';
+import '../models/response.dart';
 
 class ProfilesApi {
   int version;
@@ -85,7 +86,7 @@ class ProfilesApi {
     return results;
   }
 
-  static Future<AppResponse> getProfiles({String profileName=""}) async {
+  static Future<AppResponse<List<ProfilesModel>>> getProfiles({String profileName=""}) async {
   try {
 
     List results=await _getProfilesData(profileName: profileName);
@@ -149,58 +150,19 @@ class ProfilesApi {
       finalProfiles.add(mergedProfile);
     }
 
-    // {
-    //   .id: *2, 
-    //   name: 100, 
-    //   owner: admin, 
-    //   name-for-users: 100, 
-    //   validity: 2d, 
-    //   price: 80, 
-    //   limitations: [
-    //     {
-    //       .id: *2, 
-    //       name: 100,
-    //       owner: admin, 
-    //       transfer-limit:167772160, 
-    //       uptime-limit: 2h, 
-    //       group- name: 1
-    //     }
-    //   ],
-    //   hotspot_settings: {
-    //     .id: *14, 
-    //     name: 1, 
-    //     shared-users: unlimited
-    //   }
-    // }
-    // List finalResult=[];
+    List<ProfilesModel> finalResult = finalProfiles.map((e) => ProfilesModel.fromMikrotik(e)).toList();
 
-    // for (var profile in finalProfiles) {
-    //   finalResult.add(ProfilesModel.fromMikrotik(profile));
-    //   // finalResult.add({
-    //   //   ".id":profile[".id"],
-    //   //   "name":profile["name"],
-    //   //   "price":profile["price"]??"??",
-    //   //   "palance":profile["limitations"][0]["transfer-limit"]??"??",
-    //   //   "validity":profile["validity"]??"??",
-    //   //   "uptime":profile["limitations"][0]["uptime-limit"]??"??",
-    //   //   "speed":profile["hotspot_settings"]["rate-limit"]??"??",
-    //   //   "users":profile["hotspot_settings"]["shared-users"]??"??",
-    //   // });
-    // }
-    return AppResponse(
+    return AppResponse<List<ProfilesModel>>(
       status: true, 
       message: "done",
-      data: finalProfiles
+      data: finalResult
     );
-    // return finalProfiles;
-    // return finalResult;
     
     } catch (e) {
-      return AppResponse(
-        status: true, 
+      return AppResponse<List<ProfilesModel>>(
+        status: false, 
         message: e.toString(),
       );
-      // throw Exception("فشل في دمج بيانات البروفايلات: $e");
     }
   }
 
@@ -291,19 +253,7 @@ class ProfilesApi {
     }
   }
   
-  static Future<AppResponse>addOneProfile(Map data)async{
-    // {
-    //   ".id":,
-    //   "name":, 
-    //   "price":,
-    //   "palance":,
-    //   "customer":,
-    //   "validity":,
-    //   "uptime":,
-    //   "speed":,
-    //   "users":
-    // }
-    
+  static Future<AppResponse<void>>addOneProfile(Map data)async{
     try {
       // add hotspot profile
       await _addOneHotspotProfile(
@@ -336,47 +286,36 @@ class ProfilesApi {
       );
 
       
-      return AppResponse(
+      return AppResponse<void>(
         status: true,
         message: "done"
       );
     } catch (e) {
-      return AppResponse(
+      return AppResponse<void>(
         status: false,
         message: e.toString()
       );
     }
   }
 
-  static Future<AppResponse>profileEdit(String name,Map<String, String> data)async{
-    // {
-    //   "name":, p,h,l
-    //   "price":, p
-    //   "palance": l
-    //   "customer":,
-    //   "validity": p
-    //   "uptime": l
-    //   "speed": h
-    //   "users": h
-    // }
-    
+  static Future<AppResponse<void>>profileEdit(String name,Map<String, String> data)async{
     try {
-      var profile=await getProfiles(profileName: name);
-      // first try find
-
-      // List profileTemp=await getAllProfiles(profileName: name);
-      // Map profile=profileTemp[0];
+      var profileResponse=await getProfiles(profileName: name);
+      if(!profileResponse.status || profileResponse.data == null || profileResponse.data!.isEmpty){
+        return AppResponse<void>(status: false, message: "Profile not found");
+      }
+      ProfilesModel profile = profileResponse.data![0];
       
-      String newProfileName='MikroNet_${data["name"]??profile.data[0].toMap()["name"]}_profile';
-      String newLimitName='MikroNet_${data["name"]??profile.data[0].toMap()["name"]}_limit';
+      String newProfileName='MikroNet_${data["name"]??profile.name}_profile';
+      String newLimitName='MikroNet_${data["name"]??profile.name}_limit';
 
       // edit hotspot profile
       await MikrotikClient.editData(
         command: "/ip/hotspot/user/profile/set",
         data: {
           "name": newProfileName.toString() ,
-          "shared-users": data["users"]??profile.data[0].toMap()["users"] ,
-          "rate-limit": data["speed"]??profile.data[0].toMap()["speed"] 
+          "shared-users": data["users"]??profile.users ,
+          "rate-limit": data["speed"]??profile.speed 
         },
         condition: "?name=MikroNet_${name}_profile"
       );
@@ -386,9 +325,9 @@ class ProfilesApi {
         command: "/tool/user-manager/profile/limitation/set",
         data: {
           "name": newLimitName ,
-          "owner": data["customer"]??profile.data[0].toMap()["customer"] ,
-          "transfer-limit": data["palance"]??profile.data[0].toMap()["palance"] ,
-          "uptime-limit": data["uptime"]??profile.data[0].toMap()["uptime"] ,
+          "owner": data["customer"]??profile.customer ,
+          "transfer-limit": data["palance"]??profile.palance ,
+          "uptime-limit": data["uptime"]??profile.uptime ,
           "group-name": newProfileName ,
         },
         condition: "?name=MikroNet_${name}_limit"
@@ -399,23 +338,23 @@ class ProfilesApi {
       await MikrotikClient.editData(
         command: "/tool/user-manager/profile/set",
         data: {
-          "name": data["name"]??profile.data[0].toMap()["name"] ,
-          "owner": data["customer"]??profile.data[0].toMap()["customer"] ,
-          "name-for-users": data["name"]??profile.data[0].toMap()["name"] ,
-          "validity": data["validity"]??profile.data[0].toMap()["validity"] ,
-          "price": data["price"]??profile.data[0].toMap()["price"] ,
+          "name": data["name"]??profile.name ,
+          "owner": data["customer"]??profile.customer ,
+          "name-for-users": data["name"]??profile.name ,
+          "validity": data["validity"]??profile.validity ,
+          "price": data["price"]??profile.price ,
           // "starts-at": "logon"
         },
         condition: "?name=$name"
       );
 
       
-      return AppResponse(
+      return AppResponse<void>(
         status: true,
         message: "done"
       );
     } catch (e) {
-      return AppResponse(
+      return AppResponse<void>(
         status: false,
         message: e.toString()
       );
@@ -423,7 +362,7 @@ class ProfilesApi {
   }
 
 
-  static Future<AppResponse>deleteProfile(String name)async{
+  static Future<AppResponse<void>>deleteProfile(String name)async{
     
     try {
       
@@ -459,12 +398,12 @@ class ProfilesApi {
 
 
       
-      return AppResponse(
+      return AppResponse<void>(
         status: true,
         message: "done"
       );
     } catch (e) {
-      return AppResponse(
+      return AppResponse<void>(
         status: false,
         message: e.toString()
       );

@@ -1,0 +1,196 @@
+import 'package:get/get.dart';
+
+// ================= استيراد الواجهات (Views) =================
+import '/views/login_page.dart';
+import '/views/home_page.dart';
+import '/controllers/login_controller.dart';
+import '/controllers/home_controller.dart';
+
+
+import '/views/cards/cards_view.dart';
+
+import '/views/cards/cards_list_view.dart';
+import '/views/cards/add_single_card_view.dart';
+import '/views/cards/card_info.dart';
+import '/views/cards/card_sessions.dart';
+import '/views/cards/packages_view.dart';
+
+
+
+import '/controllers/cards/cards_management_controller.dart';
+import '/controllers/cards/cards_list_controller.dart';
+import '/controllers/cards/add_single_card_controller.dart';
+import '/controllers/cards/card_details_controller.dart';
+import '/controllers/cards/card_sessions_controller.dart';
+import '/controllers/cards/packages_controller.dart';
+
+
+import '/views/users/users_page.dart';
+import '/controllers/users/users_management_controller.dart';
+
+import '/views/sites/sites_page.dart';
+import '/views/sites/dns_cache.dart';
+import '/views/sites/blocked_sites.dart';
+
+
+import '/controllers/sites/sites_controller.dart';
+import '/controllers/sites/dns_cache_controller.dart';
+import '/controllers/sites/blocked_sites_controller.dart';
+
+
+import '/views/prints/print_page.dart';
+import '/views/reports/reports_page.dart';
+
+/*
+import '/view/backups/backup_view.dart';
+
+// ================= استيراد المتحكمات (Controllers) =================
+
+
+
+
+import '/controller/reports/reports_controller.dart';
+import '/controller/settings/backup_controller.dart';
+*/
+class AppRoutes {
+  static const String login = '/';
+  static const String home = '/home';
+
+  static const String cards = '/cards';
+  static const String cardsList = '/cards/cards_list';
+  static const String addSingleCard = '/cards/add_single_card';
+  static const String packages = '/cards/packages';
+  static const String cardDetails = '/cards/card_details';
+  static const String cardSessions = '/cards/card_sessions';
+
+  static const String users = '/users';
+
+  static const String sites = '/sites';
+  static const String dnsCache = '/sites/dns_cache';
+  static const String blockedSites = '/sites/blocked_sites';
+  
+  static const String reports = '/reports';
+  static const String backup = '/home/backup';
+  
+
+  static const String print = '/print';
+  // مسارات إدارة المواقع
+  static const String dnsSettings = '/home/data_management/dns_settings';
+}
+
+class AppPages {
+  static final routes = [
+    // Login
+    GetPage(
+      name: AppRoutes.login,
+      page: () => const LoginPage(), 
+      binding: BindingsBuilder(() => Get.lazyPut(() => LoginController())),
+    ),
+    
+    // Home
+    GetPage(
+      name: AppRoutes.home,
+      page: () => const HomePage(), 
+      binding: BindingsBuilder(() => Get.lazyPut(() => HomeController())),
+    ),
+    
+    // إدارة الكروت الرئيسية
+    GetPage(
+      name: AppRoutes.cards, 
+      page: () => const CardsManagementView(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => CardsManagementController())),
+    ),
+    
+    // القوائم والعمليات
+    GetPage(
+      name: AppRoutes.cardsList, 
+      page: () => const CardsListView(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => CardsListController())),
+    ),
+    GetPage(
+      name: AppRoutes.addSingleCard, 
+      page: () => const AddSingleCardView(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => AddSingleCardController())),
+    ),
+    GetPage(
+      name: AppRoutes.packages, 
+      page: () => const PackagesView(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => PackagesController())),
+    ),
+    
+    GetPage(
+      name: AppRoutes.cardDetails,
+      page: () => CardDetailsView(card: Get.arguments), 
+      binding: BindingsBuilder(() => Get.lazyPut(() => CardDetailsController(card: Get.arguments))),
+    ),
+    // ابحث عن مسار cardSessions وقم بتعديله كالتالي:
+    GetPage(
+      name: AppRoutes.cardSessions,
+      page: () => CardSessionsView(username: Get.arguments),
+      binding: BindingsBuilder(() {
+        // تمرير القيمة الممررة (Get.arguments) إلى مشيد المتحكم
+        Get.lazyPut(() => CardSessionsController(cardCode: Get.arguments));
+      }),
+    ),
+    // صفحات إدارة المواقع
+    GetPage(
+      name: AppRoutes.users, 
+      page: () => const UsersManagementView(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => UsersManagementController())),
+    ),
+    
+    
+    GetPage(
+      name: AppRoutes.sites, 
+      page: () => const DataManagementView(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => SitesController())),
+    ),
+    GetPage(
+      name: AppRoutes.dnsCache,
+      page: () => const DnsCacheView(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => DnsCacheController())),
+    ),
+    GetPage(
+      name: AppRoutes.blockedSites,
+      page: () => const BlockedSitesView(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => BlockedSitesController())),
+    ),
+    GetPage(
+      name: AppRoutes.print, 
+      page: () => const PrintOperationsView(),
+      //binding: BindingsBuilder(() => Get.lazyPut(() => ReportsController())),
+    ),
+    GetPage(
+      name: AppRoutes.reports, 
+      page: () => const ReportsManagementView(),
+      //binding: BindingsBuilder(() => Get.lazyPut(() => BackupController())),
+    ),
+    /*
+    
+
+    
+    // صفحات الكروت التفصيلية
+    GetPage(
+      name: AppRoutes.dnsSettings,
+      page: () => const DnsSettingsView(),
+    ),
+    GetPage(
+      name: AppRoutes.blockedSites,
+      page: () => const BlockedSitesView(),
+    ),
+*/
+    // الدفعات والطباعة
+    /*GetPage(
+      name: AppRoutes.addBatch,
+      page: () => const AddBatch(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => AddBatchController())),
+    ),
+    GetPage(
+      name: AppRoutes.templatePreview,
+      page: () => const PagePreview(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => TemplatePreviewController())),
+    ),
+    */
+    
+  ];
+}

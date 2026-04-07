@@ -6,7 +6,7 @@ import '../widgets/shared/typography/section_title.dart';
 
 // استيراد الصفحات الفرعية
 import 'cards_list_view.dart';
-import '../packages/packages_view.dart';
+import '../cards/packages_view.dart';
 import 'add_single_card_view.dart';
 
 class CardsManagementView extends StatelessWidget {

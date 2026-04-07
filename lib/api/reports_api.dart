@@ -1,6 +1,9 @@
 import 'package:mikronet/services/mikrotik_client.dart';
 import 'package:mikronet/services/response.dart';
 
+// تأكد من استيراد ملفات الموديل حسب مسارها في مشروعك
+ import 'package:mikronet/models/selles_model.dart'; 
+
 class ReportsApi {
 
   // دالة مساعدة: لتحويل صيغة تاريخ الدفع (MMM/DD/YYYY HH:mm:ss) إلى DateTime
@@ -40,14 +43,14 @@ class ReportsApi {
     }
   }
 
-  static Future<List> getPayments()async{
+  static Future<List> getPayments() async {
     return await MikrotikClient.printData(
         commands: ["/tool/user-manager/payment/print"],
         fields: "user,trans-start,price" 
       );
   }
 
-  static Future<List> getProfiles()async{
+  static Future<List> getProfiles() async {
     return await MikrotikClient.printData(
         commands: ["/tool/user-manager/profile/print"],
       );
@@ -58,79 +61,88 @@ class ReportsApi {
     try {
       // تمديد تاريخ النهاية ليشمل آخر ثانية في اليوم
       DateTime adjustedEndDate = DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59);
+      
       // 1. جلب البيانات من المايكروتيك
       var allPayments = await getPayments();
-      // var allProfiles = await getProfiles();
+      
       // 2. فلترة البيانات
       var matchedPayments = allPayments.where((payment) {
         String? paymentTimeStr = payment['trans-start']; 
         if (paymentTimeStr == null || paymentTimeStr.isEmpty) return false;
+        
         // تحويل النص إلى DateTime
         DateTime? paymentDate = _parsePaymentDate(paymentTimeStr);
         if (paymentDate == null) return false;
+        
         // التحقق من النطاق الزمني
         bool isAfterStart = paymentDate.compareTo(startDate) >= 0;
         bool isBeforeEnd = paymentDate.compareTo(adjustedEndDate) <= 0;
         return isAfterStart && isBeforeEnd;
       }).toList();    
-      List<Map<String, dynamic>> result=List<Map<String, dynamic>>.from(matchedPayments);
-      // List<Map<String, dynamic>> packages=[];
-      // for (var i in result) {
-      //   Map profile=allProfiles.firstWhere((p)=> (int.parse(i["price"])/100) == (int.parse(p["price"])) );
-
-      //   var temp=Map<String, dynamic>.from(i);
-      //   temp['price']=(int.parse(i["price"])/100);
-      //   temp['profile']=profile["name"];
-      //   // temp.remove(key)
-
-      //   packages.add(temp);
-      // }
-      // إرجاع النتيجة
-      return result;
+      
+      return List<Map<String, dynamic>>.from(matchedPayments);
 
     } catch (e) {
       throw('حدث خطأ أثناء جلب أو فلترة المدفوعات: $e');
-      // return [];
     }
   }
 
-
-
-  static Future<AppResponse> getSallesReport({DateTime? from,DateTime? to})async{
+  // تم التعديل: إرجاع AppResponse محدد النوع <List<SellesReportModel>>
+  static Future<AppResponse<List<SellesReportModel>>> getSallesReport({DateTime? from, DateTime? to}) async {
     try {
-      var result=await getPaymentsBetweenDates(from??DateTime(1900),to??DateTime(2200));
+      var result = await getPaymentsBetweenDates(from ?? DateTime(1900), to ?? DateTime(2200));
       var allProfiles = await getProfiles();
-      List<Map<String, dynamic>> packages=[];
+      
+      List<SellesReportModel> reportList = [];
+      
       for (var i in result) {
-        Map profile=allProfiles.firstWhere((p)=> (int.parse(i["price"])/100) == (int.parse(p["price"])) );
+        // إضافة orElse لتجنب انهيار التطبيق إذا تم مسح باقة معينة
+        Map? profile = allProfiles.cast<Map?>().firstWhere(
+          (p) => p != null && p["price"] != null && (int.parse(i["price"].toString()) / 100) == (int.parse(p["price"].toString())),
+          orElse: () => null,
+        );
 
-        var temp=Map<String, dynamic>.from(i);
-        temp['price']=(int.parse(i["price"])/100);
-        temp['profile']=profile["name"];
-        // temp.remove(key)
+        double calculatedPrice = (int.parse(i["price"].toString()) / 100);
+        String profileName = profile != null ? profile["name"].toString() : "غير معروف";
 
-        packages.add(temp);
+        // إنشاء المودل مباشرة وإضافته للقائمة
+        reportList.add(
+          SellesReportModel(
+            card: i["user"]?.toString() ?? "",
+            profile: profileName,
+            price: calculatedPrice,
+            date: i["trans-start"]?.toString() ?? "",
+          )
+        );
       }
-      return AppResponse(status: true, message: "done",data: packages);
+      return AppResponse<List<SellesReportModel>>(status: true, message: "done", data: reportList);
       
     } catch (e) {
-      return AppResponse(status: false, message: e.toString());
+      return AppResponse<List<SellesReportModel>>(status: false, message: e.toString());
     }
   }
   
-
-  static Future<AppResponse> getSystemState()async{
+  // تم التعديل: إرجاع AppResponse محدد النوع <SystemStateModel>
+  static Future<AppResponse<SystemStateModel>> getSystemState() async {
     try {
-      var respone=await MikrotikClient.printData(
+      var response = await MikrotikClient.printData(
         commands: ["/system/resource/print"]
       );
 
-      return AppResponse(status: true, message: "done",data: respone);
+      // التأكد من أن المايكروتيك أرجع بيانات قبل تحويلها
+      if (response.isNotEmpty) {
+        // عادةً أوامر المايكروتيك ترجع List تحتوي على Map، فنأخذ العنصر الأول
+        var systemDataMap = response.first as Map;
+        SystemStateModel model = SystemStateModel.fromMikrotik(systemDataMap);
+        
+        return AppResponse<SystemStateModel>(status: true, message: "done", data: model);
+      } else {
+        return AppResponse<SystemStateModel>(status: false, message: "لا توجد بيانات متاحة لحالة النظام");
+      }
       
     } catch (e) {
-      return AppResponse(status: false, message: e.toString());
+      return AppResponse<SystemStateModel>(status: false, message: e.toString());
     }
   }
-
 
 }

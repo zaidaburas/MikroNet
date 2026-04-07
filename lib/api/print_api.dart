@@ -1,6 +1,7 @@
 
 import '/api/cards_api.dart';
 import '/api/database_api.dart';
+import '/models/response.dart';
 
 class PrintTemplatesApi {
  static Future<List> getAllTemplates()async{
@@ -62,7 +63,8 @@ class PrintBatchesApi {
   try {
     Map batch=await getBatchData(id);
     String cards=batch["generated_cards"];
-    List ids= await CardsApi.getIdsByUsernames( cards.split(",") );
+    AppResponse res = await CardsApi.getIdsByUsernames( cards.split(",") );
+    List ids= res.data;
     await CardsApi.deleteCardsBatch(ids);
     return "done";
   } catch (e) {

@@ -1,211 +1,89 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../Controllers/sites_controller.dart';
+import 'package:get/get.dart';
+import '/controllers/sites/sites_controller.dart';
 
-import 'dns_settings.dart';
-import 'dns_cache.dart';
-import 'black_sites.dart';
+// استيراد الـ Widgets الموحدة
+import '../widgets/shared/layouts/main_gate_header.dart';
+import '../widgets/shared/layouts/app_mini_footer.dart';
+import '../widgets/shared/cards/main_action_card.dart';
+import '../widgets/shared/typography/section_title.dart';
 
-class DataManagementView extends StatelessWidget {
+class DataManagementView extends GetView<SitesController> {
   const DataManagementView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => DataMgmtVM()..fetchFromMikrotik(),
-      child: Directionality(
-        textDirection: TextDirection.rtl,
-        child: Scaffold(
-          backgroundColor: const Color(0xFFF8FAFC),
-          body: Column(
-            children: [
-              _header(context),
-
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-
-                      _card(
-                        context,
-                        "إعدادات DNS",
-                        Icons.settings_ethernet_rounded,
-                        const DnsSettingsView(),
-                      ),
-
-                      const SizedBox(height: 15),
-
-                      _card(
-                        context,
-                        "سجلات DNS Cache",
-                        Icons.dns_rounded,
-                        const DnsCacheView(),
-                      ),
-
-                      const SizedBox(height: 15),
-
-                      _card(
-                        context,
-                        "المواقع المحظورة",
-                        Icons.block_rounded,
-                        const BlockedSitesView(),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /* ================= HEADER ================= */
-
-  Widget _header(BuildContext context) {
-    return Container(
-      height: 180,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Color(0xFF0F172A),
-            Color(0xFF1E3A8A),
-          ],
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-        ),
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(40),
-        ),
-      ),
-      child: Stack(
-        children: [
-
-          /// زر الرجوع
-          Positioned(
-            top: 50,
-            right: 15,
-            child: InkWell(
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  color: Colors.white,
-                  size: 20,
-                ),
-              ),
-            ),
-          ),
-
-          /// العنوان
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-
-                Icon(
-                  Icons.public,
-                  color: Colors.white,
-                  size: 32,
-                ),
-
-                SizedBox(height: 8),
-
-                Text(
-                  "إدارة المواقع",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /* ================= CARD ================= */
-
-  Widget _card(
-    BuildContext context,
-    String title,
-    IconData icon,
-    Widget page,
-  ) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(20),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => page),
-        );
-      },
-
-      child: Container(
-        padding: const EdgeInsets.all(18),
-
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 12,
-              offset: const Offset(0, 5),
-            )
-          ],
-
-          border: Border.all(
-            color: Colors.blue.shade50,
-          ),
-        ),
-
-        child: Row(
+    // ملاحظة: يُفضل استخدام Bindings في الراوتس بدلاً من Get.put هنا
+    Get.put(SitesController()); 
+    
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: Column(
           children: [
-
-            Container(
-              padding: const EdgeInsets.all(10),
-
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E3A8A).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-
-              child: Icon(
-                icon,
-                color: const Color(0xFF1E3A8A),
-                size: 26,
-              ),
+           
+            const MainGateHeader(
+              title: "إدارة المواقع",
+              subtitle: "إعدادات DNS وحظر عناوين الشبكة",
+              icon: Icons.public_rounded,
             ),
-
-            const SizedBox(width: 15),
 
             Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                physics: const BouncingScrollPhysics(),
+                children: [
+                  
+                  // ================= القسم الأول: سجلات DNS =================
+                  const SectionTitle(title: "السجلات المؤقتة"),
+                  MainActionCard(
+                    title: "DNS Cache",
+                    subtitle: "عرض وحذف السجلات المؤقتة للشبكة",
+                    icon: Icons.dns_rounded,
+                    color: const Color(0xFF0EA5E9), // لون أزرق سماوي
+                    onTap: controller.goToDnsCache, 
+                  ),
+                  
+                  const SizedBox(height: 20),
+                  
+                  // ================= القسم الثاني: الحظر والرقابة =================
+                  const SectionTitle(title: "جدار الحماية والرقابة"),
+                  
+                  // 1. حظر IP
+                  /*MainActionCard(
+                    title: "حظر العناوين (IP)",
+                    subtitle: "إدارة قائمة الأجهزة الممنوعة من الاتصال",
+                    icon: Icons.router_rounded,
+                    color: const Color(0xFFEF4444), // لون أحمر أمني
+                    onTap: controller.goToBlockedIps, 
+                  ),
+                  const SizedBox(height: 10),
+                  */
+                  // 2. حظر الدومين
+                  MainActionCard(
+                    title: "حظر النطاقات (Domain)",
+                    subtitle: "منع الوصول لمواقع محددة عبر الـ DNS",
+                    icon: Icons.public_off_rounded,
+                    color: const Color(0xFFF59E0B), // لون برتقالي تحذيري
+                    onTap: controller.goToBlockedDomains, 
+                  ),
+                  const SizedBox(height: 10),
+                  
+                  // 3. حظر المحتوى
+                  MainActionCard(
+                    title: "حظر المحتوى (Content)",
+                    subtitle: "فلترة الكلمات والمحتويات في الفايرول",
+                    icon: Icons.gpp_bad_rounded,
+                    color: const Color(0xFF8B5CF6), // لون بنفسجي
+                    onTap: controller.goToBlockedContent, 
+                  ),
+                  
+                ],
               ),
             ),
 
-            const Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: Colors.grey,
-            ),
+            const AppMiniFooter(sectionName: "إدارة الشبكة والمواقع"),
           ],
         ),
       ),

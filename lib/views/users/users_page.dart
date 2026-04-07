@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:mikronet/controllers/users/devices_controller.dart';
-import 'package:mikronet/controllers/users/users_controller.dart';
-import 'package:mikronet/views/users/devices_manager.dart';
 
 // استيراد الـ Widgets الموحدة
 import '../widgets/shared/layouts/main_gate_header.dart';
@@ -12,7 +8,8 @@ import '../widgets/shared/typography/section_title.dart';
 
 // استيراد الصفحات الفرعية
 import 'connected_users.dart';
-// import 'devices_manager.dart';
+import 'devices_manager.dart';
+import 'hosts_view.dart';
 
 class UsersManagementView extends StatelessWidget {
   const UsersManagementView({super.key});
@@ -39,17 +36,27 @@ class UsersManagementView extends StatelessWidget {
                 children: [
                   
                   const SectionTitle(title: "المراقبة المباشرة"),
-                  
                   MainActionCard(
-                    title: "المتصلين حالياً",
+                    title: " - Hosts - المتصلين حالياً",
                     subtitle: "عرض الجلسات النشطة وسرعة الاستهلاك",
                     icon: Icons.wifi_tethering_rounded,
                     color: const Color(0xFF10B981),
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => ActiveUsersView()),
+                      MaterialPageRoute(builder: (_) => const HostsView()),
                     ),
                   ),
+                  MainActionCard(
+                    title: " - Active - المتصلين حالياً",
+                    subtitle: "عرض الجلسات النشطة وسرعة الاستهلاك",
+                    icon: Icons.wifi_tethering_rounded,
+                    color: const Color(0xFF10B981),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ActiveSessionsView()),
+                    ),
+                  ),
+
 
                   const SizedBox(height: 15),
 
@@ -60,11 +67,10 @@ class UsersManagementView extends StatelessWidget {
                     subtitle: "التحكم في MAC Address وحظر الأجهزة",
                     icon: Icons.important_devices_rounded,
                     color: const Color(0xFF6366F1),
-                    onTap: () 
-                    => Navigator.push(
+                    onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const DevicesView()),
-                    ).then((_){DevicesController().dispose();}),
+                    ),
                   ),
                 ],
               ),

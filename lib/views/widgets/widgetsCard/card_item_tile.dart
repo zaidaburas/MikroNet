@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class CardItemTile extends StatelessWidget {
   final String username;
   final String package;
-  final String status;
+  final String status; // active, normal, expired
   final VoidCallback onTap;
   final VoidCallback onAnalyticsTap;
 
@@ -18,8 +18,22 @@ class CardItemTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    bool isActive = status == "نشطة";
     
+    // تحديد اللون والأيقونة بناءً على الحالة
+    Color statusColor;
+    IconData statusIcon;
+
+    if (status == "active") {
+      statusColor = Colors.green;
+      statusIcon = Icons.check_circle_rounded;
+    } else if (status == "normal") {
+      statusColor = const Color(0xFF0EA5E9); // لون أزرق للبطاقات الجديدة
+      statusIcon = Icons.fiber_new_rounded;
+    } else {
+      statusColor = Colors.red;
+      statusIcon = Icons.pause_circle_rounded;
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -40,17 +54,18 @@ class CardItemTile extends StatelessWidget {
           padding: const EdgeInsets.all(15),
           child: Row(
             children: [
-              // أيقونة الحالة (نشط/منتهي)
+              // أيقونة الحالة الديناميكية
               Container(
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  color: (isActive ? Colors.green : Colors.red).withOpacity(0.1),
+                  color: statusColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  isActive ? Icons.check_circle_rounded : Icons.pause_circle_rounded,
-                  color: isActive ? Colors.green : Colors.red,
+                  statusIcon,
+                  color: statusColor,
+                  size: 26,
                 ),
               ),
               const SizedBox(width: 15),

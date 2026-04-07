@@ -21,13 +21,13 @@ class LoginModel {
       hostAddress: data["host"], 
       username: data["username"], 
       password: data["password"], 
-      port: data["port"], 
+      port: int.parse(data["port"]), 
       networkName: data["name"]
     ); 
   }
 
-  Map toDatabase(){
-    return{
+  Map<String, dynamic> toDatabase(){
+    return <String, dynamic>{
       "host":hostAddress,
       "username":username,
       "password":password,
