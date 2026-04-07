@@ -1,4 +1,8 @@
 
+import 'dart:convert';
+
+import 'package:charset/charset.dart';
+
 class ProfilesModel {
   final String id;
   final String name;
@@ -21,11 +25,25 @@ class ProfilesModel {
     required this.uptime,
     required this.users,
   });
+  static String decode(String text) {
+    // String word = utf8.decode(
+    //     _buffer.sublist(offset + bytesUsedForLength, offset + bytesUsedForLength + length),allowMalformed: true
+    //   );
+    // String word = windows1256.decode(
+    //     _buffer.sublist(offset + bytesUsedForLength, offset + bytesUsedForLength + length),allowInvalid: true
+    //   );
+    try {
+      // نحول النص الغريب إلى بايتات بترميز latin1 ثم نعيد قراءته كـ utf8
+      return utf8.decode(windows1256.encode(text), allowMalformed: true);
+    } catch (e) {
+      return text; // إذا فشل التحويل يرجع النص كما هو
+    }
+  }
 
   static ProfilesModel fromMikrotik(Map profile){
     return ProfilesModel(
       id: profile[".id"],
-      name: profile["name"], 
+      name: (profile["name"] ?? ""), 
       price: profile["price"]??"", 
       palance: profile["limitations"][0]["transfer-limit"]??"",
       validity: profile["validity"]??"", 

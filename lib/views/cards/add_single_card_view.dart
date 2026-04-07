@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '/controllers/cards/add_single_card_controller.dart';
@@ -10,7 +12,7 @@ class AddSingleCardView extends GetView<AddSingleCardController> {
   @override
   Widget build(BuildContext context) {
     // حقن المتحكم إذا لم يتم حقنه عبر Bindings
-    Get.lazyPut(() => AddSingleCardController());
+    //Get.lazyPut(() => AddSingleCardController());
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -115,7 +117,7 @@ class AddSingleCardView extends GetView<AddSingleCardController> {
           hint: const Text("اختر الباقة"),
           items: controller.profiles.map((p) => DropdownMenuItem(
             value: p.name,
-            child: Text("باقة ${p.name}", 
+            child: Text(p.name, 
                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
           )).toList(),
           onChanged: (v) {

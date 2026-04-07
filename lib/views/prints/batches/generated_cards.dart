@@ -65,10 +65,14 @@ class GeneratedCardsView extends StatelessWidget {
   }
 
   // --- ويدجت لوحة التحكم الجديدة ---
+  // --- ويدجت لوحة التحكم المُحدثة ---
   Widget _buildControlPanel(GeneratedCardsController controller) {
-    // حساب الإحصائيات (افترضنا وجودها في الكنترولر)
     int addedCount = controller.generatedCards.where((c) => c.isAdd == true).length;
     int remainingCount = (controller.generatedCards.length) - addedCount;
+
+    // تمكين الأزرار يعتمد على حالة التحميل وحالة الرفع
+    bool canStart = !controller.isUploading && remainingCount > 0 && !controller.isLoading;
+    bool canStop = controller.isUploading;
 
     return Column(
       children: [
@@ -87,24 +91,86 @@ class GeneratedCardsView extends StatelessWidget {
           children: [
             Expanded(
               child: _buildActionBtn(
-                "بدء الإضافة للسيرفر", 
-                [const Color(0xFF1E3A8A), const Color(0xFF0F172A)], 
-                Icons.cloud_upload_rounded, 
-                () => _handleStartUpload(controller)
+                controller.isLoading 
+                  ? "جاري المزامنة..." 
+                  : (controller.isUploading ? "جاري الإرسال..." : "بدء الإضافة للسيرفر"), 
+                canStart ? [const Color(0xFF1E3A8A), const Color(0xFF0F172A)] : [Colors.grey.shade400, Colors.grey.shade600], 
+                controller.isUploading || controller.isLoading ? Icons.sync : Icons.cloud_upload_rounded, 
+                () {
+                  if(canStart) _handleStartUpload(controller);
+                }
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: _buildActionBtn(
                 "إيقاف العملية", 
-                [const Color(0xFFEF4444), const Color(0xFF991B1B)], 
+                canStop ? [const Color(0xFFEF4444), const Color(0xFF991B1B)] : [Colors.grey.shade400, Colors.grey.shade600], 
                 Icons.stop_circle_rounded, 
-                () => _handleStopUpload(controller)
+                () {
+                  if(canStop) _handleStopUpload(controller);
+                }
               ),
             ),
           ],
         ),
       ],
+    );
+  }
+
+  // --- تحديث قسم الجدول ليُظهر حالة التحميل (Loading) إذا لزم الأمر ---
+  Widget _buildTableCard(GeneratedCardsController controller) {
+    final cardsList = controller.generatedCards ; 
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(25),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          )
+        ],
+      ),
+      child: controller.isLoading 
+          ? const Center(
+              child: Padding(
+                padding: EdgeInsets.all(40.0),
+                child: CircularProgressIndicator(),
+              ),
+            )
+          : cardsList.isEmpty
+              ? _buildEmptyState()
+              : SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: DataTable(
+                    headingTextStyle: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF1E3A8A), fontSize: 13),
+                    dataTextStyle: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF475569), fontSize: 13),
+                    columnSpacing: 25,
+                    horizontalMargin: 15,
+                    columns: const [
+                      DataColumn(label: Text("اسم المستخدم")),
+                      DataColumn(label: Text("كلمة المرور")),
+                      DataColumn(label: Text("الباقة (Profile)")),
+                      DataColumn(label: Text("الحالة")),
+                    ],
+                    rows: cardsList.map<DataRow>((card) {
+                      return DataRow(
+                        cells: [
+                          DataCell(Text(card.username.toString())),
+                          DataCell(Text(card.password.toString())),
+                          DataCell(_buildProfileBadge(card.profileName.toString())),
+                          DataCell(_buildStatusBadge(card.isAdd)),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
     );
   }
 
@@ -176,7 +242,7 @@ class GeneratedCardsView extends StatelessWidget {
   }
 
   // (ويدجت الجدول المذكور في الرد السابق يبقى كما هو)
-  Widget _buildTableCard(GeneratedCardsController controller) {
+  Widget _buildTableCard1(GeneratedCardsController controller) {
     // نفترض أن الكروت موجودة في قائمة داخل الكنترولر بهذا الشكل:
     // List<Map<String, dynamic>> generatedCards = [{'username': '..', 'password': '..', 'profile': '..', 'isAdded': true/false}]
     // يمكنك تعديل controller.generatedCards بناءً على اسم المتغير الفعلي لديك

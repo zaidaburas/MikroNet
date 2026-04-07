@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mikronet/controllers/print/form_controller.dart';
+import 'package:mikronet/controllers/print/add_batch_controller.dart';
 // import 'package:mikronet/models/print_model.dart';
 import '/controllers/print/list_controller.dart';
 import 'add_batch.dart';

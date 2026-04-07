@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mikronet/controllers/helpers/widgets.dart';
 import 'package:mikronet/controllers/print/batches_controller.dart';
-import 'package:mikronet/controllers/print/form_controller.dart';
+import 'package:mikronet/controllers/print/add_batch_controller.dart';
 import 'package:mikronet/views/helpers/dialogs.dart';
-// import '../../print/page_preview.dart';
 
 // استيراد الويجيت الموحدة
 import '../../widgets/shared/layouts/sub_page_header.dart';
@@ -28,85 +27,14 @@ class AddBatchView extends StatefulWidget {
 }
 
 class _AddBatchViewState extends State<AddBatchView> {
-  // final nameCtrl = TextEditingController();
-  // final totalCtrl = TextEditingController();
-  // final prefixCtrl = TextEditingController();
-  // final suffixCtrl = TextEditingController();
-
-  // String selectedProfile = "100";
-
-  // final List<String> profiles = ["100", "200", "250", "500", "1500", "3000"];
-
-  // String selectedTemplate = "القالب 1";
-
-  // final List<String> templates = ["القالب 1", "القالب 2", "القالب 3"];
-
   
-
   @override
   void initState() {
     super.initState();
     if (widget.batch != null) {
-      // nameCtrl.text = widget.batch['name'] ?? "";
-      // totalCtrl.text = widget.batch['total']?.toString() ?? "";
-      // selectedProfile = widget.batch['profile'] ?? "100";
-      // prefixCtrl.text = widget.batch['prefix'] ?? "";
-      // suffixCtrl.text = widget.batch['suffix'] ?? "";
-      // selectedGenType = widget.batch['charType'] ?? "mixed";
+      // يمكنك تهيئة القيم هنا في حالة التعديل لاحقاً
     }
   }
-
-  /* ================= الدوال الوظيفية (محفوظة بالكامل) ================= */
-
-  void _handleCreate() async {
-    // if (nameCtrl.text.isEmpty || totalCtrl.text.isEmpty) {
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //       const SnackBar(content: Text("يرجى ملء البيانات الأساسية")));
-    //   return;
-    // }
-    // final total = int.tryParse(totalCtrl.text) ?? 0;
-    // if (total <= 0) return;
-
-    // if (widget.editIndex == null) {
-    //   // controller.addBatch(nameCtrl.text, total, selectedProfile,
-    //   //     prefixCtrl.text, suffixCtrl.text,
-    //   //     charType: selectedGenType);
-    // } else {
-    //   // controller.updateBatch(widget.editIndex!, nameCtrl.text, total,
-    //   //     selectedProfile, prefixCtrl.text, suffixCtrl.text,
-    //   //     charType: selectedGenType);
-    // }
-    // // controller.generateBatchByTemplate(nameCtrl.text, selectedTemplate,
-    // //     type: selectedGenType);
-    // if (mounted) _showSuccessDialog();
-  }
-
-  void _handlePreview() {
-    // final total = int.tryParse(totalCtrl.text) ?? 12;
-    // int templateIndex = templates.indexOf(selectedTemplate);
-    // if (templateIndex == -1) templateIndex = 0;
-
-    // final batchData = {
-    //   'total': total,
-    //   'prefix': prefixCtrl.text,
-    //   'suffix': suffixCtrl.text,
-    //   'name': nameCtrl.text,
-    //   // 'charType': selectedGenType,
-    // };
-
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (_) => TemplatePreviewPage(
-    //       controller: controller.printTemplatesController,
-    //       templateIndex: templateIndex,
-    //       batchData: batchData,
-    //     ),
-    //   ),
-    // );
-  }
-
-  /* ================= واجهة العرض (UI) ================= */
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +47,6 @@ class _AddBatchViewState extends State<AddBatchView> {
           builder: (controller) {
             return Column(
               children: [
-                // 1. استخدام الهيدر الموحد (توريث التصميم)
                 PremiumHeader(
                   title:
                       widget.editIndex == null ? "إنشاء دفعة كروت" : "تعديل الدفعة",
@@ -140,7 +67,6 @@ class _AddBatchViewState extends State<AddBatchView> {
                   ),
                 ),
             
-                // 2. استخدام الفوتر الموحد (توريث التصميم)
                 const AppMiniFooter(sectionName: "Micronet Card Engine"),
               ],
             );
@@ -177,15 +103,21 @@ class _AddBatchViewState extends State<AddBatchView> {
           const Divider(height: 40),
           _buildFieldLabel("إعدادات الربط والتصميم",controller),
           const SizedBox(height: 15),
+          
+          // تم إضافة حقل اختيار العميل هنا
+          _buildCustomerDropdown(controller),
+          const SizedBox(height: 12),
+          
           _buildProfileDropdown(controller),
           const SizedBox(height: 12),
           _buildTemplateDropdown(controller),
           const Divider(height: 40),
+          
           _buildFieldLabel("نمط كلمة المرور",controller),
           const SizedBox(height: 12),
           _buildGenerationTypeSelector(controller),
           const Divider(height: 40),
-          // 
+          
           _buildFieldLabel("طول الرموز",controller),
           const SizedBox(height: 15),
           const Row(
@@ -209,9 +141,9 @@ class _AddBatchViewState extends State<AddBatchView> {
             ],
           ),
           const Divider(height: 40),
-          // 
-          Text(controller.dataInsert.toString()),
-          const Divider(height: 40),
+          // // 
+          // Text(controller.dataInsert.toString()),
+          // const Divider(height: 40),
           // 
           _buildFieldLabel("تخصيص الرموز (اختياري)",controller),
           const SizedBox(height: 15),
@@ -232,8 +164,6 @@ class _AddBatchViewState extends State<AddBatchView> {
       ),
     );
   }
-
-  /* ميثودات مساعدة تم تعديلها لتتناسب مع الـ UI الموحد */
 
   Widget _buildFieldLabel(String text,BatchesFormController controller) {
     return Text(text,
@@ -292,6 +222,26 @@ class _AddBatchViewState extends State<AddBatchView> {
       );
   }
 
+  // --- دالة ويدجت حقل اختيار العميل الجديدة ---
+  Widget _buildCustomerDropdown(BatchesFormController controller) => 
+  _buildDropdownRow(controller,
+    screenWidth: Navigator.of(context).context.width , 
+    padding: 45,
+    label: "اختر العميل",
+    child: MySelectedMenu(
+      // استخدام اسم العميل كمعرف (id) لسهولة إرساله للميكروتك
+      items: controller.allCustomers.map((c)=>{"id":c.name ,"name":c.name}).toList(),
+      onSave: (val) {
+        controller.selectedCustomer.value=val.toString();
+        controller.update();
+      },
+      hintText: "اختر العميل",
+      selectedKeyName: "id",
+      bgColor: const Color(0xFFF1F5F9),
+      border: Border.all(color: Colors.grey.shade300),
+    ),
+  );
+
   Widget _buildProfileDropdown(BatchesFormController controller) => 
   _buildDropdownRow(controller,
     screenWidth: Navigator.of(context).context.width , 
@@ -300,7 +250,6 @@ class _AddBatchViewState extends State<AddBatchView> {
     child: MySelectedMenu(
       items: controller.allProfiles.map((p)=>{"id":p.id ,"name":p.name}).toList(),
       onSave: (val) {
-        // showErrorDialog(content: val.toString());
         controller.selectedProfile.value=val.toString();
         controller.update();
       },
@@ -308,9 +257,7 @@ class _AddBatchViewState extends State<AddBatchView> {
       selectedKeyName: "id",
       bgColor: const Color(0xFFF1F5F9),
       border: Border.all(color: Colors.grey.shade300),
-      // color: Colors.grey.shade300,
     ),
-
   );
 
   Widget _buildTemplateDropdown(BatchesFormController controller) => 
@@ -328,12 +275,9 @@ class _AddBatchViewState extends State<AddBatchView> {
       selectedKeyName: "id",
       bgColor: const Color(0xFFF1F5F9),
       border: Border.all(color: Colors.grey.shade300),
-      // color: Colors.grey.shade300,
     ),
-
   );
   
-
   Widget _buildGenerationTypeSelector(BatchesFormController controller) {
     return Row(
       children: controller.passwordTypes.map((opt) {
@@ -344,7 +288,6 @@ class _AddBatchViewState extends State<AddBatchView> {
               controller.selectedPasswordType=opt['id'];
               controller.update();
             },
-            // => setState(() => selectedGenType = opt['id']),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -431,52 +374,6 @@ class _AddBatchViewState extends State<AddBatchView> {
                   fontWeight: FontWeight.bold,
                   fontSize: 13))
         ]),
-      ),
-    );
-  }
-
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.check_circle_rounded,
-                color: Colors.green, size: 70),
-            const SizedBox(height: 15),
-            const Text("عملية ناجحة",
-                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
-            const Text("تم إنشاء الدفعة. هل تطبعها الآن؟",
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey, fontSize: 12)),
-            const SizedBox(height: 25),
-            Row(children: [
-              Expanded(
-                  child: TextButton(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        Navigator.pop(context);
-                      },
-                      child: const Text("لاحقاً"))),
-              Expanded(
-                  child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12))),
-                      onPressed: () {
-                        // Navigator.pop(ctx);
-                        // controller
-                        //     .printBatchToPdf(nameCtrl.text, selectedTemplate);
-                        // Navigator.pop(context);
-                      },
-                      child: const Text("طباعة PDF"))),
-            ])
-          ],
-        ),
       ),
     );
   }

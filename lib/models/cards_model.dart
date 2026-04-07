@@ -77,14 +77,14 @@ class CustomerModel {
   static CustomerModel fromMikrotik(Map data) {
     return CustomerModel(
       id: data[".id"] ?? "unknown",
-      name: data["name"] ?? "unknown",
+      name: data["login"] ?? "unknown",
     );
   }
 
   Map toMap() {
     return {
       "id": id,
-      "name": name,
+      "login": name,
     };
   }
 }

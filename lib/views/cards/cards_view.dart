@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:mikronet/core/routes/app_pages.dart';
 import '../widgets/shared/layouts/main_gate_header.dart';
 import '../widgets/shared/layouts/app_mini_footer.dart';
 import '../widgets/shared/cards/main_action_card.dart';
@@ -46,7 +48,7 @@ class CardsManagementView extends StatelessWidget {
                     subtitle: "إضافة • تعديل • حذف الكروت",
                     icon: Icons.style_rounded,
                     color: const Color(0xFF6366F1),
-                    onTap: () => _go(context, const CardsListView()),
+                    onTap: () => Get.toNamed(AppRoutes.cardsList)
                   ),
 
                   MainActionCard(
@@ -54,7 +56,7 @@ class CardsManagementView extends StatelessWidget {
                     subtitle: "إنشاء كرت اشتراك يدوي سريع",
                     icon: Icons.add_moderator_rounded,
                     color: const Color(0xFF0EA5E9),
-                    onTap: () => _go(context, const AddSingleCardView()),
+                    onTap: () => Get.toNamed(AppRoutes.addSingleCard)
                   ),
 
                   const SizedBox(height: 15),
@@ -66,7 +68,7 @@ class CardsManagementView extends StatelessWidget {
                     subtitle: "الأسعار • المدد • تحديد السرعات",
                     icon: Icons.inventory_2_rounded,
                     color: const Color(0xFFF59E0B),
-                    onTap: () => _go(context, const PackagesView()),
+                    onTap: () => Get.toNamed(AppRoutes.packages)
                   ),
                 ],
               ),

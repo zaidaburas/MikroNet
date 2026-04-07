@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:charset/charset.dart';
+
 import 'router_os_client.dart';
 
 class MikrotikClient {
@@ -37,17 +41,87 @@ class MikrotikClient {
       throw Exception("empty socket connection");
     }
   }
+  static String decode(String text) {
+    // String word = utf8.decode(
+    //     _buffer.sublist(offset + bytesUsedForLength, offset + bytesUsedForLength + length),allowMalformed: true
+    //   );
+    // String word = windows1256.decode(
+    //     _buffer.sublist(offset + bytesUsedForLength, offset + bytesUsedForLength + length),allowInvalid: true
+    //   );
+    try {
+      // نحول النص الغريب إلى بايتات بترميز latin1 ثم نعيد قراءته كـ utf8
+      return utf8.decode(windows1256.encode(text), allowMalformed: true);
+    } catch (e) {
+      return text; // إذا فشل التحويل يرجع النص كما هو
+    }
+  }
+  static String encode(String text) {
+    try {
+      // نأخذ النص العربي (UTF-8) ونحوله إلى بايتات، ثم نجبره على التحول إلى نص بترميز windows1256
+      return windows1256.decode(utf8.encode(text), allowInvalid: true);
+    } catch (e) {
+      return text; // إذا فشل التحويل يرجع النص كما هو لتجنب انهيار التطبيق
+    }
+  }
 
+  static Future<List> fetch1  ({
+    required dynamic command,
+    Map<String, String>? params,
+    // int timeout = 60,
+  }) async {
+    
+    _checkConnection();
+    return await _client!.talk(
+      command,
+      params,
+    );
+  }
   static Future<List> fetch({
     required dynamic command,
     Map<String, String>? params,
     // int timeout = 60,
   }) async {
     _checkConnection();
-    return await _client!.talk(
+
+    Map<String, String>? encodedParams;
+    if (params != null) {
+      encodedParams = {};
+      params.forEach((key, value) {
+        // غالباً مفاتيح المايكروتك بالإنجليزية فلا تحتاج تشفير، لكن القيمة تحتاج
+        encodedParams![key] = encode(value); 
+      });
+    }
+
+    // 3. إرسال الطلب واستقبال الناتج الخام
+    List rawResult = await _client!.talk(
       command,
-      params,
+      encodedParams,
     );
+
+    // 4. فك التشفير للنتائج (Result Decoding)
+    List decodedResult = [];
+    for (var item in rawResult) {
+      if (item is Map) {
+        // إذا كان العنصر خريطة (Map) كما هو المعتاد في المايكروتك
+        Map<String, dynamic> decodedMap = {};
+        item.forEach((key, value) {
+          if (value is String) {
+            decodedMap[key] = decode(value);
+          } else {
+            decodedMap[key] = value;
+          }
+        });
+        decodedResult.add(decodedMap);
+      } else if (item is String) {
+        // إذا كان العنصر نصاً مباشراً
+        decodedResult.add(decode(item));
+      } else {
+        // أي نوع آخر (أرقام أو غيره) نتركه كما هو
+        decodedResult.add(item);
+      }
+    }
+
+    return decodedResult;
   }
   
   static Future<List> printData({

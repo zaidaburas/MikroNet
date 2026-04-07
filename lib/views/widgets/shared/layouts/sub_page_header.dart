@@ -56,7 +56,7 @@ class PremiumHeader extends StatelessWidget {
                       color: Colors.white, 
                       fontSize: 18, 
                       fontWeight: FontWeight.bold,
-                      fontFamily: 'Cairo', // تأكد من إضافة الخط في pubspec
+                      //fontFamily: 'Cairo', // تأكد من إضافة الخط في pubspec
                     ),
                   ),
 

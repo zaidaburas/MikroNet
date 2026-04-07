@@ -149,7 +149,6 @@ class PrintTemplatesModel {
 
 
 
-
 class PrintBatchesModel {
   int id;
   String name;
@@ -160,6 +159,7 @@ class PrintBatchesModel {
   String cardPrefix;
   String cardSuffix;
   List cards;
+  String customer; // <-- الحقل الجديد
 
   PrintBatchesModel({
     required this.id,
@@ -171,6 +171,7 @@ class PrintBatchesModel {
     this.cardPrefix="",
     this.cardSuffix="",
     this.cards=const [],
+    this.customer="", // <-- قيمة افتراضية للحقل الجديد
   });
 
   static PrintBatchesModel fromDatabase0(Map data){
@@ -187,6 +188,7 @@ class PrintBatchesModel {
       cardsProfile: data["cards_profile"], 
       cardPrefix: data["card_prefix"], 
       cardSuffix: data["card_suffix"], 
+      customer: data["customer"] ?? "", // <-- قراءة الحقل
     );
   }
 
@@ -204,8 +206,8 @@ class PrintBatchesModel {
       cardsProfile: data["cards_profile"], 
       cardPrefix: data["card_prefix"], 
       cardSuffix: data["card_suffix"], 
-      cards: data["cards"],
-      // cards: getCardsFromList(data["cards"]), 
+      cards: data["cards"] ?? [],
+      customer: data["customer"] ?? "", // <-- قراءة الحقل
     );
   }
 
@@ -218,8 +220,6 @@ class PrintBatchesModel {
   }
 
   Map toDatabase(){
-    // String templateId="unknown";
-    // if(template!=null)templateId=template!.id.toString();
     return {
       "name": name, 
       "created_at": createdAt.microsecondsSinceEpoch, 
@@ -228,11 +228,10 @@ class PrintBatchesModel {
       "cards_profile": cardsProfile, 
       "card_prefix": cardPrefix , 
       "card_suffix": cardSuffix,
+      "customer": customer, // <-- إضافة الحقل عند الحفظ
       "cards": cards,
     };
   }
- 
-
 }
 
 

@@ -13,7 +13,7 @@ class CardsListView extends GetView<CardsListController> {
   Widget build(BuildContext context) {
     // تم نقل Get.put إلى الـ Binding أو استدعاؤه هنا إذا لم تستخدم Bindings
     // إذا كنت لا تستخدم Bindings، يمكنك إبقاء السطر التالي:
-     final controller = Get.put(CardsListController());
+     //Get.put(CardsListController());
 
     return Directionality(
       textDirection: TextDirection.rtl,

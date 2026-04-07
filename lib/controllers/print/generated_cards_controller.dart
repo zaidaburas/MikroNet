@@ -1,72 +1,91 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mikronet/api/cards_api.dart';
-import 'package:mikronet/api/print_api.dart';
 import 'package:mikronet/models/print_model.dart';
-import 'package:mikronet/services/response.dart';
+import 'package:mikronet/models/cards_model.dart'; // ضروري للتعامل مع CustomerModel و CardModel
+import 'package:mikronet/models/response.dart';
 import 'package:mikronet/views/helpers/dialogs.dart';
 
 class GeneratedCardsController extends GetxController {
   GeneratedCardsController(this.generatedCards);
   
   List<GeneratedCardsModel> generatedCards;
-  List customers = [];
+  List<CustomerModel> customers = [];
   bool isUploading = false; 
+  bool isLoading = true; // متغير لمتابعة حالة المزامنة الأولية
 
-  // @override
-  // void onInit() {
-  //   super.onInit();
-  //   getCustomers();
-  // }
+  @override
+  void onInit() {
+    super.onInit();
+    syncCardsWithMikrotik();
+  }
 
-  // Future<void> getCustomers() async {
-  //   try {
-  //     customers = await CardsApi.getCustomers();
-  //     update();
-  //   } catch (e) {
-  //     print("Error fetching customers: $e");
-  //   }
-  // }
-  
-  // قمنا بتعديل الدالة لترجع bool لمعرفة هل نجحت الإضافة أم لا
-  Future<bool> createCard(int index, GeneratedCardsModel card) async {
+  // دالة المزامنة وجلب البيانات من ميكروتك والمقارنة
+  Future<void> syncCardsWithMikrotik() async {
+    isLoading = true;
+    update();
+
     try {
-      // 1. حماية من انهيار التطبيق إذا لم يتم جلب العملاء
-      if (customers.isEmpty) {
-        throw "قائمة العملاء فارغة. يرجى الانتظار أو التحقق من الاتصال.";
+      // 1. جلب العملاء (customers) أولاً لاستخدامهم لاحقاً في الرفع
+      AppResponse<List<CustomerModel>> customersRes = await CardsApi.getCustomers();
+      if (customersRes.status && customersRes.data != null) {
+        customers = customersRes.data!;
       }
 
-      // AppResponse response = await CardsApi.addOneCard(
-      //   customer: customers[0]['login'], 
-      //   username: card.username, 
-      //   password: card.password, 
-      //   profile: card.profileName
-      // );
-
-      // 2. تحديث قاعدة البيانات المحلية (تأكد من تعديل دالة changeCardType لتقبل اسم المستخدم أو الـ id)
-      // await PrintBatchesApi.changeCardType(card.username, response.status);
+      // 2. جلب جميع الكروت الموجودة في الميكروتك
+      AppResponse<List<CardModel>> mikrotikCardsRes = await CardsApi.getAllCards();
+      Set<String> mikrotikUsernames = {};
       
-      // 3. تحديث حالة الكرت بطريقة آمنة (حتى لو كان isAdd من نوع final)
-      generatedCards[index] = GeneratedCardsModel(
-         id: card.id,
-         username: card.username,
-         batchId: card.batchId,
-         password: card.password,
-         profileName: card.profileName,
-        //  isAdd: response.status,
-         isAdd: true,
+      if (mikrotikCardsRes.status && mikrotikCardsRes.data != null) {
+        // تخزين أسماء المستخدمين في Set لسرعة البحث والمقارنة
+        mikrotikUsernames = mikrotikCardsRes.data!.map((e) => e.username).toSet();
+      }
+
+      // 3. مقارنة الكروت المولدة مع كروت الميكروتك وتحديث حالتها
+      for (int i = 0; i < generatedCards.length; i++) {
+        if (mikrotikUsernames.contains(generatedCards[i].username)) {
+          generatedCards[i].isAdd = true; // موجودة مسبقاً (جاهزة)
+        } else {
+          generatedCards[i].isAdd = false; // غير موجودة (قيد الانتظار)
+        }
+      }
+
+    } catch (e) {
+      print("Error syncing cards: $e");
+    }
+
+    isLoading = false;
+    update(); // تحديث الواجهة بعد انتهاء المزامنة
+  }
+  
+  Future<bool> createCard(int index, GeneratedCardsModel card) async {
+    try {
+      if (customers.isEmpty) {
+        throw "قائمة العملاء فارغة. يرجى التحقق من الاتصال.";
+      }
+
+      // أخذ اسم أول عميل متوفر في الميكروتك (تقدر تعدلها لاختيار عميل معين إذا أردت)
+      String customerName = customers[0].name;
+
+      AppResponse response = await CardsApi.addOneCard(
+        customer: customerName, 
+        username: card.username, 
+        password: card.password, 
+        profile: card.profileName
       );
-      
-      update(); // تحديث واجهة المستخدم
 
-      // if (!response.status) {
-      //   print("خطأ في الكرت ${card.username}: ${response.message}");
-      //   return false; // فشل
-      // }
-      
-      return true; // نجاح
+      if (response.status) {
+        // تحديث حالة الكرت في واجهة المستخدم
+        generatedCards[index].isAdd = true;
+        update(); 
+        return true;
+      } else {
+        print("خطأ في الكرت ${card.username}: ${response.message}");
+        return false;
+      }
     } catch (e) {
       print("خطأ استثنائي في الكرت ${card.username}: ${e.toString()}");
-      return false; // فشل
+      return false; 
     }
   }
 
@@ -74,7 +93,6 @@ class GeneratedCardsController extends GetxController {
   // دوال التحكم بالرفع للسيرفر
   // ==========================================
   Future<void> startUploadingToServer() async {
-    // التحقق المسبق قبل بدء الحلقة
     if (customers.isEmpty) {
        showErrorDialog(content: "لا يمكن بدء الإرسال، لم يتم التعرف على العملاء من المايكروتك بعد.");
        return;
@@ -88,19 +106,16 @@ class GeneratedCardsController extends GetxController {
     int failCount = 0;
 
     for (int i = 0; i < generatedCards.length; i++) {
-      if (!isUploading) break; // توقف إذا ضغط المستخدم إيقاف
+      if (!isUploading) break; // توقف فوري إذا ضغط المستخدم زر الإيقاف
       
+      // لا نرفع إلا الكروت التي هي قيد الانتظار (isAdd == false)
       if (!generatedCards[i].isAdd) {
-        // تمرير الـ index والكرت
         bool isSuccess = await createCard(i, generatedCards[i]);
         
         if (isSuccess) {
           successCount++;
         } else {
           failCount++;
-          // خيار إضافي: إذا كنت تريد إيقاف العملية بالكامل عند أول خطأ، أزل التعليق عن السطرين التاليين:
-          isUploading = false;
-          break; 
         }
       }
     }
@@ -108,17 +123,17 @@ class GeneratedCardsController extends GetxController {
     isUploading = false;
     update();
 
-    // إظهار تنبيه نهائي واحد فقط يوضح النتيجة بدلاً من مئات الديالوجات
-    String resultMessage = "تم إيقاف العملية.\nنجح: $successCount \nفشل: $failCount";
     Get.snackbar(
       "نتيجة الإرسال", 
-      resultMessage, 
+      "اكتملت العملية.\nنجح: $successCount \nفشل: $failCount", 
       snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 4)
+      duration: const Duration(seconds: 4),
+      backgroundColor: Colors.white,
     );
   }
 
   void stopUploading() {
+    if(!isUploading) return;
     isUploading = false;
     update();
   }

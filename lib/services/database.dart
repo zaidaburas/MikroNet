@@ -47,7 +47,8 @@ class SqlDb {
       generated_cards TEXT,
       cards_profile TEXT,
       card_prefix TEXT,
-      card_suffix TEXT
+      card_suffix TEXT,
+      customer TEXT
     );
   """;
 

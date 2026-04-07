@@ -11,7 +11,7 @@ class PackagesView extends GetView<PackagesController> {
   @override
   Widget build(BuildContext context) {
     // حل مشكلة الخطأ في الصورة: حقن المتحكم هنا لضمان وجوده
-    Get.lazyPut(() => PackagesController());
+    //Get.lazyPut(() => PackagesController());
 
     return Directionality(
       textDirection: TextDirection.rtl,
