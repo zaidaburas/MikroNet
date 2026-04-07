@@ -2,7 +2,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import '/api/print_api.dart';
 import 'package:flutter/services.dart';
 
 class LocationData{
