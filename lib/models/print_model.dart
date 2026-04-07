@@ -5,8 +5,8 @@ import 'dart:typed_data';
 import 'package:flutter/services.dart';
 
 class LocationData{
-  final double x;
-  final double y;
+  double x;
+  double y;
   LocationData({
     required this.x,
     required this.y,
@@ -32,16 +32,16 @@ class LocationData{
     );
   """;
 class PrintTemplatesModel {
-  final int id;
-  final String name;
-  final Uint8List image;
-  final bool withPassword;
-  final int numOfRows;
-  final int numOfColumns;
-  final double usernameFontSize;
-  final double passwordFontSize;
-  final LocationData usernameLocation;
-  final LocationData passwordLocation;
+  int id;
+  String name;
+  Uint8List image;
+  bool withPassword;
+  int numOfRows;
+  int numOfColumns;
+  double usernameFontSize;
+  double passwordFontSize;
+  LocationData usernameLocation;
+  LocationData passwordLocation;
 
   PrintTemplatesModel({
     required this.id,
@@ -151,14 +151,15 @@ class PrintTemplatesModel {
 
 
 class PrintBatchesModel {
-  final int id;
-  final String name;
-  final DateTime createdAt;
-  final int templateId;
-  final List<String> generatedCards;
-  final String cardsProfile;
-  final String cardPrefix;
-  final String cardSuffix;
+  int id;
+  String name;
+  DateTime createdAt;
+  int templateId;
+  List<String> generatedCards;
+  String cardsProfile;
+  String cardPrefix;
+  String cardSuffix;
+  List cards;
 
   PrintBatchesModel({
     required this.id,
@@ -169,9 +170,10 @@ class PrintBatchesModel {
     required this.cardsProfile,
     this.cardPrefix="",
     this.cardSuffix="",
+    this.cards=const [],
   });
 
-  static PrintBatchesModel fromDatabase(Map data){
+  static PrintBatchesModel fromDatabase0(Map data){
     List<String> parsedCards = [];
     if (data['generated_cards'] != null && data['generated_cards'].toString().isNotEmpty) {
       parsedCards = data['generated_cards'].toString().split(',');
@@ -188,6 +190,33 @@ class PrintBatchesModel {
     );
   }
 
+  static PrintBatchesModel fromDatabase(Map data){
+    List<String> parsedCards = [];
+    if (data['generated_cards'] != null && data['generated_cards'].toString().isNotEmpty) {
+      parsedCards = data['generated_cards'].toString().split(',');
+    }
+    return PrintBatchesModel(
+      id: data["id"], 
+      name: data["name"], 
+      createdAt: DateTime.fromMicrosecondsSinceEpoch(data["created_at"]) , 
+      templateId: data["template_id"], 
+      generatedCards: parsedCards , 
+      cardsProfile: data["cards_profile"], 
+      cardPrefix: data["card_prefix"], 
+      cardSuffix: data["card_suffix"], 
+      cards: data["cards"],
+      // cards: getCardsFromList(data["cards"]), 
+    );
+  }
+
+  static List<GeneratedCardsModel> getCardsFromList(List cards){
+    List<GeneratedCardsModel> result=[];
+    for (var i in cards) {
+      result.add(GeneratedCardsModel.fromDatabase(i));
+    }
+    return result;
+  }
+
   Map toDatabase(){
     // String templateId="unknown";
     // if(template!=null)templateId=template!.id.toString();
@@ -198,7 +227,51 @@ class PrintBatchesModel {
       "generated_cards": generatedCards.join(","), 
       "cards_profile": cardsProfile, 
       "card_prefix": cardPrefix , 
-      "card_suffix": cardSuffix, 
+      "card_suffix": cardSuffix,
+      "cards": cards,
+    };
+  }
+ 
+
+}
+
+
+class GeneratedCardsModel {
+  int id;
+  String username;
+  String password;
+  String profileName;
+  int batchId;
+  bool isAdd;
+
+  GeneratedCardsModel({
+    required this.id,
+    required this.username,
+    required this.batchId,
+    required this.password,
+    required this.profileName,
+    required this.isAdd,
+  });
+
+  static GeneratedCardsModel fromDatabase(Map data){
+    return GeneratedCardsModel(
+      id: data["id"], 
+      username: data["username"], 
+      batchId: data["batch_id"], 
+      password: data["password"], 
+      profileName: data["profile_name"], 
+      isAdd: data["is_add"]==1
+    );
+  }
+
+
+  Map<String, dynamic> toDatabase(){
+    return {
+      "username": username, 
+      "batch_id": batchId, 
+      "password": password, 
+      "profile_name": profileName , 
+      "is_add": isAdd, 
     };
   }
  

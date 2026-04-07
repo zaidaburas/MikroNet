@@ -1,90 +1,44 @@
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mikronet/api/print_api.dart';
 import 'package:mikronet/api/profiles_api.dart';
 import 'package:mikronet/controllers/helpers/functions.dart';
+import 'package:mikronet/models/print_model.dart';
 import 'package:mikronet/models/profiles_model.dart';
 import 'package:mikronet/models/response.dart';
 // import 'package:mikronet/services/response.dart';
+import 'package:mikronet/views/helpers/dialogs.dart';
 import 'package:mikronet/views/prints/batches/generated_cards.dart';
 import 'package:mikronet/views/prints/templates/pdf_view.dart';
-import '/views/helpers/dialogs.dart';
-import '/api/print_api.dart';
-import '/models/print_model.dart';
 
-// import 'package:flutter/material.dart';
-// import 'package:get/get.dart';
-// ... (نفس الاستيرادات السابقة)
-
-
-
-class BatchesController extends GetxController{
+class BatchesFormController extends GetxController{
   List<Map<String, dynamic>> passwordTypes=[
     {"id": "none", "label": "بدون \n", "icon": Icons.minimize_outlined},
     {"id": "diff", "label": "ارقام مختلفة \n", "icon": Icons.pin_outlined},
     {"id": "same", "label": "مطابقة اسم المستخدم", "icon": Icons.abc_rounded},
   ];
   Map dataInsert={};
-  List<PrintBatchesModel> allBatches=[];
   List<PrintTemplatesModel> allTemplates=[];
   List<ProfilesModel> allProfiles=[];
-  List<GeneratedCardsModel> generatedCards = [];
   List<String> generatedUsernames=[];
   List<String> generatedPasswords=[];
+  List<GeneratedCardsModel> generatedCards = [];
 
-  
 
-  void getBatchCards(int id){
-    try {
-      var r= allBatches.firstWhere((b)=>b.id==id);
-      var cards=List.generate(r.cards.length, (i){
-        return GeneratedCardsModel.fromDatabase(r.cards[i]);
-      });
-      Get.to(GeneratedCardsView(cards));
-    } catch (e) {
-      showErrorDialog(content: e.toString());
-    }
-  }
+  // Form Variables
 
-  void getBatchPreview(int id){
-    try {
-      var r= allBatches.firstWhere((b)=>b.id==id);
-      var cards=List.generate(r.cards.length, (i){
-        return GeneratedCardsModel.fromDatabase(r.cards[i]);
-      });
-      List users=cards.map((c)=>c.username).toList();
-      List passwords=cards.map((c)=>c.password).toList();
-      PrintTemplatesModel m=allTemplates.firstWhere((t)=>t.id==id);
-      Get.to(PdfView(
-        usernames: users, 
-        passwords: passwords, 
-        template: m,
-        saveFile: false,
-      ));
-    } catch (e) {
-      showErrorDialog(content: e.toString());
-    }
-  }
+  TextEditingController batchName=TextEditingController();
+  TextEditingController numOfCards=TextEditingController();
+  TextEditingController prefix=TextEditingController();
+  TextEditingController suffix=TextEditingController();
+  TextEditingController usernameLength=TextEditingController();
+  TextEditingController passwordLength=TextEditingController();
+  RxInt selectedTemplate=0.obs;
+  RxString selectedProfile="".obs;
+  String selectedPasswordType="none";
+  DateTime dateTime=DateTime.now();
 
-  Future<void> getAllBatches2()async{
-    try {
-      List result=await PrintBatchesApi.getAllBatches2();
-      // var cards=await PrintBatchesApi.get
-      // var cards=List.generate(r.length, (i){
-      //   return GeneratedCardsModel.fromDatabase(r[i]);
-      // });
-      List<PrintBatchesModel> temp=[];
-      // print(result[0].toString());
-      if (result.isNotEmpty) {
-        for (var i in result) {
-          temp.add(PrintBatchesModel.fromDatabase(i)); 
-        }
-        allBatches=temp;
-      }
-      update();
-    } catch (e) {
-      showErrorDialog(title: "error in get batches2",content: e.toString());
-    }
-  }
 
   Future<void> getAllTemplates()async{
     try {
@@ -105,14 +59,15 @@ class BatchesController extends GetxController{
 
   Future<void> getallProfiles()async{
     try {
-      AppResponse result=await ProfilesApi.getProfiles();
-      List<ProfilesModel> temp=[];
-      if (result.status && result.data !=null ) {
-        for (var i in result.data) {
-          temp.add(ProfilesModel.fromMikrotik(i));
-        }
-        allProfiles=temp;
-      }
+      AppResponse<List<ProfilesModel>> result=await ProfilesApi.getProfiles();
+      allProfiles=result.data??[];
+      // List<ProfilesModel> temp=[];
+      // if (result.status && result.data !=null ) {
+      //   for (var i in result.data) {
+      //     temp.add(ProfilesModel.fromMikrotik(i));
+      //   }
+      //   allProfiles=temp;
+      // }
       update();
     } catch (e) {
       showErrorDialog(content: "Get Profiles Error : ${e.toString()}");
@@ -154,60 +109,6 @@ class BatchesController extends GetxController{
     );
   }
 
-  
-
-
-  @override
-  void onInit() {
-    super.onInit();
-    init();
-    // getAllBatches();
-    getAllBatches2();
-    getAllTemplates();
-    getallProfiles();
-  }
-
-  @override
-  void update([List<Object>? ids, bool condition = true]) {
-    dataInsert={
-      "name":batchName.text,
-      "total":numOfCards.text,
-      "profile":selectedProfile.value,
-      "template_id":selectedTemplate.value,
-      "password_type":selectedPasswordType ,
-      "card_prefix":prefix.text,
-      "card_suffix":suffix.text ,
-      "username_length":usernameLength.text ,
-      "password_length":passwordLength.text ,
-    };
-    dataInsert["profile"]=selectedProfile.value;
-    super.update(ids, condition);
-  }
-
-  void init(){
-    usernameLength.text="7";
-    passwordLength.text="5";
-    update();
-    // selectedTemplate=allTemplates.isEmpty?0.obs:allTemplates[0].id.obs;
-    // selectedProfile=allProfiles.isEmpty?"".obs:allProfiles[0].name.obs;
-  }
-
-
-  // Form Variables
-
-  TextEditingController batchName=TextEditingController();
-  TextEditingController numOfCards=TextEditingController();
-  TextEditingController prefix=TextEditingController();
-  TextEditingController suffix=TextEditingController();
-  TextEditingController usernameLength=TextEditingController();
-  TextEditingController passwordLength=TextEditingController();
-  RxInt selectedTemplate=0.obs;
-  RxString selectedProfile="".obs;
-  String selectedPasswordType="none";
-  DateTime dateTime=DateTime.now();
-
-
-
   Future<void> addBatch2()async{
     try {
       List<Map<String, dynamic>> cards=generatedCards.map((c)=>c.toDatabase()).toList();
@@ -222,11 +123,10 @@ class BatchesController extends GetxController{
       };
       var response=await PrintBatchesApi.addOneBatch(data);
       if(response>0){
-        response =await PrintBatchesApi.addBatchCards(cards, response);
+        // response =await PrintBatchesApi.addBatchCards(cards, response);
       }
-      // var response=await PrintBatchesApi.addOneBatch2(data,cards);
       if (response>0) {
-        _showSuccessDialog();
+        showSuccessDialog();
       }
     } catch (e) {
       showErrorDialog(content: e.toString());
@@ -332,7 +232,48 @@ class BatchesController extends GetxController{
 
 
 
-void _showSuccessDialog() {
+
+  void init(){
+    usernameLength.text="7";
+    passwordLength.text="5";
+    update();
+    // selectedTemplate=allTemplates.isEmpty?0.obs:allTemplates[0].id.obs;
+    // selectedProfile=allProfiles.isEmpty?"".obs:allProfiles[0].name.obs;
+  }
+
+  
+  @override
+  void onInit() {
+    super.onInit();
+    init();
+    // getAllBatches();
+    // getAllBatches2();
+    getAllTemplates();
+    getallProfiles();
+  }
+
+
+  @override
+  void update([List<Object>? ids, bool condition = true]) {
+    dataInsert={
+      "name":batchName.text,
+      "total":numOfCards.text,
+      "profile":selectedProfile.value,
+      "template_id":selectedTemplate.value,
+      "password_type":selectedPasswordType ,
+      "card_prefix":prefix.text,
+      "card_suffix":suffix.text ,
+      "username_length":usernameLength.text ,
+      "password_length":passwordLength.text ,
+    };
+    dataInsert["profile"]=selectedProfile.value;
+    super.update(ids, condition);
+  }
+
+}
+
+
+void showSuccessDialog() {
   Get.dialog(
     // context: context,
     // barrierDismissible: false,
@@ -379,69 +320,5 @@ void _showSuccessDialog() {
     ),
   );
 }
-
-
-  
-  
-  // 2. متغير للتحكم في عملية الإرسال للسيرفر
-  bool isUploading = false; 
-
-  // ==========================================
-  // 4. دوال التحكم بالرفع للسيرفر (جديدة)
-  // ==========================================
-  Future<void> startUploadingToServer() async {
-    if (isUploading) return;
-    isUploading = true;
-    update();
-
-    for (int i = 0; i < generatedCards.length; i++) {
-      if (!isUploading) break; // توقف إذا ضغط المستخدم على إيقاف العملية
-      
-      if (!generatedCards[i].isAdd) {
-        try {
-          // -------------- هنا تضع كود الـ API للمايكروتك --------------
-          // مثال: await MikrotikApi.addUser(generatedCards[i].username, ...);
-          
-          await Future.delayed(const Duration(milliseconds: 300)); // محاكاة الرفع
-          // -----------------------------------------------------------
-
-          // تحديث حالة الكرت محلياً بعد نجاح رفعه للمايكروتك
-          generatedCards[i] = GeneratedCardsModel(
-             id: generatedCards[i].id,
-             username: generatedCards[i].username,
-             batchId: generatedCards[i].batchId,
-             password: generatedCards[i].password,
-             profileName: generatedCards[i].profileName,
-             isAdd: true, // تم الإضافة بنجاح
-          );
-          
-          // يمكنك هنا أيضاً استدعاء دالة لتحديث is_add في SQLite لهذا الكرت
-          // await DBApi.update("cards", {"is_add": 1}, "username='${generatedCards[i].username}'");
-
-          update(); // تحديث الواجهة لكي يتحول الكرت للون الأخضر مباشرة
-        } catch (e) {
-          print("فشل رفع الكرت: ${generatedCards[i].username} - خطأ: $e");
-          // يمكن هنا إظهار رسالة أو تجاوز الكرت للذي يليه
-        }
-      }
-    }
-    
-    isUploading = false;
-    update();
-    Get.snackbar("ملاحظة", "توقفت عملية الإرسال", snackPosition: SnackPosition.BOTTOM);
-  }
-
-  void stopUploading() {
-    isUploading = false;
-    update();
-  }
-
-
-
-}
-
-
-
-
 
 

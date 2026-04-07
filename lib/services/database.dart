@@ -51,6 +51,18 @@ class SqlDb {
     );
   """;
 
+  String cards="""
+    CREATE TABLE cards (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT NOT NULL,
+      password TEXT ,
+      profile_name TEXT,
+      batch_id INTEGER,
+      is_add INTEGER,
+      FOREIGN KEY (batch_id) REFERENCES batches(id) ON DELETE CASCADE
+    );
+  """;
+
   String savedLogins="""
     CREATE TABLE saved_logins (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -92,6 +104,7 @@ class SqlDb {
 
     mybatch.execute(templates);
     mybatch.execute(batches);
+    mybatch.execute(cards);
     mybatch.execute(savedLogins);
     // mybatch.execute(inss);
 

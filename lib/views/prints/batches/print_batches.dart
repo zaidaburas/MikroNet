@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:mikronet/models/print_model.dart';
-import '/controllers/print/batches_controller.dart';
+import 'package:get/get.dart';
+import 'package:mikronet/controllers/print/form_controller.dart';
+// import 'package:mikronet/models/print_model.dart';
+import '/controllers/print/list_controller.dart';
 import 'add_batch.dart';
 // import '../packages/add_batch.dart';
 // import 'page_preview.dart'; // استيراد صفحة المعاينة
@@ -44,18 +46,23 @@ class _BatchesViewState extends State<BatchesView> {
 
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
-        body: Column(
-          children: [
-            _buildBalancedHeader(context),
-            _buildSmallStats(batches.length),
-            _buildSearchRow(),
-            _buildFilterTabs(),
-            Expanded(child: _buildBatchesList(batches)),
-            _buildFooter(),
-          ],
-        ),
+      child: GetBuilder<BatchesController>(
+        init: BatchesController(),
+        builder: (controller) {
+          return Scaffold(
+            backgroundColor: const Color(0xFFF8FAFC),
+            body: Column(
+              children: [
+                _buildBalancedHeader(context),
+                _buildSmallStats(batches.length),
+                _buildSearchRow(),
+                _buildFilterTabs(),
+                Expanded(child: _buildBatchesList(controller)),
+                _buildFooter(),
+              ],
+            ),
+          );
+        }
       ),
     );
   }
@@ -140,7 +147,7 @@ class _BatchesViewState extends State<BatchesView> {
             onTap: () {
               Navigator.push(
                 context, 
-                MaterialPageRoute(builder: (_) => AddBatchView(controller: controller))
+                MaterialPageRoute(builder: (_) => AddBatchView(controller: BatchesFormController()))
               ).then((_) => setState(() {}));
             },
             child: Container(
@@ -198,61 +205,83 @@ class _BatchesViewState extends State<BatchesView> {
   }
 
   /* ================= قائمة الدفعات ================= */
-  Widget _buildBatchesList(List<PrintBatchesModel> batches) {
-    if (batches.isEmpty) return const Center(child: Text("لا توجد دفعات حالياً"));
+  Widget _buildBatchesList(BatchesController controller) {
+    if (controller.allBatches.isEmpty) return const Center(child: Text("لا توجد دفعات حالياً"));
 
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(15, 5, 15, 20),
-      itemCount: batches.length,
-      itemBuilder: (_, i) {
-        final b = batches[i];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 15),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
-          ),
-          child: Column(
-            children: [
-              ListTile(
-                title: Text(b.name, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-                subtitle: Text("اللاحقة: ${b.cardSuffix} | البادئة: ${b.cardPrefix}", style: const TextStyle(fontSize: 11)),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(icon: const Icon(Icons.edit_note_rounded, color: Colors.blue), 
-                    onPressed: () {
-                      // Navigator.push(context, MaterialPageRoute(builder: (_) => AddBatchView(controller: controller, editIndex: i, batch: b)))
-                      //     .then((_) => setState(() {}));
-                    }),
-                    IconButton(icon: const Icon(Icons.delete_sweep_rounded, color: Colors.redAccent), 
-                    onPressed: () {
-                      // controller.batches.removeAt(i);
-                      setState(() {});
-                    }),
-                  ],
-                ),
+    return GetBuilder<BatchesController>(
+      builder: (controller) {
+        if(controller.allBatches.isEmpty){
+          return const CircularProgressIndicator();
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.fromLTRB(15, 5, 15, 20),
+          itemCount: controller.allBatches.length,
+          itemBuilder: (_, i) {
+            final b = controller.allBatches[i];
+            return Container(
+              margin: const EdgeInsets.only(bottom: 15),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
               ),
-              const Divider(height: 1),
-              Padding(
-                padding: const EdgeInsets.all(15),
-                child: Wrap(
-                  spacing: 20,
-                  runSpacing: 10,
-                  children: [
-                    _buildStatMini(Icons.confirmation_number_outlined, "الإجمالي", b.generatedCards.length),
-                    _buildStatMini(Icons.sell_outlined, "المباعة",  0),
-                    _buildStatMini(Icons.task_alt_rounded, "المستخدمة",  0),
-                    _buildStatMini(Icons.hourglass_empty_rounded, "المتبقية", 0 ),
-                  ],
-                ),
+              child: Column(
+                children: [
+                  ListTile(
+                    title: Text(b.name, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                    subtitle: Text("اللاحقة: ${b.cardSuffix} | البادئة: ${b.cardPrefix}", style: const TextStyle(fontSize: 11)),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(icon: const Icon(Icons.edit_note_rounded, color: Colors.blue), 
+                        onPressed: () {
+                          // Navigator.push(context, MaterialPageRoute(builder: (_) => AddBatchView(controller: controller, editIndex: i, batch: b)))
+                          //     .then((_) => setState(() {}));
+                        }),
+                        IconButton(icon: const Icon(Icons.delete_sweep_rounded, color: Colors.redAccent), 
+                        onPressed: () {
+                          // controller.batches.removeAt(i);
+                          setState(() {});
+                        }),
+                      ],
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  Padding(
+                    padding: const EdgeInsets.all(15),
+                    child: Wrap(
+                      spacing: 20,
+                      runSpacing: 10,
+                      children: [
+                        _buildStatMini(Icons.confirmation_number_outlined, "الإجمالي", b.generatedCards.length),
+                        _buildStatMini(Icons.sell_outlined, "المباعة",  0),
+                        _buildStatMini(Icons.task_alt_rounded, "المستخدمة",  0),
+                        _buildStatMini(Icons.hourglass_empty_rounded, "المتبقية", 0 ),
+                      ],
+                    ),
+                  ),
+                  _buildPrintAction( b.toDatabase(), 
+                  onTap: (){
+                      // controller.getBatchPreview(b);
+                      controller.getBatchPreview(b.id);
+                    }
+                  ),
+                  const Divider(height: 5,),
+                  _buildPrintAction( 
+                    b.toDatabase() ,
+                    text: "عرض الكروت",
+                    textColor: Colors.orange,
+                    btnIcon: const Icon(Icons.view_agenda_outlined, size: 18, color: Colors.orange),
+                    onTap: (){
+                      controller.getBatchCards(b.id);
+                    }
+                  ),
+                ],
               ),
-              _buildPrintAction( b.toDatabase() ),
-            ],
-          ),
+            );
+          },
         );
-      },
+      }
     );
   }
 
@@ -275,9 +304,16 @@ class _BatchesViewState extends State<BatchesView> {
     );
   }
 
-  Widget _buildPrintAction(Map b) {
+  Widget _buildPrintAction(Map b,{
+    String text="معاينة وطباعة الدفعة",
+    Color textColor=Colors.green,
+    Icon btnIcon=const Icon(Icons.print_rounded, size: 18, color: Colors.green),
+    void Function()? onTap
+  }) {
     return InkWell(
-      onTap: () {
+      onTap: onTap,
+      // () {
+        // onTap;
         // الانتقال لصفحة المعاينة مع تمرير بيانات الدفعة المختارة
         // Navigator.push(
         //   context,
@@ -294,7 +330,7 @@ class _BatchesViewState extends State<BatchesView> {
         //     ),
         //   ),
         // );
-      },
+      // },
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -302,12 +338,12 @@ class _BatchesViewState extends State<BatchesView> {
           color: Color(0xFFF8FAFC),
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.print_rounded, size: 18, color: Colors.green),
-            SizedBox(width: 10),
-            Text("معاينة وطباعة الدفعة", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 13)),
+            btnIcon,
+            const SizedBox(width: 10),
+            Text(text, style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 13)),
           ],
         ),
       ),

@@ -75,6 +75,47 @@ class DBApi{
     }
   }
 
+  static Future<int> insertBatch(String table, List<Map<String, dynamic>> dataList) async {
+    // 1. التحقق من أن القائمة ليست فارغة لتجنب الأخطاء
+    if (dataList.isEmpty) return 0;
+
+    // 2. استخراج أسماء الأعمدة من أول عنصر في القائمة
+    List<String> fields = dataList.first.keys.toList();
+    String fieldsStr = implode(fields, ','); 
+
+    List<String> rowsValues = [];
+
+    // 3. المرور على كل (Map) في القائمة لتجهيز قيم الصفوف
+    for (var data in dataList) {
+      // نستخدم fields.map لضمان استخراج القيم بنفس ترتيب الأعمدة دائماً
+      List<String> values = fields.map((field) {
+        var value = data[field];
+        // التعامل مع القيم الفارغة بشكل آمن لتجنب أخطاء قاعدة البيانات
+        return value != null ? quoteValue(value.toString()) : 'NULL';
+      }).toList();
+
+      String valuesStr = implode(values, ',');
+      
+      // إضافة قيم الصف محاطة بأقواس لتناسب صيغة SQL
+      rowsValues.add('($valuesStr)');
+    }
+
+    // 4. دمج جميع الصفوف بفاصلة
+    String allRowsStr = rowsValues.join(', ');
+
+    // 5. بناء الاستعلام النهائي
+    // النتيجة ستكون: INSERT INTO table (col1, col2) VALUES (val1, val2), (val3, val4)
+    String query = 'INSERT INTO $table ($fieldsStr) VALUES $allRowsStr';
+    
+    try {
+      int response = await _db.insertData(query);
+      return response;
+    } catch (e) {
+      throw Exception("Error in insertBatch: $e");
+    }
+  }
+
+
   // @protected
   static Future<int> update(String table, Map<String, dynamic> data,
       [String? where]) async {
