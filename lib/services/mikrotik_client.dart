@@ -198,6 +198,14 @@ class MikrotikClient {
       return 0;
     }
   }
+
+  // static Future<void> cancel(String tag)async{
+  //   await _client!.cancelCommand(tag);
+  // }
+
+  // static Future<void> close()async{
+  //   _client!.close();
+  // }
 }
 
 
