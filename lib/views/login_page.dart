@@ -12,8 +12,6 @@ class LoginPage extends GetView<LoginController> {
 
   @override
   Widget build(BuildContext context) {
-    // تفعيل المتحكم إذا لم تكن تستخدم Bindings في الراوتس
-    Get.put(LoginController());
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -191,7 +189,7 @@ class LoginPage extends GetView<LoginController> {
     }
 
     return Container(
-      margin: EdgeInsets.only(bottom: isLast ? 0 : 15),
+      margin: EdgeInsets.only(bottom: isLast ? 0 : 20),
       // 2. هنا السحر: نستخدم Obx فقط إذا كان الحقل هو كلمة المرور!
       child: isPassword 
           ? Obx(() => buildTextField(controller.hidePassword.value))

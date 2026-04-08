@@ -13,6 +13,7 @@ class HomePage extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
+    Get.put(HomeController());
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -20,13 +21,11 @@ class HomePage extends GetView<HomeController> {
         backgroundColor: const Color(0xFFF1F5F9),
         body: Column(
           children: [
-            // الهيدر
             HomeHeader(
               pulseAnimation: controller.pulseController,
               onLogout: controller.logout,
             ),
             
-            // منطقة الكروت الدوارة - مغلفة بـ Obx لمراقبة تغير الصفحات والقيم
             Obx(() => HomeCarousel(
               controller: controller.pageController,
               currentPage: controller.currentPage.value,
@@ -36,7 +35,6 @@ class HomePage extends GetView<HomeController> {
             
             _buildSectionTitle("إدارة النظام والعمليات"),
             
-            // شبكة الأزرار
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -49,9 +47,10 @@ class HomePage extends GetView<HomeController> {
     );
   }
 
-  // تم إزالة كلمة const من الكروت بسبب استخدام المتغيرات التفاعلية
+  // ترتيب الكروت والبيانات كما طلبت
   List<Widget> _buildCarouselItems() {
     return [
+      // 1. توليد كرت واحد
       ActionCarouselItem(
         category: "إجراء سريع",
         title: "توليد كرت واحد",
@@ -59,56 +58,60 @@ class HomePage extends GetView<HomeController> {
         icon: Icons.add_moderator_rounded,
         color: const Color(0xFF2563EB),
         actionText: "ابدأ الإضافة",
-        onTap: controller.generateSingleCard, // استدعاء الدالة
+        onTap: controller.generateSingleCard, 
       ),
+      // 2. المتصلين النشطين
+      ActionCarouselItem(
+        category: "مراقبة الشبكة",
+        title: "المتصلين النشطين",
+        subtitle: "أجهزة تسحب بيانات الآن",
+        value: controller.activeUsersCount.value, 
+        icon: Icons.online_prediction_rounded,
+        color: const Color(0xFF10B981), // لون أخضر يعبر عن النشاط
+        actionText: "عرض المتصلين",
+        onTap: controller.manageActiveUsers, 
+      ),
+      // 3. وقت التشغيل (Uptime)
+      ActionCarouselItem(
+        category: "حالة النظام",
+        title: "وقت التشغيل",
+        subtitle: "مدة عمل الراوتر (Uptime)",
+        value: controller.uptime.value, 
+        icon: Icons.timer_rounded,
+        color: const Color(0xFFF59E0B), // برتقالي
+        actionText: "تقارير النظام",
+        onTap: controller.viewUptimeDetails, 
+      ),
+      // 4. حمل المعالج
       ResourceCarouselItem(
         category: "مراقبة الأداء",
         label: "حمل المعالج (CPU)",
-        percent: controller.cpuPercent.value, // قيمة تفاعلية
+        percent: controller.cpuPercent.value, 
         icon: Icons.speed_rounded,
         color: Colors.cyanAccent,
       ),
+      // 5. استهلاك الرام
       ResourceCarouselItem(
         category: "مراقبة الأداء",
         label: "استهلاك الرام (RAM)",
-        percent: controller.ramPercent.value, // قيمة تفاعلية
+        percent: controller.ramPercent.value, 
         icon: Icons.memory_rounded,
         color: Colors.purpleAccent,
       ),
-      ActionCarouselItem(
-        category: "الأمن والرقابة",
-        title: "قائمة الحظر",
-        subtitle: "مستخدمين تم تقييدهم",
-        value: controller.blockedUsersCount.value, // قيمة تفاعلية
-        icon: Icons.block_flipped,
-        color: const Color(0xFFDC2626),
-        actionText: "إدارة الحظر",
-        onTap: controller.manageBlockedUsers, // استدعاء الدالة
-      ),
+      // 6. مساحة القرص
       ActionCarouselItem(
         category: "تنبيه النظام",
         title: "مساحة القرص",
         subtitle: "قاعدة بيانات السيرفر",
-        value: controller.diskSpace.value, // قيمة تفاعلية
+        value: controller.diskSpace.value, 
         icon: Icons.storage_rounded,
-        color: const Color(0xFF10B981),
+        color: const Color(0xFF64748B),
         actionText: "فحص القرص",
-        onTap: controller.checkDiskSpace, // استدعاء الدالة
-      ),
-      ActionCarouselItem(
-        category: "تقارير مالية",
-        title: "مبيعات اليوم",
-        subtitle: "إجمالي الكروت المباعة",
-        value: controller.dailySales.value, // قيمة تفاعلية
-        icon: Icons.auto_graph_rounded,
-        color: const Color(0xFF0EA5E9),
-        actionText: "عرض التقارير",
-        onTap: controller.viewDailySales, // استدعاء الدالة
+        onTap: controller.checkDiskSpace, 
       ),
     ];
   }
 
-  // تم ربط الأزرار بالدوال المخصصة مباشرة
   Widget _buildGridMenu() {
     final List<Map<String, dynamic>> menuData = [
       {
@@ -155,7 +158,7 @@ class HomePage extends GetView<HomeController> {
       itemBuilder: (context, index) => MenuItemCard(
         title: menuData[index]['title'],
         icon: menuData[index]['icon'],
-        onTap: menuData[index]['onTap'], // استدعاء الدالة مباشرة بدون نصوص
+        onTap: menuData[index]['onTap'], 
       ),
     );
   }
