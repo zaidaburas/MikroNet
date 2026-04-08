@@ -63,32 +63,49 @@ extension UptimeFormatter on String {
     // إذا لم يتطابق النص مع الصيغة المعروفة، يتم إرجاعه كما هو
     if (matches.isEmpty) return this; 
 
-    List<String> formattedParts = [];
+    int totalDays = 0;
+    String hours = "";
+    String minutes = "";
+    String seconds = "";
 
     for (final match in matches) {
-      final value = match.group(1); // الرقم
-      final unit = match.group(2);  // الوحدة
+      final int value = int.tryParse(match.group(1) ?? "0") ?? 0;
+      final String unit = match.group(2) ?? "";
 
       switch (unit) {
         case 'w':
-          formattedParts.add('$value أسبوع');
+          // تحويل الأسابيع إلى أيام (كل أسبوع 7 أيام)
+          totalDays += value * 7;
           break;
         case 'd':
-          formattedParts.add('$value يوم');
+          // إضافة الأيام الموجودة إلى الإجمالي
+          totalDays += value;
           break;
         case 'h':
-          formattedParts.add('$value ساعة');
+          hours = "$value ساعة";
           break;
         case 'm':
-          formattedParts.add('$value دقيقة');
+          minutes = "$value دقيقة";
           break;
         case 's':
-          formattedParts.add('$value ثانية');
+          seconds = "$value ثانية";
           break;
       }
     }
 
-    // دمج المخرجات بفاصل سطر جديد
-    return formattedParts.join('\n');
+    List<String> formattedParts = [];
+
+    // إضافة الأيام المجمعة (أسابيع + أيام) إذا كانت أكبر من صفر
+    if (totalDays > 0) {
+      formattedParts.add('$totalDays يوم');
+    }
+    
+    // إضافة بقية الوحدات إذا كانت موجودة
+    if (hours.isNotEmpty) formattedParts.add(hours);
+    if (minutes.isNotEmpty) formattedParts.add(minutes);
+    if (seconds.isNotEmpty) formattedParts.add(seconds);
+
+    // دمج المخرجات بفاصل سطر جديد، وإذا كانت القائمة فارغة نرجع 0 ثانية
+    return formattedParts.isNotEmpty ? formattedParts.join('\n') : "0 ثانية";
   }
 }

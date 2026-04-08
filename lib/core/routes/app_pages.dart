@@ -1,7 +1,9 @@
 import 'package:get/get.dart';
 import 'package:mikronet/controllers/more/more_settings_controller.dart';
+import 'package:mikronet/controllers/reports/system_status_controller.dart';
 import 'package:mikronet/controllers/sites/dns_settings_controller.dart';
 import 'package:mikronet/views/more/more_settings_view.dart';
+import 'package:mikronet/views/reports/system_status_report_view.dart';
 import 'package:mikronet/views/sites/dns_settings_page.dart';
 //import 'package:mikronet/controllers/users/devices_controller.dart';
 
@@ -13,22 +15,22 @@ import '/controllers/login_controller.dart';
 import '/controllers/home_controller.dart';
 
 
-import '/views/cards/cards_view.dart';
+import '../../views/cards/cards_unit.dart';
 
-import '/views/cards/cards_list_view.dart';
-import '/views/cards/add_single_card_view.dart';
-import '/views/cards/card_info.dart';
-import '/views/cards/card_sessions.dart';
-import '/views/cards/packages_view.dart';
+import '../../views/cards/cards_list_page.dart';
+import '../../views/cards/add_single_card_page.dart';
+import '../../views/cards/card_info_page.dart';
+import '../../views/cards/card_sessions_page.dart';
+import '../../views/cards/profiles_page.dart';
 
 
 
-import '/controllers/cards/cards_management_controller.dart';
+import '../../controllers/cards/cards_unit_controller.dart';
 import '/controllers/cards/cards_list_controller.dart';
 import '/controllers/cards/add_single_card_controller.dart';
-import '/controllers/cards/card_details_controller.dart';
+import '../../controllers/cards/card_info_controller.dart';
 import '/controllers/cards/card_sessions_controller.dart';
-import '/controllers/cards/packages_controller.dart';
+import '../../controllers/cards/profiles_controller.dart';
 
 
 import '/views/users/users_page.dart';
@@ -87,6 +89,7 @@ class AppRoutes {
   static const String dnsSettings = '/sites/dns_settings';
   
   static const String reports = '/reports';
+  static const String systemState = '/reports/system_state';
   static const String backup = '/home/backup';
   
 
@@ -111,40 +114,36 @@ class AppPages {
       page: () => const HomePage(), 
       binding: BindingsBuilder(() => Get.lazyPut(() => HomeController())),
     ),
-    
-    // إدارة الكروت الرئيسية
     GetPage(
       name: AppRoutes.cards, 
-      page: () => const CardsManagementView(),
-      binding: BindingsBuilder(() => Get.lazyPut(() => CardsManagementController())),
+      page: () => const CardsUnitPage(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => CardsUnitController())),
     ),
-    
-    // القوائم والعمليات
     GetPage(
       name: AppRoutes.cardsList, 
-      page: () => const CardsListView(),
+      page: () => const CardsListPage(),
       binding: BindingsBuilder(() => Get.lazyPut(() => CardsListController())),
     ),
     GetPage(
       name: AppRoutes.addSingleCard, 
-      page: () => const AddSingleCardView(),
+      page: () => const AddSingleCardPage(),
       binding: BindingsBuilder(() => Get.lazyPut(() => AddSingleCardController())),
     ),
     GetPage(
       name: AppRoutes.packages, 
-      page: () => const PackagesView(),
-      binding: BindingsBuilder(() => Get.lazyPut(() => PackagesController())),
+      page: () => const ProfilesPage(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => ProfilesController())),
     ),
     
     GetPage(
       name: AppRoutes.cardDetails,
-      page: () => CardDetailsView(card: Get.arguments), 
-      binding: BindingsBuilder(() => Get.lazyPut(() => CardDetailsController(card: Get.arguments))),
+      page: () => CardInfoPage(card: Get.arguments), 
+      binding: BindingsBuilder(() => Get.lazyPut(() => CardInfoController(card: Get.arguments))),
     ),
     // ابحث عن مسار cardSessions وقم بتعديله كالتالي:
     GetPage(
       name: AppRoutes.cardSessions,
-      page: () => CardSessionsView(username: Get.arguments),
+      page: () => CardSessionsPage(username: Get.arguments),
       binding: BindingsBuilder(() {
         // تمرير القيمة الممررة (Get.arguments) إلى مشيد المتحكم
         Get.lazyPut(() => CardSessionsController(cardCode: Get.arguments));
@@ -200,6 +199,11 @@ class AppPages {
       name: AppRoutes.reports, 
       page: () => const ReportsManagementView(),
       //binding: BindingsBuilder(() => Get.lazyPut(() => BackupController())),
+    ),
+    GetPage(
+      name: AppRoutes.systemState, 
+      page: () => const SystemStatusReportView(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => SystemStatusController())),
     ),
     GetPage(
       name: AppRoutes.more, 

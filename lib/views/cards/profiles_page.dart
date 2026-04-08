@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '/controllers/cards/packages_controller.dart';
+import '/controllers/cards/profiles_controller.dart';
 import '/models/profiles_model.dart';
 import '/views/widgets/shared/layouts/sub_page_header.dart';
 import '/core/extensions/string_extensions.dart';
 
-class PackagesView extends GetView<PackagesController> {
-  const PackagesView({super.key});
+class ProfilesPage extends GetView<ProfilesController> {
+  const ProfilesPage({super.key});
 
   @override
   Widget build(BuildContext context) {

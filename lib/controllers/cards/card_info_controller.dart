@@ -6,10 +6,10 @@ import '../../models/cards_model.dart';
 import '../../models/response.dart';
 import 'cards_list_controller.dart'; 
 
-class CardDetailsController extends GetxController {
+class CardInfoController extends GetxController {
   final CardModel card;
 
-  CardDetailsController({required this.card});
+  CardInfoController({required this.card});
 
   late TextEditingController userCtrl;
   late TextEditingController passCtrl;

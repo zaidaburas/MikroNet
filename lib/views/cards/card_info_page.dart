@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 // استيراد المتحكم والموديل
-import '/controllers/cards/card_details_controller.dart';
+import '../../controllers/cards/card_info_controller.dart';
 import '/models/cards_model.dart';
 
 // استيراد الويدجت الجاهزة
@@ -10,16 +10,14 @@ import '/views/widgets/shared/layouts/sub_page_header.dart';
 import '/views/widgets/shared/layouts/modern_input.dart';
 import '/views/widgets/widgetsCard/status_badge.dart';
 
-class CardDetailsView extends GetView<CardDetailsController> {
+class CardInfoPage extends GetView<CardInfoController> {
   final CardModel card;
   
-  const CardDetailsView({super.key, required this.card});
+  const CardInfoPage({super.key, required this.card});
 
   @override
   Widget build(BuildContext context) {
-    // حقن المتحكم وتمرير بيانات الكرت إليه
-    // نستخدم Get.put هنا لأننا نحتاج لتمرير متغير 'card' للمتحكم
-    Get.put(CardDetailsController(card: card));
+   
 
     return Directionality(
       textDirection: TextDirection.rtl,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart'; // استيراد مكتبة GetX للتنقل
+import 'package:mikronet/core/routes/app_pages.dart';
 
 // استيراد الويدجتس المشتركة بناءً على هيكلة مشروعك
 import '../widgets/shared/layouts/main_gate_header.dart';
@@ -57,9 +58,7 @@ class ReportsManagementView extends StatelessWidget {
                     subtitle: "مراقبة أداء المايكروتيك واستهلاك الموارد",
                     icon: Icons.monitor_heart_rounded,
                     color: const Color(0xFF8B5CF6), // لون بنفسجي مميز لحالة النظام
-                    onTap: () {
-                       Get.to(() => const SystemStatusReportView());
-                    }, // التنقل باستخدام GetX
+                    onTap: () => Get.toNamed(AppRoutes.systemState), // التنقل باستخدام GetX
                   ),
                 ],
               ),

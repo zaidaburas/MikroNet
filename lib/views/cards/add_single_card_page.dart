@@ -1,19 +1,15 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '/controllers/cards/add_single_card_controller.dart';
 import '../widgets/shared/layouts/sub_page_header.dart';
 import '../widgets/shared/layouts/modern_input.dart';
 
-class AddSingleCardView extends GetView<AddSingleCardController> {
-  const AddSingleCardView({super.key});
+class AddSingleCardPage extends GetView<AddSingleCardController> {
+  const AddSingleCardPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // حقن المتحكم إذا لم يتم حقنه عبر Bindings
-    //Get.lazyPut(() => AddSingleCardController());
-
+    
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -46,7 +42,7 @@ class AddSingleCardView extends GetView<AddSingleCardController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildFieldLabel("بيانات الحساب"),
+                      _buildFieldLabel("بيانات الكرت"),
                       const SizedBox(height: 10),
                       
                       ModernInput(
@@ -64,7 +60,18 @@ class AddSingleCardView extends GetView<AddSingleCardController> {
                         padding: EdgeInsets.symmetric(vertical: 10),
                         child: Divider(),
                       ),
+                      _buildFieldLabel("اختيار العميل (Customer)"),
+                      const SizedBox(height: 10),
                       
+                      // مراقبة حالة تحميل العملاء
+                      Obx(() => controller.isCustomersLoading.value 
+                        ? const Center(child: LinearProgressIndicator())
+                        : _buildCustomerDropdown()),
+                      
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                        child: Divider(),
+                      ),
                       _buildFieldLabel("اختيار الباقة"),
                       const SizedBox(height: 10),
                       
@@ -85,6 +92,38 @@ class AddSingleCardView extends GetView<AddSingleCardController> {
             
             _buildFooter(),
           ],
+        ),
+      ),
+    );
+  }
+  Widget _buildCustomerDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          // 🔹 التعديل الجوهري هنا: نتحقق هل الاسم المختار موجود في القائمة الحالية؟
+          // إذا لم يكن موجوداً، نمرر null لتجنب الانهيار.
+          value: controller.customers.any((c) => c.name == controller.selectedCustomer.value?.name)
+              ? controller.selectedCustomer.value?.name
+              : null, 
+          isExpanded: true,
+          icon: const Icon(Icons.person_search_rounded, color: Color(0xFF1E3A8A)),
+          hint: const Text("اختر العميل"),
+          items: controller.customers.map((c) => DropdownMenuItem(
+            value: c.name,
+            child: Text(c.name, 
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+          )).toList(),
+          onChanged: (v) {
+            if (v != null) {
+              controller.selectedCustomer.value = controller.customers.firstWhere((c) => c.name == v);
+            }
+          },
         ),
       ),
     );
