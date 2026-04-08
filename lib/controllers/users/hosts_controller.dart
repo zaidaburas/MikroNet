@@ -46,6 +46,26 @@ class HostsController extends GetxController {
     _hideLoading();
     if (res.status) fetchHosts();
   }
+  Future<void> rename(HostUserModel user, String newName) async {
+    if (newName.isEmpty) return;
+    AppResponse<void> res;
+    _showLoading();
+    if(user.label == "Unknown"){
+    res = await UsersApi.labelDevice(
+      macAddress: user.macAddress,
+      label: newName,
+      srcAddress: user.srcAddress,
+    );
+    }else{
+      var device = await UsersApi.getUserId({
+        "mac-address":user.macAddress,
+      });
+      res = await UsersApi.editDevice(device.data.toString(),label: newName);
+    }
+    _hideLoading();
+    if (res.status) fetchHosts();
+  }
+
 
   // 2. حظر الجهاز (Blocking)
   Future<void> toggleBlock(HostUserModel host) async {

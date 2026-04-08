@@ -43,12 +43,26 @@ class ActiveSessionsController extends GetxController {
 
   Future<void> rename(ActiveUserModel user, String newName) async {
     if (newName.isEmpty) return;
+    AppResponse<void> res;
     _showLoading();
-    var res = await UsersApi.labelDevice(
+    if(user.label == "Unknown"){
+    res = await UsersApi.labelDevice(
       macAddress: user.macAddress,
       label: newName,
       srcAddress: user.address,
     );
+    }else{
+    var map = {
+        "mac-address":user.macAddress,
+        "comment": user.label
+      };
+      var device = await UsersApi.getUserId({
+        "mac-address":user.macAddress,
+        "comment": user.label
+      });
+      //showMsgDialog(message: map.toString());
+      res = await UsersApi.editDevice(device.data.toString(),label: newName);
+    }
     _hideLoading();
     if (res.status) fetchActiveSessions();
   }

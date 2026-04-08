@@ -28,10 +28,14 @@ class HostsView extends GetView<HostsController> {
                 if (controller.isLoading.value) return const Center(child: CircularProgressIndicator());
                 if (controller.hosts.isEmpty) return const Center(child: Text("لا توجد أجهزة مكتشفة"));
 
-                return ListView.builder(
+                return RefreshIndicator(
+                  onRefresh: controller.fetchHosts,
+                  child: ListView.builder(
                   padding: const EdgeInsets.all(20),
+                  physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                   itemCount: controller.hosts.length,
                   itemBuilder: (context, i) => _buildHostCard(controller.hosts[i]),
+                ),
                 );
               }),
             ),

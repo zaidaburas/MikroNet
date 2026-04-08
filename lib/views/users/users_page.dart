@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:mikronet/core/routes/app_pages.dart';
 
 // استيراد الـ Widgets الموحدة
 import '../widgets/shared/layouts/main_gate_header.dart';
@@ -39,22 +41,16 @@ class UsersManagementView extends StatelessWidget {
                   MainActionCard(
                     title: " - Hosts - المتصلين حالياً",
                     subtitle: "عرض الجلسات النشطة وسرعة الاستهلاك",
-                    icon: Icons.wifi_tethering_rounded,
-                    color: const Color(0xFF10B981),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const HostsView()),
-                    ),
+                    icon: Icons.devices_rounded,
+                    color: const Color.fromARGB(255, 16, 95, 185),
+                    onTap: () => Get.toNamed(AppRoutes.hostUsers),
                   ),
                   MainActionCard(
                     title: " - Active - المتصلين حالياً",
                     subtitle: "عرض الجلسات النشطة وسرعة الاستهلاك",
-                    icon: Icons.wifi_tethering_rounded,
+                    icon: Icons.online_prediction_rounded,
                     color: const Color(0xFF10B981),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const ActiveSessionsView()),
-                    ),
+                    onTap: () => Get.toNamed(AppRoutes.activeUsers)
                   ),
 
 
@@ -67,10 +63,7 @@ class UsersManagementView extends StatelessWidget {
                     subtitle: "التحكم في MAC Address وحظر الأجهزة",
                     icon: Icons.important_devices_rounded,
                     color: const Color(0xFF6366F1),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const DevicesView()),
-                    ),
+                    onTap: () => Get.toNamed(AppRoutes.binding),
                   ),
                 ],
               ),

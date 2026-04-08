@@ -1,6 +1,12 @@
 import 'package:get/get.dart';
+import 'package:mikronet/controllers/more/more_settings_controller.dart';
+import 'package:mikronet/controllers/sites/dns_settings_controller.dart';
+import 'package:mikronet/views/more/more_settings_view.dart';
+import 'package:mikronet/views/sites/dns_settings_page.dart';
+//import 'package:mikronet/controllers/users/devices_controller.dart';
 
 // ================= استيراد الواجهات (Views) =================
+//import '../../views/users/devices_manager.dart';
 import '/views/login_page.dart';
 import '/views/home_page.dart';
 import '/controllers/login_controller.dart';
@@ -26,7 +32,14 @@ import '/controllers/cards/packages_controller.dart';
 
 
 import '/views/users/users_page.dart';
+import '/views/users/devices_manager.dart';
+import '/views/users/hosts_view.dart';
+import '/views/users/connected_users.dart';
+
 import '/controllers/users/users_management_controller.dart';
+import '/controllers/users/devices_controller.dart' as binding;
+import '/controllers/users/active_users_controller.dart';
+import '/controllers/users/hosts_controller.dart';
 
 import '/views/sites/sites_page.dart';
 import '/views/sites/dns_cache.dart';
@@ -64,18 +77,23 @@ class AppRoutes {
   static const String cardSessions = '/cards/card_sessions';
 
   static const String users = '/users';
+  static const String binding= '/users/binding';
+  static const String activeUsers= '/users/active';
+  static const String hostUsers= '/users/hosts';
 
   static const String sites = '/sites';
   static const String dnsCache = '/sites/dns_cache';
   static const String blockedSites = '/sites/blocked_sites';
+  static const String dnsSettings = '/sites/dns_settings';
   
   static const String reports = '/reports';
   static const String backup = '/home/backup';
   
 
   static const String print = '/print';
+
+  static const String more = '/more';
   // مسارات إدارة المواقع
-  static const String dnsSettings = '/home/data_management/dns_settings';
 }
 
 class AppPages {
@@ -138,8 +156,21 @@ class AppPages {
       page: () => const UsersManagementView(),
       binding: BindingsBuilder(() => Get.lazyPut(() => UsersManagementController())),
     ),
-    
-    
+    GetPage(
+      name: AppRoutes.binding, 
+      page: () => const DevicesView(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => binding.DevicesController())),
+    ),
+    GetPage(
+      name: AppRoutes.activeUsers, 
+      page: () => const ActiveSessionsView(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => ActiveSessionsController())),
+    ),
+    GetPage(
+      name: AppRoutes.hostUsers, 
+      page: () => const HostsView(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => HostsController())),
+    ),
     GetPage(
       name: AppRoutes.sites, 
       page: () => const DataManagementView(),
@@ -155,6 +186,11 @@ class AppPages {
       page: () => const BlockedSitesView(),
       binding: BindingsBuilder(() => Get.lazyPut(() => BlockedSitesController())),
     ),
+     GetPage(
+      name: AppRoutes.dnsSettings,
+      page: () => const DnsSettingsView(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => DnsController())),
+    ),
     GetPage(
       name: AppRoutes.print, 
       page: () => const PrintOperationsView(),
@@ -165,32 +201,10 @@ class AppPages {
       page: () => const ReportsManagementView(),
       //binding: BindingsBuilder(() => Get.lazyPut(() => BackupController())),
     ),
-    /*
-    
-
-    
-    // صفحات الكروت التفصيلية
     GetPage(
-      name: AppRoutes.dnsSettings,
-      page: () => const DnsSettingsView(),
+      name: AppRoutes.more, 
+      page: () => const MoreSettingsView(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => MoreSettingsController())),
     ),
-    GetPage(
-      name: AppRoutes.blockedSites,
-      page: () => const BlockedSitesView(),
-    ),
-*/
-    // الدفعات والطباعة
-    /*GetPage(
-      name: AppRoutes.addBatch,
-      page: () => const AddBatch(),
-      binding: BindingsBuilder(() => Get.lazyPut(() => AddBatchController())),
-    ),
-    GetPage(
-      name: AppRoutes.templatePreview,
-      page: () => const PagePreview(),
-      binding: BindingsBuilder(() => Get.lazyPut(() => TemplatePreviewController())),
-    ),
-    */
-    
   ];
 }

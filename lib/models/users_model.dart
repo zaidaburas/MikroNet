@@ -21,11 +21,11 @@ class SavedUserModel {
   static SavedUserModel fromMikrotik(Map data){
     return SavedUserModel(
       id: data[".id"]??"Unknown", 
-      srcAddress: data["address"]??"any ip", 
-      dstAddress: data["to-address"]??"any ip", 
-      macAddress: data["mac-address"]??"any mac", 
+      srcAddress: data["address"]??"0.0.0.0", 
+      dstAddress: data["to-address"]??"0.0.0.0", 
+      macAddress: data["mac-address"]??"", 
       server: data["server"]??"all",
-      type: data["type"]??"normal", 
+      type: data["type"]??"regular", 
       label: data["comment"]??"Unknown",
     );
   }
@@ -180,4 +180,72 @@ class ActiveUserModel {
       "timeLeft":timeLeft,
     };
   }
+}
+class DeviceType{
+  bool isBlocked;
+  bool isFree;
+  bool isNormal;
+  DeviceType({
+    this.isBlocked=false,
+    this.isFree=false,
+    this.isNormal=true,
+  });
+
+  static DeviceType fromMikrotik(String type){
+    // bool blo
+    return DeviceType(
+      isBlocked: type=="blocked",
+      isFree: type=="bypassed",
+      isNormal: (type!="blocked" && type!="bypassed")
+    );
+  }
+
+  String toMikrotik(){
+    return (isBlocked?"blocked":isFree?"bypassed":"regular");
+  }
+}
+class DevicesModel {
+  String id;
+  String clientIp;
+  String address;
+  String macAddress;
+  String server;
+  DeviceType type;
+  String label;
+
+  DevicesModel({
+    required this.id,
+    this.clientIp="0.0.0.0",
+    this.address="0.0.0.0",
+    required this.macAddress,
+    this.server="all",
+    required this.type,
+    required this.label,
+  });
+
+  static DevicesModel fromMikrotik(Map data){
+    return DevicesModel(
+      id: data[".id"]??"Unknown", 
+      clientIp: data["address"]??"any ip", 
+      address: data["to-address"]??"any ip", 
+      macAddress: data["mac-address"]??"any mac", 
+      server: data["server"]??"all",
+      type: DeviceType.fromMikrotik(data["type"]??"normal"), 
+      label: data["comment"]??"Unknown",
+    );
+  }
+
+  Map toMikrotik(){
+    return {
+      // ".id":id,
+      "address":clientIp,
+      "to-address":address,
+      "mac-address":macAddress,
+      "server":server,
+      "type":type.toMikrotik(),
+      "comment":label,
+    };
+  }
+
+
 }

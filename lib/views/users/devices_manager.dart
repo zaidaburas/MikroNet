@@ -127,7 +127,10 @@ class DevicesView extends StatelessWidget {
         return const Center(child: Text("لا توجد أجهزة حالياً"));
       }
 
-      return ListView.builder(
+      return RefreshIndicator(
+        onRefresh: controller.fetchDevices,
+        child: 
+      ListView.builder(
         itemCount: devices.length,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         physics: const BouncingScrollPhysics(),
@@ -165,7 +168,7 @@ class DevicesView extends StatelessWidget {
             ),
           );
         },
-      );
+      ));
     });
   }
 
