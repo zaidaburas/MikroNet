@@ -50,3 +50,45 @@ extension DateFormatExt on String {
     }
   }
 }
+extension UptimeFormatter on String {
+  
+  String get formatUptime {
+    // التحقق إذا كان النص فارغاً
+    if (trim().isEmpty) return "0 ثانية";
+
+    // تعبير قياسي (Regex) لاستخراج الرقم والوحدة (w, d, h, m, s)
+    final regex = RegExp(r'(\d+)([wdhms])');
+    final matches = regex.allMatches(toLowerCase());
+
+    // إذا لم يتطابق النص مع الصيغة المعروفة، يتم إرجاعه كما هو
+    if (matches.isEmpty) return this; 
+
+    List<String> formattedParts = [];
+
+    for (final match in matches) {
+      final value = match.group(1); // الرقم
+      final unit = match.group(2);  // الوحدة
+
+      switch (unit) {
+        case 'w':
+          formattedParts.add('$value أسبوع');
+          break;
+        case 'd':
+          formattedParts.add('$value يوم');
+          break;
+        case 'h':
+          formattedParts.add('$value ساعة');
+          break;
+        case 'm':
+          formattedParts.add('$value دقيقة');
+          break;
+        case 's':
+          formattedParts.add('$value ثانية');
+          break;
+      }
+    }
+
+    // دمج المخرجات بفاصل سطر جديد
+    return formattedParts.join('\n');
+  }
+}

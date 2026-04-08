@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mikronet/core/extensions/string_extensions.dart';
 import '/controllers/users/active_users_controller.dart';
 import '/models/users_model.dart';
 import '../widgets/shared/layouts/sub_page_header.dart';
+
 
 class ActiveSessionsView extends GetView<ActiveSessionsController> {
   const ActiveSessionsView({super.key});
@@ -28,12 +30,17 @@ class ActiveSessionsView extends GetView<ActiveSessionsController> {
                 if (controller.isLoading.value) return const Center(child: CircularProgressIndicator());
                 if (controller.actives.isEmpty) return const Center(child: Text("لا توجد جلسات نشطة"));
 
-                return ListView.builder(
+                return RefreshIndicator(
+                  onRefresh: controller.fetchActiveSessions,
+                  child: 
+                ListView.builder(
                   padding: const EdgeInsets.fromLTRB(15, 15, 15, 80),
+                  physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                   itemCount: controller.actives.length,
                   itemBuilder: (context, i) => _buildUserCard(controller.actives[i]),
-                );
+                ));
               }),
+
             ),
           ],
         ),
@@ -83,10 +90,10 @@ class ActiveSessionsView extends GetView<ActiveSessionsController> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _miniStat(Icons.access_time, "الارتباط", a.uptime),
+                _miniStat(Icons.access_time, "الارتباط", a.uptime.formatUptime),
                 // عرض إجمالي الرصيد بدلاً من الوقت المتبقي
-                _miniStat(Icons.pie_chart_outline, "إجمالي الرصيد", a.totalPalance),
-                _miniStat(Icons.cloud_download_outlined, "التحميل", a.download),
+                _miniStat(Icons.cloud_upload_outlined, "الرفع", a.upload.formatBytes),
+                _miniStat(Icons.cloud_download_outlined, "التحميل", a.download.formatBytes),
               ],
             ),
           ),

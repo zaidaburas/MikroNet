@@ -1,92 +1,46 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '/controllers/home_controller.dart';
 
-// استيراد الـ Widgets الجديدة
+// استيراد الـ Widgets الخاصة بك
 import './widgets/home_header.dart';
 import './widgets/home_carousel.dart';
 import './widgets/menu_item_card.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends GetView<HomeController> {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage>
-    with SingleTickerProviderStateMixin {
-  
-  // ربط المتحكم بالواجهة
-  final HomeController controller = Get.put(HomeController());
-
-  late PageController _pageController;
-  late AnimationController _pulseController;
-  Timer? _carouselTimer;
-  int _currentPage = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController(viewportFraction: 0.9, initialPage: 0);
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
-
-    _startCarouselTimer();
-  }
-
-  // نقلنا مؤقت الحركة التلقائية للـ Carousel إلى الواجهة هنا
-  void _startCarouselTimer() {
-    _carouselTimer = Timer.periodic(const Duration(seconds: 4), (Timer timer) {
-      if (_pageController.hasClients) {
-        int nextItem = _currentPage + 1;
-        if (nextItem >= 6) { // 6 هو عدد الكروت الموجودة في الـ Carousel
-          nextItem = 0;
-        }
-        _pageController.animateToPage(
-          nextItem,
-          duration: const Duration(milliseconds: 900),
-          curve: Curves.easeInOutQuart,
-        );
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _carouselTimer?.cancel();
-    _pageController.dispose();
-    _pulseController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: const Color(0xFFF1F5F9),
         body: Column(
           children: [
+            // الهيدر
             HomeHeader(
-              pulseAnimation: _pulseController,
-              onLogout: () => Navigator.pop(context),
+              pulseAnimation: controller.pulseController,
+              onLogout: controller.logout,
             ),
-            HomeCarousel(
-              controller: _pageController,
-              currentPage: _currentPage,
-              onPageChanged: (i) => setState(() => _currentPage = i),
-              items: _buildCarouselItems(context),
-            ),
+            
+            // منطقة الكروت الدوارة - مغلفة بـ Obx لمراقبة تغير الصفحات والقيم
+            Obx(() => HomeCarousel(
+              controller: controller.pageController,
+              currentPage: controller.currentPage.value,
+              onPageChanged: controller.updateCurrentPage,
+              items: _buildCarouselItems(),
+            )),
+            
             _buildSectionTitle("إدارة النظام والعمليات"),
+            
+            // شبكة الأزرار
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: _buildGridMenu(context),
+                child: _buildGridMenu(),
               ),
             ),
           ],
@@ -95,7 +49,8 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  List<Widget> _buildCarouselItems(BuildContext context) {
+  // تم إزالة كلمة const من الكروت بسبب استخدام المتغيرات التفاعلية
+  List<Widget> _buildCarouselItems() {
     return [
       ActionCarouselItem(
         category: "إجراء سريع",
@@ -104,19 +59,19 @@ class _HomePageState extends State<HomePage>
         icon: Icons.add_moderator_rounded,
         color: const Color(0xFF2563EB),
         actionText: "ابدأ الإضافة",
-        onTap: () {}
+        onTap: controller.generateSingleCard, // استدعاء الدالة
       ),
-      const ResourceCarouselItem(
+      ResourceCarouselItem(
         category: "مراقبة الأداء",
         label: "حمل المعالج (CPU)",
-        percent: "34%",
+        percent: controller.cpuPercent.value, // قيمة تفاعلية
         icon: Icons.speed_rounded,
         color: Colors.cyanAccent,
       ),
-      const ResourceCarouselItem(
+      ResourceCarouselItem(
         category: "مراقبة الأداء",
         label: "استهلاك الرام (RAM)",
-        percent: "58%",
+        percent: controller.ramPercent.value, // قيمة تفاعلية
         icon: Icons.memory_rounded,
         color: Colors.purpleAccent,
       ),
@@ -124,66 +79,67 @@ class _HomePageState extends State<HomePage>
         category: "الأمن والرقابة",
         title: "قائمة الحظر",
         subtitle: "مستخدمين تم تقييدهم",
-        value: "14 مستخدم",
+        value: controller.blockedUsersCount.value, // قيمة تفاعلية
         icon: Icons.block_flipped,
         color: const Color(0xFFDC2626),
         actionText: "إدارة الحظر",
-        onTap: () {},
+        onTap: controller.manageBlockedUsers, // استدعاء الدالة
       ),
       ActionCarouselItem(
         category: "تنبيه النظام",
         title: "مساحة القرص",
         subtitle: "قاعدة بيانات السيرفر",
-        value: "12% مستخدم",
+        value: controller.diskSpace.value, // قيمة تفاعلية
         icon: Icons.storage_rounded,
         color: const Color(0xFF10B981),
         actionText: "فحص القرص",
-        onTap: () {},
+        onTap: controller.checkDiskSpace, // استدعاء الدالة
       ),
       ActionCarouselItem(
         category: "تقارير مالية",
         title: "مبيعات اليوم",
         subtitle: "إجمالي الكروت المباعة",
-        value: "285 كرت",
+        value: controller.dailySales.value, // قيمة تفاعلية
         icon: Icons.auto_graph_rounded,
         color: const Color(0xFF0EA5E9),
         actionText: "عرض التقارير",
-        onTap: () {},
+        onTap: controller.viewDailySales, // استدعاء الدالة
       ),
     ];
   }
 
-  Widget _buildGridMenu(BuildContext context) {
+  // تم ربط الأزرار بالدوال المخصصة مباشرة
+  Widget _buildGridMenu() {
     final List<Map<String, dynamic>> menuData = [
       {
         "title": "إدارة الكروت",
         "icon": Icons.credit_card_rounded,
-        "view": "الكروت"
+        "onTap": controller.goToCards
       },
       {
         "title": "المستخدمين",
         "icon": Icons.people_alt_rounded,
-        "view":  "المستخدمين"
+        "onTap": controller.goToUsers
       },
       {
         "title": "ادارة عملية الطباعة",
         "icon": Icons.print_rounded,
-        "view": "قوالب"
+        "onTap": controller.goToPrint
       },
       {
-        "title": "بيانات السيرفر",
+        "title": "اعدادات المواقع",
         "icon": Icons.dns_rounded,
-        "view": "البيانات"
+        "onTap": controller.goToSites
       },
       {
         "title": "التقارير",
         "icon": Icons.analytics_rounded,
-        "view": "الإحصائيات"
+        "onTap": controller.goToReports
       },
       {
-        "title": "النسخ الاحتياطي",
-        "icon": Icons.cloud_sync_rounded,
-        "view": "النسخ"
+        "title": "المزيد من الاعدادات",
+        "icon": Icons.tune_rounded,
+        "onTap": controller.goToMoreSettings
       },
     ];
 
@@ -199,8 +155,7 @@ class _HomePageState extends State<HomePage>
       itemBuilder: (context, index) => MenuItemCard(
         title: menuData[index]['title'],
         icon: menuData[index]['icon'],
-        // تم إصلاح السطر أدناه بإضافة الدالة المجهولة () => لمنع التنفيذ التلقائي
-        onTap: () => controller.navigateToTarget(menuData[index]['view']),
+        onTap: menuData[index]['onTap'], // استدعاء الدالة مباشرة بدون نصوص
       ),
     );
   }
@@ -209,12 +164,15 @@ class _HomePageState extends State<HomePage>
     return Padding(
       padding: const EdgeInsets.fromLTRB(25, 25, 25, 10),
       child: Align(
-          alignment: Alignment.centerRight,
-          child: Text(title,
-              style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF1E293B)))),
+        alignment: Alignment.centerRight,
+        child: Text(
+          title,
+          style: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF1E293B)),
+        ),
+      ),
     );
   }
 }

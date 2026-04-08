@@ -1,129 +1,174 @@
 import 'dart:convert';
-
 import 'package:charset/charset.dart';
-
 import 'router_os_client.dart';
 
 class MikrotikClient {
-  // متغير ثابت يحفظ جلسة الاتصال
-  static RouterOSClient? _client;
+  static RouterOSClient? _client; // القناة الأساسية السريعة (للباقات والإضافات)
+  static RouterOSClient? _heavyClient; // القناة الثقيلة (لجلب الكروت والجلسات فقط)
 
-  // دالة ثابتة لتهيئة الاتصال مرة واحدة فقط في بداية التطبيق
+  // حفظ الإعدادات لإعادة الاتصال التلقائي الصامت في حال فصل الراوتر إحدى القنوات
+  static String _address = "";
+  static String _user = "";
+  static String _password = "";
+  static int _port = 8728;
+  static int _timeout = 60;
+  static bool _useSsl = true;
+  static bool _verbose = true;
+
   static void init({
     required String address,
     required String user,
     required String password,
     required int port,
-    int timeout=60,
-    bool useSsl=true,
-    bool verbose=true,
-    // dynamic context,
+    int timeout = 60,
+    bool useSsl = true,
+    bool verbose = true,
   }) {
+    _address = address;
+    _user = user;
+    _password = password;
+    _port = port;
+    _timeout = timeout;
+    _useSsl = useSsl;
+    _verbose = verbose;
+
+    // تهيئة القناتين معاً من البداية!
     _client = RouterOSClient(
-      address: address,
-      user: user,
-      password: password,
-      port: port,
-      timeout: Duration(seconds: timeout),
-      useSsl: useSsl,
-      verbose: verbose,
-      // context: context,
+      address: address, user: user, password: password,
+      port: port, timeout: Duration(seconds: timeout),
+      useSsl: useSsl, verbose: verbose,
+    );
+
+    _heavyClient = RouterOSClient(
+      address: address, user: user, password: password,
+      port: port, timeout: Duration(seconds: timeout),
+      useSsl: useSsl, verbose: verbose,
     );
   }
 
-  static Future<bool> login()async{
-    return await _client!.login();
+  static Future<bool> login() async {
+    // الاتصال بالراوتر من القناتين في نفس اللحظة (توفير للوقت)
+    var results = await Future.wait([
+      _client!.login(),
+      _heavyClient!.login(),
+    ]);
+    // يرجع true إذا نجح الاتصال بالقناتين
+    return results[0] && results[1];
   }
 
-  // التأكد من أن الاتصال تم تهيئته قبل أي عملية
   static void _checkConnection() {
-    if (_client == null) {
+    if (_client == null || _heavyClient == null) {
       throw Exception("empty socket connection");
     }
   }
+
+  // -------------------------------------
+
   static String decode(String text) {
-    // String word = utf8.decode(
-    //     _buffer.sublist(offset + bytesUsedForLength, offset + bytesUsedForLength + length),allowMalformed: true
-    //   );
-    // String word = windows1256.decode(
-    //     _buffer.sublist(offset + bytesUsedForLength, offset + bytesUsedForLength + length),allowInvalid: true
-    //   );
     try {
-      // نحول النص الغريب إلى بايتات بترميز latin1 ثم نعيد قراءته كـ utf8
       return utf8.decode(windows1256.encode(text), allowMalformed: true);
     } catch (e) {
-      return text; // إذا فشل التحويل يرجع النص كما هو
-    }
-  }
-  static String encode(String text) {
-    try {
-      // نأخذ النص العربي (UTF-8) ونحوله إلى بايتات، ثم نجبره على التحول إلى نص بترميز windows1256
-      return windows1256.decode(utf8.encode(text), allowInvalid: true);
-    } catch (e) {
-      return text; // إذا فشل التحويل يرجع النص كما هو لتجنب انهيار التطبيق
+      return text;
     }
   }
 
-  static Future<List> fetch1  ({
-    required dynamic command,
-    Map<String, String>? params,
-    // int timeout = 60,
-  }) async {
-    
-    _checkConnection();
-    return await _client!.talk(
-      command,
-      params,
-    );
+  static String encode(String text) {
+    try {
+      return windows1256.decode(utf8.encode(text), allowInvalid: true);
+    } catch (e) {
+      return text;
+    }
   }
+
+  // دالة مساعدة لفك تشفير النتائج
+  static List _decodeResult(List rawResult) {
+    List decodedResult = [];
+    for (var item in rawResult) {
+      if (item is Map) {
+        Map<String, dynamic> decodedMap = {};
+        item.forEach((key, value) {
+          decodedMap[key] = value is String ? decode(value) : value;
+        });
+        decodedResult.add(decodedMap);
+      } else if (item is String) {
+        decodedResult.add(decode(item));
+      } else {
+        decodedResult.add(item);
+      }
+    }
+    return decodedResult;
+  }
+
+  // التوجيه الذكي: فحص الأمر هل هو كروت/جلسات؟
+  static bool _isHeavyCommand(dynamic command) {
+    String cmdStr = command is List ? command.join(" ") : command.toString();
+    return cmdStr.contains("user/print") || cmdStr.contains("session/print");
+  }
+
   static Future<List> fetch({
     required dynamic command,
     Map<String, String>? params,
-    // int timeout = 60,
   }) async {
     _checkConnection();
+    Map<String, String>? encodedParams;
+    if (params != null) {
+      encodedParams = {};
+      params.forEach((key, value) {
+        encodedParams![key] = encode(value); 
+      });
+    }
+
+    // تبديل الاتصال تلقائياً بناءً على نوع الأمر
+    RouterOSClient activeClient = _isHeavyCommand(command) ? _heavyClient! : _client!;
+
+    try {
+      List rawResult = await activeClient.talk(command, encodedParams);
+      return _decodeResult(rawResult);
+    } catch (e) {
+      // إعادة الاتصال الصامت إذا حصل أي خطأ
+      print("Socket error detected! Reconnecting... ($e)");
+      init(
+        address: _address, user: _user, password: _password, 
+        port: _port, timeout: _timeout, useSsl: _useSsl, verbose: _verbose
+      );
+      await login();
+      activeClient = _isHeavyCommand(command) ? _heavyClient! : _client!;
+      
+      List rawResult = await activeClient.talk(command, encodedParams);
+      return _decodeResult(rawResult);
+    }
+  }
+  
+  // دالة الاستماع (Stream) تستخدم القناة الثقيلة دائماً
+  static Stream<Map<String, dynamic>> fetchStream({
+    required dynamic command,
+    Map<String, String>? params,
+  }) async* {
+    _checkConnection();
+    RouterOSClient activeClient = _heavyClient!;
 
     Map<String, String>? encodedParams;
     if (params != null) {
       encodedParams = {};
       params.forEach((key, value) {
-        // غالباً مفاتيح المايكروتك بالإنجليزية فلا تحتاج تشفير، لكن القيمة تحتاج
         encodedParams![key] = encode(value); 
       });
     }
 
-    // 3. إرسال الطلب واستقبال الناتج الخام
-    List rawResult = await _client!.talk(
-      command,
-      encodedParams,
-    );
-
-    // 4. فك التشفير للنتائج (Result Decoding)
-    List decodedResult = [];
-    for (var item in rawResult) {
-      if (item is Map) {
-        // إذا كان العنصر خريطة (Map) كما هو المعتاد في المايكروتك
+    try {
+      await for (var item in activeClient.streamData(command, encodedParams)) {
         Map<String, dynamic> decodedMap = {};
         item.forEach((key, value) {
-          if (value is String) {
-            decodedMap[key] = decode(value);
-          } else {
-            decodedMap[key] = value;
-          }
+          decodedMap[key] = decode(value);
         });
-        decodedResult.add(decodedMap);
-      } else if (item is String) {
-        // إذا كان العنصر نصاً مباشراً
-        decodedResult.add(decode(item));
-      } else {
-        // أي نوع آخر (أرقام أو غيره) نتركه كما هو
-        decodedResult.add(item);
+        yield decodedMap;
       }
+    } catch (e) {
+       print("Stream Error: $e");
+       rethrow;
     }
-
-    return decodedResult;
   }
-  
+
   static Future<List> printData({
     required List<String> commands,
     List<String> conditions = const [],
@@ -136,16 +181,10 @@ class MikrotikClient {
     if (fields != "") {
       params = {".proplist": fields};
     }
-    return await fetch(
-      command: commands,
-      params: params,
-    );
+    return await fetch(command: commands, params: params);
   }
 
-  static Future<List> addData({
-    required String command,
-    required Map<String, String> data,
-  }) async {
+  static Future<List> addData({required String command, required Map<String, String> data}) async {
     return await fetch(command: command, params: data);
   }
 
@@ -157,35 +196,21 @@ class MikrotikClient {
       printCmd += "${cmd[i]}/";
     }
     printCmd += "print";
-    List result = await printData(
-      commands: [printCmd],
-      conditions: [cond],
-      fields: ".id",
-    );
+    List result = await printData(commands: [printCmd], conditions: [cond], fields: ".id");
     return result[0]['.id'];
   }
 
-  static Future<List> editData({
-    required String command,
-    required Map<String, String> data,
-    required String condition,
-  }) async {
+  static Future<List> editData({required String command, required Map<String, String> data, required String condition}) async {
     String userId = await _getElementId(command, condition);
     return await fetch(command: [command, "=.id=$userId"], params: data);
   }
 
-  static Future<List> deleteData({
-    required String command,
-    required String condition,
-  }) async {
+  static Future<List> deleteData({required String command, required String condition}) async {
     String userId = await _getElementId(command, condition);
     return await fetch(command: [command, "=.id=$userId"]);
   }
 
-  static Future<List> removeById({
-    required String command,
-    required String id,
-  }) async {
+  static Future<List> removeById({required String command, required String id}) async {
     return await fetch(command: [command, "=.id=$id"]);
   }
 
@@ -199,7 +224,3 @@ class MikrotikClient {
     }
   }
 }
-
-
-
-

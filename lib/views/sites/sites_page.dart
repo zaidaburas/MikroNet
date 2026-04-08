@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mikronet/core/routes/app_pages.dart';
 import '/controllers/sites/sites_controller.dart';
 
 // استيراد الـ Widgets الموحدة
@@ -35,8 +36,22 @@ class DataManagementView extends GetView<SitesController> {
                 physics: const BouncingScrollPhysics(),
                 children: [
                   
-                  // ================= القسم الأول: سجلات DNS =================
+                  // ================= القسم الأول: إعدادات المخدّم =================
+                  const SectionTitle(title: "إعدادات المخدّم"),
+                  
+                  MainActionCard(
+                    title: "إعدادات DNS",
+                    subtitle: "ضبط عناوين DNS وصلاحيات الوصول للشبكة",
+                    icon: Icons.settings_ethernet_rounded,
+                    color: const Color(0xFF10B981), // لون أخضر زمردي متميز
+                    onTap: controller.goToDnsSettings, // التوجيه لصفحة الإعدادات
+                  ),
+                  
+                  const SizedBox(height: 20),
+
+                  // ================= القسم الثاني: السجلات المؤقتة =================
                   const SectionTitle(title: "السجلات المؤقتة"),
+                  
                   MainActionCard(
                     title: "DNS Cache",
                     subtitle: "عرض وحذف السجلات المؤقتة للشبكة",
@@ -47,7 +62,7 @@ class DataManagementView extends GetView<SitesController> {
                   
                   const SizedBox(height: 20),
                   
-                  // ================= القسم الثاني: الحظر والرقابة =================
+                  // ================= القسم الثالث: الحظر والرقابة =================
                   const SectionTitle(title: "جدار الحماية والرقابة"),
                   
                   // 1. حظر IP

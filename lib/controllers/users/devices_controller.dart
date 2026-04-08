@@ -17,7 +17,7 @@ class DevicesController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _fetchDevices();
+    fetchDevices();
   }
 
   void goBack() {
@@ -113,7 +113,7 @@ class DevicesController extends GetxController {
     if (Get.isDialogOpen ?? false) Get.back();
 
     if (response.status) {
-      _fetchDevices(); 
+      fetchDevices(); 
       _showSuccess("تم بنجاح", "تمت إضافة الجهاز الجديد");
     } else {
       showMsgDialog(message: response.message);
@@ -121,7 +121,7 @@ class DevicesController extends GetxController {
   }
 
   /// جلب البيانات
-  Future<void> _fetchDevices() async {
+  Future<void> fetchDevices() async {
     final currentId = ++_requestCounter;
     isLoading.value = true;
     

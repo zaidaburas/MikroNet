@@ -286,7 +286,7 @@ class UsersApi {
         ], 
         params: {
           "mac-address": macAddress==""?result.macAddress:macAddress,
-          "address": srcAddress==""?result.srcAddress:srcAddress,
+          "address": srcAddress=="" ? result.srcAddress : srcAddress,
           "to-address": dstAddress==""?result.dstAddress:dstAddress,
           "comment": label==""?result.label:label,
           "server": server==""?result.server:server,
@@ -305,7 +305,62 @@ class UsersApi {
     }
   }
 
+  static Future<AppResponse<String>> getUserId(Map user)async{
+    try {
+      List usersData=await MikrotikClient.printData(
+        commands: [
+          "/ip/hotspot/ip-binding/print",
+        ],
+        conditions: [
+          // '?address=${user["address"]}',
+          // '?to-address=${user["to-address"]}',
+          '?mac-address=${user["mac-address"]}',
+          // '?server=${user["server"]}',
+          //'?comment=${user["comment"]}',
+        ]
 
+        // fields: ".id,address,to-address,mac-address,disabled,server,type,comment"
+      );
+      if(usersData.isEmpty){
+        return AppResponse(status: true, message: "",data: "empty");
+      }
+      return AppResponse(status: true, message: "",data: usersData.first[".id"]);
+    } catch (e) {
+      return AppResponse(status: false, message: e.toString());
+    }
+    // return {};
+  }
+  static Future<AppResponse<List> > saveDevice({
+    required String macAddress,
+    String srcAddress="0.0.0.0",
+    String dstAddress="0.0.0.0",
+    String label="saved device",
+    String server="all",
+    String type="regular"
+  })async{
+    try {
+      await MikrotikClient.addData(
+        command: "/ip/hotspot/ip-binding/add", 
+        data: {
+          "address":srcAddress,
+          "to-address":dstAddress,
+          "mac-address":macAddress,
+          "server":server,
+          "comment":label,
+          "type":type,
+        }
+      );
+      return AppResponse(
+        status: true,
+        message: "done"
+      );
+    } catch (e) {
+      return AppResponse(
+        status: false,
+        message: e.toString()
+      );
+    }
+  }
 }
 
 
