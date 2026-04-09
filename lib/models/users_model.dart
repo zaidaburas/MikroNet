@@ -14,6 +14,7 @@ enum UserType{
   }
 }
 
+
 class SavedUserModel {
   final String id;
   final String srcAddress;
