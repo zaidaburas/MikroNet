@@ -1,36 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mikronet/models/cards_model.dart';
-import '/api/cards_api.dart'; //
-import '/api/profiles_api.dart'; //
-import '/models/profiles_model.dart'; //
+import '/api/cards_api.dart'; 
+import '/api/profiles_api.dart'; 
+import '/models/profiles_model.dart'; 
+import '/models/cards_model.dart'; // استيراد مودل العملاء
 import '/models/response.dart';
 import '/controllers/dialog_helper.dart';
 
 class AddSingleCardController extends GetxController {
-  // الحقول النصية
   final usernameCtrl = TextEditingController();
   final passwordCtrl = TextEditingController();
 
-  // الحالات التفاعلية
   RxBool isLoading = false.obs;
   RxBool isProfilesLoading = true.obs;
-  RxBool isCustomersLoading = true.obs;
+  RxBool isCustomersLoading = true.obs; // حالة تحميل العملاء
   
-  // قائمة الباقات المختارة
   RxList<ProfilesModel> profiles = <ProfilesModel>[].obs;
   Rxn<ProfilesModel> selectedProfile = Rxn<ProfilesModel>();
 
-  // قائمة الباقات المختارة
+  // 🔹 قائمة العملاء والمتغير المختار
   RxList<CustomerModel> customers = <CustomerModel>[].obs;
   Rxn<CustomerModel> selectedCustomer = Rxn<CustomerModel>();
 
   @override
   void onInit() {
     super.onInit();
-    init(); // جلب الباقات عند التشغيل
+    fetch();
+     // 🔹 جلب العملاء عند التشغيل
   }
-
+  void fetch()async{
+    await fetchProfiles(); 
+    await fetchCustomers();
+  }
   @override
   void onClose() {
     usernameCtrl.dispose();
@@ -38,50 +39,13 @@ class AddSingleCardController extends GetxController {
     super.onClose();
   }
 
-  Future<void> init()async{
-    await fetchCustomers();
-    await fetchProfiles();
-  }
-
-  // جلب الباقات من ProfilesApi
-  Future<void> fetchCustomers() async {
-    isCustomersLoading.value = true;
-    try {
-      AppResponse<List<CustomerModel>> response = await CardsApi.getCustomers(); //
-      if (response.status && response.data != null) {
-        customers.assignAll(response.data!);
-        if (customers.isNotEmpty) {
-          selectedCustomer.value = customers.first; // تحديد أول باقة تلقائياً
-        }
-      } else {
-        showMsgDialog(message: "فشل جلب الباقات: ${response.message}");
-      }
-      print('\n \n \n');
-      print('\n \n \n');
-      print('\n \n \n');
-      print(customers.length);
-      print('\n \n \n');
-      print('\n \n \n');
-      print('\n \n \n');
-
-    } catch (e) {
-      showMsgDialog(message: "خطأ في الاتصال: $e");
-    } finally {
-      isCustomersLoading.value = false;
-    }
-  }
-
-
-  // جلب الباقات من ProfilesApi
   Future<void> fetchProfiles() async {
     isProfilesLoading.value = true;
     try {
-      AppResponse<List<ProfilesModel>> response = await ProfilesApi.getProfiles(); //
+      AppResponse<List<ProfilesModel>> response = await ProfilesApi.getProfiles();
       if (response.status && response.data != null) {
         profiles.assignAll(response.data!);
-        if (profiles.isNotEmpty) {
-          selectedProfile.value = profiles.first; // تحديد أول باقة تلقائياً
-        }
+        if (profiles.isNotEmpty) selectedProfile.value = profiles.first;
       } else {
         showMsgDialog(message: "فشل جلب الباقات: ${response.message}");
       }
@@ -92,25 +56,50 @@ class AddSingleCardController extends GetxController {
     }
   }
 
-  // دالة حفظ الكرت
+  // 🔹 دالة جلب العملاء من CardsApi
+  Future<void> fetchCustomers() async {
+    isCustomersLoading.value = true;
+    try {
+      AppResponse<List<CustomerModel>> response = await CardsApi.getCustomers();
+      if (response.status && response.data != null) {
+        customers.assignAll(response.data!);
+        
+        // 🔹 تأكد من أن القائمة تحتوي على بيانات قبل التعيين
+        if (customers.isNotEmpty) {
+          selectedCustomer.value = customers.first;
+        } else {
+          selectedCustomer.value = null; // تصفير القيمة إذا كانت القائمة فارغة
+        }
+      } else {
+        // لا تظهر دايالوج هنا إذا كانت البيانات فارغة فقط، يكفي التنبيه
+        print("تنبيه: لا يوجد عملاء في السيرفر");
+      }
+    } catch (e) {
+      print("خطأ في جلب العملاء: $e");
+    } finally {
+      isCustomersLoading.value = false;
+    }
+  }
+
   Future<void> saveCard() async {
-    if (usernameCtrl.text.isEmpty || selectedProfile.value == null) {
-      showMsgDialog(message: "يرجى إدخال اسم المستخدم واختيار الباقة");
+    // 🔹 إضافة التحقق من اختيار العميل
+    if (usernameCtrl.text.isEmpty || selectedProfile.value == null || selectedCustomer.value == null) {
+      showMsgDialog(message: "يرجى إدخال اسم المستخدم واختيار الباقة والعميل");
       return;
     }
 
     isLoading.value = true;
     try {
-      // إرسال الطلب عبر CardsApi
+      // 🔹 إرسال الطلب مع العميل المختار
       AppResponse<void> response = await CardsApi.addOneCard(
-        customer: selectedCustomer.value!.name, // يمكن تغييرها حسب المستخدم الحالي
+        customer: selectedCustomer.value!.name, 
         username: usernameCtrl.text,
         password: passwordCtrl.text,
         profile: selectedProfile.value!.name,
       );
 
       if (response.status) {
-        Get.back(); // العودة للخلف بعد النجاح
+        Get.back();
         showMsgDialog(message: "تم إضافة الكرت بنجاح");
       } else {
         showMsgDialog(message: response.message);

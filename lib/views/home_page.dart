@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '/controllers/home_controller.dart';
 
-// استيراد الـ Widgets الخاصة بك
 import './widgets/home_header.dart';
 import './widgets/home_carousel.dart';
 import './widgets/menu_item_card.dart';
@@ -47,7 +45,6 @@ class HomePage extends GetView<HomeController> {
     );
   }
 
-  // ترتيب الكروت والبيانات كما طلبت
   List<Widget> _buildCarouselItems() {
     return [
       // 1. توليد كرت واحد
@@ -67,7 +64,7 @@ class HomePage extends GetView<HomeController> {
         subtitle: "أجهزة تسحب بيانات الآن",
         value: controller.activeUsersCount.value, 
         icon: Icons.online_prediction_rounded,
-        color: const Color(0xFF10B981), // لون أخضر يعبر عن النشاط
+        color: const Color(0xFF10B981), 
         actionText: "عرض المتصلين",
         onTap: controller.manageActiveUsers, 
       ),
@@ -78,7 +75,7 @@ class HomePage extends GetView<HomeController> {
         subtitle: "مدة عمل الراوتر (Uptime)",
         value: controller.uptime.value, 
         icon: Icons.timer_rounded,
-        color: const Color(0xFFF59E0B), // برتقالي
+        color: const Color(0xFFF59E0B), 
         actionText: "تقارير النظام",
         onTap: controller.viewUptimeDetails, 
       ),
@@ -98,15 +95,15 @@ class HomePage extends GetView<HomeController> {
         icon: Icons.memory_rounded,
         color: Colors.purpleAccent,
       ),
-      // 6. مساحة القرص
+      // 6. 🔹 مساحة القرص (تم التحديث هنا)
       ActionCarouselItem(
         category: "تنبيه النظام",
-        title: "مساحة القرص",
-        subtitle: "قاعدة بيانات السيرفر",
-        value: controller.diskSpace.value, 
-        icon: Icons.storage_rounded,
+        title: "مساحة التخزين (Disk)",
+        subtitle: controller.diskSpaceDetails.value, // الإجمالي والمستخدم
+        value: controller.diskSpacePercent.value,    // النسبة المئوية
+        icon: Icons.sd_storage_rounded,
         color: const Color(0xFF64748B),
-        actionText: "فحص القرص",
+        actionText: "تفاصيل القرص",
         onTap: controller.checkDiskSpace, 
       ),
     ];

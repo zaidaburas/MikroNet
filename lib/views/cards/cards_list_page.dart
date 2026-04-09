@@ -6,15 +6,12 @@ import '/controllers/cards/cards_list_controller.dart';
 import '../widgets/shared/layouts/sub_page_header.dart';
 import '../widgets/widgetsCard/card_item_tile.dart';
 
-class CardsListView extends GetView<CardsListController> {
-  const CardsListView({super.key});
+class CardsListPage extends GetView<CardsListController> {
+  const CardsListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // تم نقل Get.put إلى الـ Binding أو استدعاؤه هنا إذا لم تستخدم Bindings
-    // إذا كنت لا تستخدم Bindings، يمكنك إبقاء السطر التالي:
-     //Get.put(CardsListController());
-
+    
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -94,27 +91,6 @@ class CardsListView extends GetView<CardsListController> {
     );
   }
 
-  Widget _addButton() {
-    return InkWell(
-      // استدعاء دالة إضافة كرت الجاهزة في المتحكم
-      onTap: () => controller.showAddCardDialog(),
-      child: Container(
-        height: 55, width: 55,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [Color(0xFF38BDF8), Color(0xFF0EA5E9)]),
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF0EA5E9).withOpacity(0.3), 
-              blurRadius: 10, 
-              offset: const Offset(0, 4)
-            )
-          ],
-        ),
-        child: const Icon(Icons.add_rounded, color: Colors.white, size: 30),
-      ),
-    );
-  }
 
   Widget _buildFilterChips() {
     final items = ["الكل", "جديدة", "نشطة", "منتهية"];

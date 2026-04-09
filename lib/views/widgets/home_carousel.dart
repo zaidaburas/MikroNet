@@ -116,7 +116,7 @@ class ActionCarouselItem extends StatelessWidget {
                   Text(value!,
                       style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 26,
+                          fontSize: 24,
                           fontWeight: FontWeight.w900)),
                 const Spacer(),
                 Text(actionText,

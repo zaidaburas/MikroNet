@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '/core/routes/app_pages.dart';
+import 'package:mikronet/core/extensions/string_extensions.dart';
 
-// تأكد من صحة مسارات الـ API حسب مشروعك
 import '/api/users_api.dart'; 
 import '/api/reports_api.dart';
 
@@ -12,16 +12,20 @@ class HomeController extends GetxController with GetSingleTickerProviderStateMix
   // ================= القيم التفاعلية (المتغيرة) الحقيقية =================
   var cpuPercent = "0%".obs;
   var ramPercent = "0%".obs;
-  var activeUsersCount = "0 متصل".obs; // استبدلناها بقائمة الحظر
-  var uptime = "00:00:00".obs; // استبدلناها بالمبيعات
-  var diskSpace = "--".obs; // مساحة القرص (يمكنك جلبها لاحقاً إذا أضفتها للمودل)
+  var activeUsersCount = "0 متصل".obs; 
+  var uptime = "00:00:00".obs; 
+  
+  // 🔹 متغيرات مساحة القرص الجديدة
+  var diskSpacePercent = "0%".obs; 
+  var diskSpaceDetails = "جاري الفحص...".obs; 
+  
   var currentPage = 0.obs;
 
   // ================= متحكمات الواجهة والحركة =================
   late PageController pageController;
   late AnimationController pulseController;
   Timer? carouselTimer;
-  Timer? dataRefreshTimer; // مؤقت لتحديث بيانات السيرفر
+  Timer? dataRefreshTimer; 
 
   @override
   void onInit() {
@@ -34,9 +38,7 @@ class HomeController extends GetxController with GetSingleTickerProviderStateMix
 
     _startCarouselTimer();
     
-    // جلب البيانات فور فتح الصفحة
     fetchRealData();
-    // تشغيل مؤقت يحدث البيانات كل 10 ثواني (يمكنك تقليل أو زيادة المدة)
     _startDataRefreshTimer();
   }
 
@@ -73,23 +75,33 @@ class HomeController extends GetxController with GetSingleTickerProviderStateMix
 
   // ================= دالة جلب البيانات الحقيقية من السيرفر =================
   Future<void> fetchRealData() async {
-    // 1. جلب بيانات النظام (CPU, RAM, Uptime)
     var sysResponse = await ReportsApi.getSystemState();
     if (sysResponse.status && sysResponse.data != null) {
       var sys = sysResponse.data!;
       cpuPercent.value = "${sys.cpu}%";
-      uptime.value = sys.uptime; // يمكنك استخدام الـ extension الخاصة بالوقت هنا إذا أردت تنسيقها
+      uptime.value = sys.uptime.formatUptime.split("\n").join(" "); 
 
-      // حساب نسبة استهلاك الرام (المستخدم / الإجمالي * 100)
-      double totalRam = double.tryParse(sys.totalMemory) ?? 0;
-      double freeRam = double.tryParse(sys.freeMemory) ?? 0;
+      double totalRam = double.tryParse(sys.totalMemory.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
+      double freeRam = double.tryParse(sys.freeMemory.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
       if (totalRam > 0) {
         int ramUsagePercent = (((totalRam - freeRam) / totalRam) * 100).toInt();
         ramPercent.value = "$ramUsagePercent%";
       }
+
+      // 🔹 حساب مساحة القرص وتحديث المتغيرات
+      double totalDisk = double.tryParse(sys.totalDiskSpace.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
+      double freeDisk = double.tryParse(sys.freeDiskSpace.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
+      
+      if (totalDisk > 0) {
+        double usedDisk = totalDisk - freeDisk; // المساحة المستخدمة فعلياً
+        int diskUsagePercent = ((usedDisk / totalDisk) * 100).toInt(); // النسبة المئوية
+        
+        diskSpacePercent.value = "$diskUsagePercent%";
+        // تنسيق النص ليعرض رقم واحد بعد الفاصلة (مثل: المستخدم 5.2 MB / الإجمالي 120.5 MB)
+        diskSpaceDetails.value = "المستخدم: ${usedDisk.toStringAsFixed(1).toString().formatBytes} / الإجمالي: ${totalDisk.toStringAsFixed(1).toString().formatBytes} MB";
+      }
     }
 
-    // 2. جلب عدد المتصلين النشطين
     var activeResponse = await UsersApi.getAllActive();
     if (activeResponse.status && activeResponse.data != null) {
       activeUsersCount.value = "${activeResponse.data!.length} متصل";
@@ -101,24 +113,10 @@ class HomeController extends GetxController with GetSingleTickerProviderStateMix
   }
 
   // ================= دوال أزرار الـ Carousel =================
-  void generateSingleCard() {
-    // توجيه لصفحة إنشاء كرت
-    print("إجراء: توليد كرت واحد");
-  }
-
-  void manageActiveUsers() {
-    // توجيه لصفحة المتصلين النشطين
-    Get.toNamed(AppRoutes.users); 
-  }
-
-  void viewUptimeDetails() {
-    // توجيه لصفحة تقارير النظام
-    Get.toNamed(AppRoutes.reports); 
-  }
-
-  void checkDiskSpace() {
-    print("إجراء: فحص مساحة القرص");
-  }
+  void generateSingleCard() => print("إجراء: توليد كرت واحد");
+  void manageActiveUsers() => Get.toNamed(AppRoutes.users); 
+  void viewUptimeDetails() => Get.toNamed(AppRoutes.reports); 
+  void checkDiskSpace() => print("إجراء: فحص مساحة القرص");
 
   // ================= دوال التنقل للأقسام (Grid) =================
   void goToCards() => Get.toNamed(AppRoutes.cards);
@@ -128,7 +126,5 @@ class HomeController extends GetxController with GetSingleTickerProviderStateMix
   void goToReports() => Get.toNamed(AppRoutes.reports);
   void goToMoreSettings() => Get.toNamed(AppRoutes.more);
 
-  void logout() {
-    Get.back(); 
-  }
+  void logout() => Get.back(); 
 }

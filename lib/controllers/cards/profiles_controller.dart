@@ -5,9 +5,9 @@ import 'package:mikronet/models/cards_model.dart';
 import '/controllers/dialog_helper.dart';
 import '/api/profiles_api.dart';
 import '/models/profiles_model.dart';
-import '/models/response.dart';
 
-class PackagesController extends GetxController {
+
+class ProfilesController extends GetxController {
   RxList<ProfilesModel> packages = <ProfilesModel>[].obs;
   RxBool isLoading = true.obs;
   int _requestCounter = 0;

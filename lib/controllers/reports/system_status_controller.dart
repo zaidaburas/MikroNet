@@ -1,9 +1,10 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+
 // تأكد من صحة هذه المسارات حسب مجلدات مشروعك
 import '../../models/selles_model.dart';
 import '../../services/response.dart'; 
-import '../../api/reports_api.dart'; // مسار ملف الـ API الذي قمنا بإنشائه
+import '../../api/reports_api.dart';
 
 class SystemStatusController extends GetxController {
   // حالة التحميل
@@ -15,8 +16,7 @@ class SystemStatusController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // جلب البيانات تلقائياً عند فتح الصفحة
-    fetchSystemStatus();
+    fetchSystemStatus(); // جلب البيانات تلقائياً عند فتح الصفحة
   }
 
   // دالة جلب بيانات النظام الحقيقية من الـ API
@@ -24,17 +24,14 @@ class SystemStatusController extends GetxController {
     isLoading.value = true;
     
     try {
-      // استدعاء الـ API الحقيقي
       AppResponse<SystemStateModel> response = await ReportsApi.getSystemState();
 
       if (response.status && response.data != null) {
-        // إذا نجح الطلب، قم بتعيين البيانات
         systemState.value = response.data;
       } else {
-        // إذا فشل الطلب (مثلا السيرفر مفصول)، اعرض رسالة الخطأ القادمة من الـ API
         Get.snackbar(
           "تنبيه", 
-          response.message ?? "فشل في جلب البيانات", 
+          response.message, 
           backgroundColor: Colors.redAccent, 
           colorText: Colors.white,
           snackPosition: SnackPosition.BOTTOM,

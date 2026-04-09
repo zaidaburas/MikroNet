@@ -3,16 +3,14 @@ import 'package:get/get.dart';
 
 // استيراد المتحكم والموديل
 import '/controllers/cards/card_sessions_controller.dart';
-import '/models/cards_model.dart';
-
 // استيراد الويدجت الجاهزة
 import '/views/widgets/shared/layouts/sub_page_header.dart';
 import '/views/widgets/widgetsCard/session_info_card.dart';
 import '/core/extensions/string_extensions.dart';
-class CardSessionsView extends GetView<CardSessionsController> {
+class CardSessionsPage extends GetView<CardSessionsController> {
   final String username;
 
-  const CardSessionsView({super.key, required this.username});
+  const CardSessionsPage({super.key, required this.username});
 
   @override
   Widget build(BuildContext context) {
