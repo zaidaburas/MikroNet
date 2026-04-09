@@ -79,17 +79,7 @@ class AddSingleCardPage extends GetView<AddSingleCardController> {
                       Obx(() => controller.isProfilesLoading.value 
                         ? const Center(child: LinearProgressIndicator())
                         : _buildPackageDropdown()),
-                      
-                      const SizedBox(height: 10),
-
-                      _buildFieldLabel("اختيار العميل"),
-                      const SizedBox(height: 10),
-                      
-                      // استخدام Obx لمراقبة قائمة الباقات وحالة التحميل
-                      Obx(() => controller.isProfilesLoading.value 
-                        ? const Center(child: LinearProgressIndicator())
-                        : _buildCustomerDropdown()),
-                      
+                    
                       const SizedBox(height: 35),
                       
                       // زر الحفظ مع مراقبة حالة التحميل
@@ -146,33 +136,6 @@ class AddSingleCardPage extends GetView<AddSingleCardController> {
         fontSize: 13,
         fontWeight: FontWeight.w900,
         color: Color(0xFF1E3A8A),
-      ),
-    );
-  }
-
-  Widget _buildCustomerDropdown() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: controller.selectedCustomer.value?.name,
-          isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF1E3A8A)),
-          hint: const Text("اختر الباقة"),
-          items: controller.customers.map((p) => DropdownMenuItem(
-            value: p.name,
-            child: Text(p.name, 
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-          )).toList(),
-          onChanged: (v) {
-            controller.selectedCustomer.value = controller.customers.firstWhere((p) => p.name == v);
-          },
-        ),
       ),
     );
   }
