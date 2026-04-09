@@ -79,7 +79,7 @@ class AddSingleCardPage extends GetView<AddSingleCardController> {
                       Obx(() => controller.isProfilesLoading.value 
                         ? const Center(child: LinearProgressIndicator())
                         : _buildPackageDropdown()),
-                      
+                    
                       const SizedBox(height: 35),
                       
                       // زر الحفظ مع مراقبة حالة التحميل

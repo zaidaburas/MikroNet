@@ -5,6 +5,7 @@ import 'router_os_client.dart';
 class MikrotikClient {
   static RouterOSClient? _client; // القناة الأساسية السريعة (للباقات والإضافات)
   static RouterOSClient? _heavyClient; // القناة الثقيلة (لجلب الكروت والجلسات فقط)
+  static int version=0;
 
   // حفظ الإعدادات لإعادة الاتصال التلقائي الصامت في حال فصل الراوتر إحدى القنوات
   static String _address = "";
@@ -52,6 +53,7 @@ class MikrotikClient {
       _client!.login(),
       _heavyClient!.login(),
     ]);
+    version= await getVersion();
     // يرجع true إذا نجح الاتصال بالقناتين
     return results[0] && results[1];
   }
@@ -223,4 +225,16 @@ class MikrotikClient {
       return 0;
     }
   }
+
+  // static Future<void> cancel(String tag)async{
+  //   await _client!.cancelCommand(tag);
+  // }
+
+  // static Future<void> close()async{
+  //   _client!.close();
+  // }
 }
+
+
+
+

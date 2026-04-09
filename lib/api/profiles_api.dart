@@ -1,3 +1,5 @@
+import 'package:mikronet/api/version7_api.dart';
+
 import '/models/profiles_model.dart';
 import '/services/mikrotik_client.dart';
 import '../models/response.dart';
@@ -88,7 +90,9 @@ class ProfilesApi {
 
   static Future<AppResponse<List<ProfilesModel>>> getProfiles({String profileName=""}) async {
   try {
-
+    if(MikrotikClient.version==7){
+      return await ProfilesApi7.getProfiles(profileName: profileName);
+    }
     List results=await _getProfilesData(profileName: profileName);
 
     List hotspot = results[0];
@@ -255,6 +259,9 @@ class ProfilesApi {
   
   static Future<AppResponse<void>>addOneProfile(Map data)async{
     try {
+      if(MikrotikClient.version==7){
+      return await ProfilesApi7.addOneProfile(data);
+    }
       // add hotspot profile
       await _addOneHotspotProfile(
         name: data["name"], 
@@ -300,6 +307,9 @@ class ProfilesApi {
 
   static Future<AppResponse<void>>profileEdit(String name,Map<String, String> data)async{
     try {
+      if(MikrotikClient.version==7){
+        return await ProfilesApi7.profileEdit(name, data);
+      }
       var profileResponse=await getProfiles(profileName: name);
       if(!profileResponse.status || profileResponse.data == null || profileResponse.data!.isEmpty){
         return AppResponse<void>(status: false, message: "Profile not found");
@@ -365,7 +375,9 @@ class ProfilesApi {
   static Future<AppResponse<void>>deleteProfile(String name)async{
     
     try {
-      
+      if(MikrotikClient.version==7){
+        return await ProfilesApi7.deleteProfile(name);
+      }
       String newProfileName='MikroNet_${name}_profile';
       String newLimitName='MikroNet_${name}_limit';
 
