@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mikronet/api/cards_api.dart';
+import 'package:mikronet/models/cards_model.dart';
 import '/controllers/dialog_helper.dart';
 import '/api/profiles_api.dart';
 import '/models/profiles_model.dart';
@@ -21,10 +23,25 @@ class PackagesController extends GetxController {
   final megasCtrl = TextEditingController();
   final speedCtrl = TextEditingController();
 
+  List<CustomerModel> customers = <CustomerModel>[];
+
   @override
   void onInit() {
     super.onInit();
     fetchPackages();
+  }
+
+  Future<void> init()async{
+    await getCustomers();
+    await fetchPackages();
+  }
+
+  Future<void> getCustomers()async{
+    var response=await CardsApi.getCustomers();
+    if (response.status) {
+      customers=response.data!;
+    }
+    else{ showMsgDialog(message: response.message); }
   }
 
   // دالة تجهيز الحقول عند الإضافة أو التعديل
@@ -90,7 +107,7 @@ class PackagesController extends GetxController {
       "uptime": uptime,
       "palance": palance, 
       "speed": speedCtrl.text,
-      "customer": "admin", 
+      "customer": customers.first.name, 
       "users": "1",
     };
 

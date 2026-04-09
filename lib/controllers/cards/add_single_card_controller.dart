@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mikronet/models/cards_model.dart';
 import '/api/cards_api.dart'; //
 import '/api/profiles_api.dart'; //
 import '/models/profiles_model.dart'; //
@@ -14,15 +15,20 @@ class AddSingleCardController extends GetxController {
   // الحالات التفاعلية
   RxBool isLoading = false.obs;
   RxBool isProfilesLoading = true.obs;
+  RxBool isCustomersLoading = true.obs;
   
   // قائمة الباقات المختارة
   RxList<ProfilesModel> profiles = <ProfilesModel>[].obs;
   Rxn<ProfilesModel> selectedProfile = Rxn<ProfilesModel>();
 
+  // قائمة الباقات المختارة
+  RxList<CustomerModel> customers = <CustomerModel>[].obs;
+  Rxn<CustomerModel> selectedCustomer = Rxn<CustomerModel>();
+
   @override
   void onInit() {
     super.onInit();
-    fetchProfiles(); // جلب الباقات عند التشغيل
+    init(); // جلب الباقات عند التشغيل
   }
 
   @override
@@ -31,6 +37,40 @@ class AddSingleCardController extends GetxController {
     passwordCtrl.dispose();
     super.onClose();
   }
+
+  Future<void> init()async{
+    await fetchCustomers();
+    await fetchProfiles();
+  }
+
+  // جلب الباقات من ProfilesApi
+  Future<void> fetchCustomers() async {
+    isCustomersLoading.value = true;
+    try {
+      AppResponse<List<CustomerModel>> response = await CardsApi.getCustomers(); //
+      if (response.status && response.data != null) {
+        customers.assignAll(response.data!);
+        if (customers.isNotEmpty) {
+          selectedCustomer.value = customers.first; // تحديد أول باقة تلقائياً
+        }
+      } else {
+        showMsgDialog(message: "فشل جلب الباقات: ${response.message}");
+      }
+      print('\n \n \n');
+      print('\n \n \n');
+      print('\n \n \n');
+      print(customers.length);
+      print('\n \n \n');
+      print('\n \n \n');
+      print('\n \n \n');
+
+    } catch (e) {
+      showMsgDialog(message: "خطأ في الاتصال: $e");
+    } finally {
+      isCustomersLoading.value = false;
+    }
+  }
+
 
   // جلب الباقات من ProfilesApi
   Future<void> fetchProfiles() async {
@@ -63,7 +103,7 @@ class AddSingleCardController extends GetxController {
     try {
       // إرسال الطلب عبر CardsApi
       AppResponse<void> response = await CardsApi.addOneCard(
-        customer: "admin", // يمكن تغييرها حسب المستخدم الحالي
+        customer: selectedCustomer.value!.name, // يمكن تغييرها حسب المستخدم الحالي
         username: usernameCtrl.text,
         password: passwordCtrl.text,
         profile: selectedProfile.value!.name,

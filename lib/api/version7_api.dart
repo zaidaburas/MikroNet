@@ -67,15 +67,15 @@ class ProfilesApi7 {
       d['uptime-limit']=limit.first['uptime-limit']??'0h';
       d['palance']=limit.first['transfer-limit']??'0';
       d["rate-limit"]=("${limit.first['rate-limit-tx']}/${limit.first['rate-limit-rx']}")??"0/0";
-      print('\n\n\n\n\n');
-      print(d);
-      print('\n\n\n\n\n');
+      // print('\n\n\n\n\n');
+      // print(d);
+      // print('\n\n\n\n\n');
       result.add(d);
     }
 
-    print('\n\n\n\n\n');
-    print(result);
-    print('\n\n\n\n\n');
+    // print('\n\n\n\n\n');
+    // print(result);
+    // print('\n\n\n\n\n');
     
     // List results=await MikrotikClient.printData(
     //   commands: [
@@ -134,20 +134,21 @@ class ProfilesApi7 {
 
   static Future<String>_addLimit({
     required String name,
-    required String customer,
+    // required String customer,
     required String palance,
     required String uptime,
-    required String hotspotProfile,
+    required String rateLimit,
   })async{
     try {
       await MikrotikClient.addData(
-        command: "/tool/user-manager/profile/limitation/add", 
+        command: "/user-manager/limitation/add", 
         data: {
           "name": 'MikroNet_${name}_limit' ,
-          "owner": customer ,
+          // "owner": customer ,
           "transfer-limit": palance ,
           "uptime-limit": uptime ,
-          "group-name": hotspotProfile ,
+          "rate-limit-rx": rateLimit.split('/').first ,
+          "rate-limit-tx": rateLimit.split('/').last ,
         }
       );
       return "done";
@@ -158,20 +159,20 @@ class ProfilesApi7 {
 
   static Future<String>_addProfile({
     required String name,
-    required String customer,
+    required String group,
     required String validity,
     required String price,
   })async{
     try {
       await MikrotikClient.addData(
-        command: "/tool/user-manager/profile/add", 
+        command: "/user-manager/profile/add", 
         data: {
           "name": name ,
-          "owner": customer ,
+          // "group": group ,
           "name-for-users": name ,
           "validity": validity ,
           "price": price ,
-          "starts-at": "logon"
+          // "starts-at": "logon"
         }
       );
       return "done";
@@ -186,7 +187,7 @@ class ProfilesApi7 {
   })async{
     try {
       await MikrotikClient.addData(
-        command: "/tool/user-manager/profile/profile-limitation/add", 
+        command: "/user-manager/profile-limitation/add", 
         data: {
           "profile": profile ,
           "limitation": limitation ,
@@ -200,26 +201,31 @@ class ProfilesApi7 {
   
   static Future<AppResponse<void>>addOneProfile(Map data)async{
     try {
+      print('\n\n\n\n\n');
+      print('\n\n\n\n\n');
+      print(data);
+      print('\n\n\n\n\n');
+      print('\n\n\n\n\n');
       // add hotspot profile
-      await _addOneHotspotProfile(
-        name: data["name"], 
-        users: data["users"], 
-        speed: data["speed"]
-      );
+      // await _addOneHotspotProfile(
+      //   name: data["name"], 
+      //   users: data["users"], 
+      //   speed: data["speed"]
+      // );
 
       // add limit
       await _addLimit(
         name: data["name"], 
-        customer: data["customer"], 
+        // customer: data["customer"], 
         palance: data["palance"],
         uptime: data["uptime"],
-        hotspotProfile: "MikroNet_${data["name"]}_profile"
+        rateLimit: data["speed"],
       );
 
       // add profile
       await _addProfile(
         name: data["name"], 
-        customer: data["customer"], 
+        group: data["customer"], 
         validity: data["validity"],
         price: data["price"],
       );
@@ -417,9 +423,9 @@ class CardsApi7 {
     }
     return CardModel(
       id: card[".id"]??'0',
-      username: card["name"]??'nnn', 
+      username: card["name"]??'name', 
       password: card["password"]??'', 
-      profile: (card["profile"]["profile"]??"unknown").toString(), 
+      profile: (card["profile"]["profile"]??"profile").toString(), 
       status: tempStatus, 
       customer: card["group"]??'default',
     );
@@ -478,7 +484,7 @@ class CardsApi7 {
   
 
   static Future<AppResponse<void>> addCardProfile({
-    required String customer,
+    // required String customer,
     required String username,
     required String profile,
   }) async {
@@ -530,13 +536,19 @@ class CardsApi7 {
 
 
 
-  static Future<AppResponse<List<CustomerModel>>> getCustomers() async {
+  static Future<AppResponse<List<CustomerModel>>> getGroups() async {
     try {
       List myCustomers = await MikrotikClient.printData(
-          commands: ["/tool/user-manager/customer/print"],
-          conditions: ["?disabled=no"]);
+          commands: ["/user-manager/user/group/print"],
+          // conditions: ["?disabled=no"]
+        );
       List<CustomerModel> result =
-          myCustomers.map((e) => CustomerModel.fromMikrotik(e)).toList();
+          myCustomers.map((e) => 
+          CustomerModel(
+            id: e['attributes'],
+            name: e['name'],
+          )).toList();
+          // CustomerModel.fromMikrotik(e)).toList();
       return AppResponse<List<CustomerModel>>(
           status: true, message: "done", data: result);
     } catch (e) {
@@ -553,9 +565,9 @@ class CardsApi7 {
   }) async {
     try {
       await MikrotikClient.editData(
-          command: "/tool/user-manager/user/set",
+          command: "/user-manager/user/set",
           data: data,
-          condition: "?username=$username");
+          condition: "?name=$username");
       return AppResponse<void>(
         status: true,
         message: "done",
@@ -571,8 +583,8 @@ class CardsApi7 {
   static Future<AppResponse<void>> deleteCard(String username) async {
     try {
       await MikrotikClient.deleteData(
-          command: "/tool/user-manager/user/remove",
-          condition: "?username=$username");
+          command: "/user-manager/user/remove",
+          condition: "?name=$username");
       return AppResponse<void>(
         status: true,
         message: "done",
@@ -589,7 +601,7 @@ class CardsApi7 {
     try {
       String ids = idsList.join(',');
       await MikrotikClient.fetch(
-        command: ["/tool/user-manager/user/remove", '=numbers=$ids'],
+        command: ["/user-manager/user/remove", '=numbers=$ids'],
       );
       return AppResponse<void>(
         status: true,
@@ -610,9 +622,9 @@ class CardsApi7 {
       // 1. جلب المعرفات والأسماء فقط من الراوتر (سريع جداً)
       var allUsers = await MikrotikClient.printData(
           commands: [
-            '/tool/user-manager/user/print',
+            '/user-manager/user/print',
           ],
-          fields: ".id,username");
+          fields: ".id,name");
 
       // 2. المرور على الناتج واستخراج الـ id للكروت المطابقة
       for (var user in allUsers) {
@@ -631,10 +643,24 @@ class CardsApi7 {
       String username) async {
     try {
       List sessions = await MikrotikClient.printData(
-          commands: ["/tool/user-manager/session/print"],
-          conditions: ["?user=$username"]);
+          commands: ["/user-manager/session/print"],
+          conditions: ["?user=$username"],
+          fields: '.id,user,started,ended,calling-station-id,user-address,uptime,nas-port-id,download,upload,last-accounting-packet'
+        );
       List<CardSessionModel> result = sessions
-          .map((session) => CardSessionModel.fromMikrotik(session))
+          .map((session) => 
+          CardSessionModel(
+            id: session['.id']??'0', 
+            username: session['user']??'unknown', 
+            fromTime: session['started']??'1999-01-01 00:00:00', 
+            toTime: (session['ended']??session['last-accounting-packet'])??'1999-01-01 00:00:00',  
+            macAddress: session['calling-station-id'], 
+            ip: session['user-address'], 
+            uptime: session['uptime'], 
+            port: session['nas-port-id'], 
+            download: session['download'], 
+            upload: session['upload']) )
+          // CardSessionModel.fromMikrotik(session))
           .toList();
       return AppResponse<List<CardSessionModel>>(
           status: true, message: "done", data: result);

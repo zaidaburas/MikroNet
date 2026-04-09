@@ -1,4 +1,6 @@
 
+import 'package:mikronet/api/version7_api.dart';
+
 import '../models/cards_model.dart';
 import '../services/mikrotik_client.dart';
 import '../models/response.dart';
@@ -30,6 +32,9 @@ class CardsApi {
 
   static Future<AppResponse<List<CardModel>>> getAllCards({List where = const ["=detail="]}) async {
     try {
+      if(MikrotikClient.version==7){
+        return await CardsApi7.getAllCards(where: where);
+      }
       List myCards = await MikrotikClient.printData(
           commands: ["/tool/user-manager/user/print"], fields: _props);
 
@@ -52,6 +57,12 @@ class CardsApi {
     required String profile,
   }) async {
     try {
+      if(MikrotikClient.version==7){
+        return await CardsApi7.addCardProfile(
+          username: username,
+          profile: profile
+        );
+      }
       await MikrotikClient.addData(
           command: "/tool/user-manager/user/create-and-activate-profile",
           data: {
@@ -72,6 +83,14 @@ class CardsApi {
     required String profile,
   }) async {
     try {
+      if(MikrotikClient.version==7){
+        return await CardsApi7.addOneCard(
+          group: customer, 
+          username: username, 
+          password: password,
+          profile: profile
+        );
+      }
       await MikrotikClient.addData(command: "/tool/user-manager/user/add", data: {
         "customer": customer,
         "username": username,
@@ -99,6 +118,9 @@ class CardsApi {
 
   static Future<AppResponse<List<CustomerModel>>> getCustomers() async {
     try {
+      if(MikrotikClient.version==7){
+        return await CardsApi7.getGroups();
+      }
       List myCustomers = await MikrotikClient.printData(
           commands: ["/tool/user-manager/customer/print"],
           conditions: ["?disabled=no"]);
@@ -119,6 +141,9 @@ class CardsApi {
     required Map<String, String> data,
   }) async {
     try {
+      if(MikrotikClient.version==7){
+        return await CardsApi7.cardEdit(username: username,data: data);
+      }
       await MikrotikClient.editData(
           command: "/tool/user-manager/user/set",
           data: data,
@@ -137,6 +162,9 @@ class CardsApi {
 
   static Future<AppResponse<void>> deleteCard(String username) async {
     try {
+      if(MikrotikClient.version==7){
+        return await CardsApi7.deleteCard(username);
+      }
       await MikrotikClient.deleteData(
           command: "/tool/user-manager/user/remove",
           condition: "?username=$username");
@@ -154,6 +182,9 @@ class CardsApi {
 
   static Future<AppResponse<void>> deleteCardsBatch(List idsList) async {
     try {
+      if(MikrotikClient.version==7){
+        return await CardsApi7.deleteCardsBatch(idsList);
+      }
       String ids = idsList.join(',');
       await MikrotikClient.fetch(
         command: ["/tool/user-manager/user/remove", '=numbers=$ids'],
@@ -174,6 +205,9 @@ class CardsApi {
     List<String> extractedIds = [];
 
     try {
+      if(MikrotikClient.version==7){
+        return await CardsApi7.getIdsByUsernames(usernames);
+      }
       // 1. جلب المعرفات والأسماء فقط من الراوتر (سريع جداً)
       var allUsers = await MikrotikClient.printData(
           commands: [
@@ -197,6 +231,9 @@ class CardsApi {
   static Future<AppResponse<List<CardSessionModel>>> getCardSessions(
       String username) async {
     try {
+      if(MikrotikClient.version==7){
+        return await CardsApi7.getCardSessions(username);
+      }
       List sessions = await MikrotikClient.printData(
           commands: ["/tool/user-manager/session/print"],
           conditions: ["?user=$username"]);

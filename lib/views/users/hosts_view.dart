@@ -46,7 +46,9 @@ class HostsView extends GetView<HostsController> {
   }
 
   Widget _buildHostCard(HostUserModel h) {
-    bool isBlocked = h.label.toLowerCase().contains("block");
+    bool isBlocked = h.type=="blocked";
+    bool isBybass = h.type=="bypass";
+    bool isAuth = h.type=="auth";
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -57,8 +59,8 @@ class HostsView extends GetView<HostsController> {
       ),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: (isBlocked ? Colors.red : Colors.blue).withOpacity(0.1),
-          child: Icon(isBlocked ? Icons.block : Icons.important_devices, color: isBlocked ? Colors.red : Colors.blue),
+          backgroundColor: (isBlocked ? Colors.red : isBybass?Colors.green:isAuth?Colors.blue: Colors.orange).withOpacity(0.1),
+          child: Icon(isBlocked ? Icons.block : Icons.important_devices, color: isBlocked ? Colors.red : isBybass?Colors.green:isAuth?Colors.blue: Colors.orange),
         ),
         title: Text(h.label == "Unknown" ? "جهاز غير معروف" : h.label, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text("${h.srcAddress} • ${h.macAddress}\nمتصل منذ: ${h.uptime}", style: const TextStyle(fontSize: 10)),
