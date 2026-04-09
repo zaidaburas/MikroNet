@@ -1,3 +1,18 @@
+enum UserType{
+  blocked,
+  regular,
+  authorized,
+  bypassed;
+  static UserType parse(String value) {
+    return switch (value.toLowerCase()) {
+      'blocked' => UserType.blocked,
+      'bypassed' => UserType.bypassed,
+      'authorized' => UserType.authorized,
+      _ => UserType.regular
+      
+    };
+  }
+}
 
 class SavedUserModel {
   final String id;
