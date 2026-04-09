@@ -41,12 +41,12 @@ class HostsController extends GetxController {
     var res = await UsersApi.labelDevice(
       macAddress: host.macAddress,
       label: newName,
-      srcAddress: host.srcAddress,
+      
     );
     _hideLoading();
     if (res.status) fetchHosts();
   }
-  Future<void> rename(HostUserModel user, String newName) async {
+  Future<void> rename1(HostUserModel user, String newName) async {
     if (newName.isEmpty) return;
     AppResponse<void> res;
     _showLoading();
@@ -54,7 +54,7 @@ class HostsController extends GetxController {
     res = await UsersApi.labelDevice(
       macAddress: user.macAddress,
       label: newName,
-      srcAddress: user.srcAddress,
+     
     );
     }else{
       var device = await UsersApi.getUserId({

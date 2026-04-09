@@ -66,19 +66,27 @@ class ActiveSessionsView extends GetView<ActiveSessionsController> {
             ),
             // عرض الـ Label بجانب الـ Username
             title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(a.username, style: const TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    "| ${a.label}", 
+                    a.label, 
                     style: const TextStyle(fontSize: 12, color: Colors.blueGrey, fontWeight: FontWeight.normal),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                const SizedBox(width: 8),
+                Text(a.username, style: const TextStyle(fontWeight: FontWeight.bold)),
               ],
             ),
-            subtitle: Text(a.address, style: const TextStyle(fontSize: 11)),
+            subtitle: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(a.address, style: const TextStyle(fontSize: 14)),
+                Text(a.macAddress, style:const  TextStyle(fontSize: 14)),
+
+              ],
+            ),
             trailing: IconButton(
               icon: const Icon(Icons.more_vert),
               onPressed: () => _showActionSheet(a),

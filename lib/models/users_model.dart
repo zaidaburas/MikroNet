@@ -12,6 +12,10 @@ enum UserType{
       
     };
   }
+  UserType get toMikrotik => 
+      (this == UserType.blocked || this == UserType.bypassed) ? this : UserType.regular;
+    
+  
 }
 
 
@@ -21,7 +25,7 @@ class SavedUserModel {
   final String dstAddress;
   final String macAddress;
   final String server;
-  final String type;
+  final UserType type;
   final String label;
 
   SavedUserModel({
@@ -41,7 +45,7 @@ class SavedUserModel {
       dstAddress: data["to-address"]??"0.0.0.0", 
       macAddress: data["mac-address"]??"", 
       server: data["server"]??"all",
-      type: data["type"]??"regular", 
+      type: UserType.parse(data["type"].toString()), 
       label: data["comment"]??"Unknown",
     );
   }
@@ -53,7 +57,7 @@ class SavedUserModel {
       "dstAddress":dstAddress,
       "macAddress":macAddress,
       "server":server,
-      "type":type,
+      "type": type.toMikrotik,
       "label":label,
     };
   }

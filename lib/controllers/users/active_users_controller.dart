@@ -45,12 +45,11 @@ class ActiveSessionsController extends GetxController {
     if (newName.isEmpty) return;
     AppResponse<void> res;
     _showLoading();
-    if(user.label == "Unknown"){
     res = await UsersApi.labelDevice(
       macAddress: user.macAddress,
       label: newName,
-      srcAddress: user.address,
     );
+    /*if(user.label == "Unknown"){
     }else{
     var map = {
         "mac-address":user.macAddress,
@@ -62,7 +61,9 @@ class ActiveSessionsController extends GetxController {
       });
       //showMsgDialog(message: map.toString());
       res = await UsersApi.editDevice(device.data.toString(),label: newName);
+      
     }
+    */
     _hideLoading();
     if (res.status) fetchActiveSessions();
   }
