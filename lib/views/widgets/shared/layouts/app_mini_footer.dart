@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 
 class AppMiniFooter extends StatelessWidget {
-  final String sectionName;
+  final Widget title;
+  final Widget? subTitle; // جعلناها اختيارية وتقبل Null
 
-  const AppMiniFooter({super.key, required this.sectionName});
+  const AppMiniFooter({
+    super.key, 
+    required this.title, 
+    this.subTitle,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,16 +20,14 @@ class AppMiniFooter extends StatelessWidget {
       ),
       child: Center(
         child: Column(
+          mainAxisSize: MainAxisSize.min, // لضمان ألا يأخذ العمود مساحة أكبر من محتواه
           children: [
-            Text(
-              "نظام مايكرونت • $sectionName",
-              style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 11, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              "الإصدار 1.0.0",
-              style: TextStyle(color: Colors.blueGrey.shade200, fontSize: 9),
-            ),
+            title,
+            // التحقق مما إذا كان subTitle موجوداً قبل عرضه
+            if (subTitle != null) ...[
+              const SizedBox(height: 2),
+              subTitle!,
+            ],
           ],
         ),
       ),

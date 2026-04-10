@@ -84,7 +84,7 @@ class DnsCacheView extends GetView<DnsCacheController> {
             ),
 
             // 3. الفوتر الموحد v4.5
-            const AppMiniFooter(sectionName: "DNS Monitor Engine"),
+            const AppMiniFooter(title: Text("DNS Monitor Engine")),
           ],
         ),
       ),

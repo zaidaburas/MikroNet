@@ -72,7 +72,7 @@ class BlockedSitesView extends GetView<BlockedSitesController> {
               }),
             ),
 
-            const AppMiniFooter(sectionName: "Security Engine"),
+            const AppMiniFooter(title: Text("Security Engine")),
           ],
         ),
       ),

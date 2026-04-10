@@ -2,10 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mikronet/api/users/active_users_api.dart';
+import 'package:mikronet/controllers/dialog_helper.dart';
 import '/core/routes/app_pages.dart';
-import 'package:mikronet/core/extensions/string_extensions.dart';
-
-import '/api/users_api.dart'; 
+import '/core/extensions/string_extensions.dart'; 
 import '/api/reports_api.dart';
 
 class HomeController extends GetxController with GetSingleTickerProviderStateMixin {
@@ -25,7 +24,6 @@ class HomeController extends GetxController with GetSingleTickerProviderStateMix
   // ================= متحكمات الواجهة والحركة =================
   late PageController pageController;
   late AnimationController pulseController;
-  Timer? carouselTimer;
   Timer? dataRefreshTimer; 
 
   @override
@@ -35,9 +33,8 @@ class HomeController extends GetxController with GetSingleTickerProviderStateMix
     pulseController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
+    );
 
-    _startCarouselTimer();
     
     fetchRealData();
     _startDataRefreshTimer();
@@ -45,28 +42,13 @@ class HomeController extends GetxController with GetSingleTickerProviderStateMix
 
   @override
   void onClose() {
-    carouselTimer?.cancel();
     dataRefreshTimer?.cancel();
     pageController.dispose();
     pulseController.dispose();
     super.onClose();
   }
 
-  void _startCarouselTimer() {
-    carouselTimer = Timer.periodic(const Duration(seconds: 4), (Timer timer) {
-      if (pageController.hasClients) {
-        int nextItem = currentPage.value + 1;
-        if (nextItem >= 6) { 
-          nextItem = 0;
-        }
-        pageController.animateToPage(
-          nextItem,
-          duration: const Duration(milliseconds: 900),
-          curve: Curves.easeInOutQuart,
-        );
-      }
-    });
-  }
+  
 
   void _startDataRefreshTimer() {
     dataRefreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
@@ -114,10 +96,10 @@ class HomeController extends GetxController with GetSingleTickerProviderStateMix
   }
 
   // ================= دوال أزرار الـ Carousel =================
-  void generateSingleCard() => print("إجراء: توليد كرت واحد");
+  void generateSingleCard() => Get.toNamed(AppRoutes.addSingleCard);
   void manageActiveUsers() => Get.toNamed(AppRoutes.users); 
   void viewUptimeDetails() => Get.toNamed(AppRoutes.reports); 
-  void checkDiskSpace() => print("إجراء: فحص مساحة القرص");
+  void checkDiskSpace() => Get.toNamed(AppRoutes.systemState);
 
   // ================= دوال التنقل للأقسام (Grid) =================
   void goToCards() => Get.toNamed(AppRoutes.cards);
@@ -127,5 +109,7 @@ class HomeController extends GetxController with GetSingleTickerProviderStateMix
   void goToReports() => Get.toNamed(AppRoutes.reports);
   void goToMoreSettings() => Get.toNamed(AppRoutes.more);
 
-  void logout() => Get.back(); 
+  void logout(){
+    showConfirmDialog(message: "هل انت متاكد من قطع الاتصال", onConfirm: Get.back);
+  }
 }

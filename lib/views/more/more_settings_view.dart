@@ -63,7 +63,7 @@ class MoreSettingsView extends GetView<MoreSettingsController> {
             ),
 
             // الفوتر
-            const AppMiniFooter(sectionName: "الإعدادات الإضافية"),
+            const AppMiniFooter(title: Text("الإعدادات الإضافية")),
           ],
         ),
       ),

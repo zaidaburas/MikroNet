@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../widgets/shared/layouts/app_mini_footer.dart';
 import '/controllers/cards/cards_list_controller.dart';
 
 // استيراد الوجتات المشتركة
@@ -32,7 +33,34 @@ class CardsListPage extends GetView<CardsListController> {
             Expanded(child: _buildCardsList()),
             
             // 4. الفوتر
-            _buildMinimalFooter(),
+           const AppMiniFooter(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.circle,color: Colors.blue,size: 15,),
+                      SizedBox(width: 5,),
+                      Text("جديدة",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey),),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Icon(Icons.circle,color: Colors.green,size: 15,),
+                      SizedBox(width: 5,),
+                      Text("نشطة",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey),),
+                    ],
+                  ),
+                 Row(
+                    children: [
+                      Icon(Icons.circle,color: Colors.red,size: 15,),
+                      SizedBox(width: 5,),
+                      Text("منتهية",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey),),
+                    ],
+                  ),
+                ],
+              )
+              ),
           ],
         ),
       ),
@@ -52,7 +80,7 @@ class CardsListPage extends GetView<CardsListController> {
                 child: _searchField(),
               ),
               const SizedBox(width: 12),
-             // _addButton(),
+              _addButton(),
             ],
           ),
           const SizedBox(height: 15),
@@ -91,7 +119,27 @@ class CardsListPage extends GetView<CardsListController> {
     );
   }
 
-
+Widget _addButton() { 
+    return InkWell( 
+      onTap: controller.goToAddSingleCard, 
+      child: Container( 
+        height: 55, 
+        width: 55, 
+        decoration: BoxDecoration( 
+          gradient: const LinearGradient(colors: [Color(0xFF38BDF8), Color(0xFF0EA5E9)]), 
+          borderRadius: BorderRadius.circular(18), 
+          boxShadow: [ 
+            BoxShadow( 
+              color: const Color(0xFF0EA5E9).withOpacity(0.3), 
+              blurRadius: 10, 
+              offset: const Offset(0, 4), 
+            ) 
+          ], 
+        ), 
+        child: const Icon(Icons.add_rounded, color: Colors.white, size: 30), 
+      ), 
+    ); 
+  }
   Widget _buildFilterChips() {
     final items = ["الكل", "جديدة", "نشطة", "منتهية"];
     
@@ -106,7 +154,7 @@ class CardsListPage extends GetView<CardsListController> {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               margin: const EdgeInsets.symmetric(horizontal: 4), // مسافة خفيفة بين الأزرار
-              padding: const EdgeInsets.symmetric(vertical: 12), // حشوة من الأعلى والأسفل فقط
+              padding: const EdgeInsets.symmetric(vertical: 6), // حشوة من الأعلى والأسفل فقط
               alignment: Alignment.center, // 👈 مهم جداً لتوسيط النص داخل المساحة الممتدة
               decoration: BoxDecoration(
                 color: active ? const Color(0xFF1E3A8A) : Colors.white,
@@ -114,13 +162,14 @@ class CardsListPage extends GetView<CardsListController> {
                 border: Border.all(color: active ? Colors.transparent : Colors.blueGrey.shade50),
               ),
               child: Text(
-                f,
+                "$f\n${controller.cardCounts[f]?.value}",
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   color: active ? Colors.white : Colors.blueGrey, 
                   fontWeight: FontWeight.w900, 
                   fontSize: 12 // يمكنك تكبير الخط إلى 13 إذا أردت
                 ),
-                maxLines: 1, // لمنع النص من النزول لسطر جديد في الشاشات الصغيرة جداً
+                maxLines: 2, // لمنع النص من النزول لسطر جديد في الشاشات الصغيرة جداً
                 overflow: TextOverflow.ellipsis, // وضع نقاط إذا كان النص أكبر من الشاشة (نادر الحدوث هنا)
               ),
             ),
@@ -157,7 +206,7 @@ class CardsListPage extends GetView<CardsListController> {
             status: card.status,
             // التنقل عبر المتحكم مباشرة
             onTap: () => controller.goToCardDetails(card),
-            onAnalyticsTap: () => controller.goToCardSessions(card.username),
+            onAnalyticsTap: () => controller.goToCardSessions(card),
           );
         },
       );
@@ -178,21 +227,4 @@ class CardsListPage extends GetView<CardsListController> {
     );
   }
 
-  Widget _buildMinimalFooter() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      width: double.infinity,
-      color: Colors.white,
-      child: Center(
-        child: Text(
-          "نظام إدارة مايكرونت الذكي",
-          style: TextStyle(
-            color: Colors.blueGrey.shade300, 
-            fontSize: 10, 
-            fontWeight: FontWeight.bold
-          ),
-        ),
-      ),
-    );
-  }
 }

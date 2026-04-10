@@ -57,7 +57,7 @@ class DevicesView extends StatelessWidget {
             Expanded(child: _buildDevicesList(controller)),
 
             // 4. الفوتر الموحد v4.5
-            const AppMiniFooter(sectionName: "Devices Management"),
+            const AppMiniFooter(title: Text("Devices Management")),
           ],
         ),
       ),

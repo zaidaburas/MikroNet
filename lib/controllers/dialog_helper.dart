@@ -190,10 +190,11 @@ void showLoadingDialog({
   String message = "جاري التحميل...", // معامل اختياري بقيمة افتراضية
   String buttonText = "مقاطعة / إلغاء", // معامل اختياري بقيمة افتراضية
   Future<void> Function()? onCancel,    // معامل اختياري للدالة (Nullable)
-}) {  
+})async {  
   if (Get.isSnackbarOpen) {
     Get.closeAllSnackbars();
   }
+  await Future.delayed(const Duration(milliseconds: 1));
 
   Get.dialog(
     AlertDialog(

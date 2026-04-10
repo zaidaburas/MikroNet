@@ -19,61 +19,69 @@ class CardInfoPage extends GetView<CardInfoController> {
   Widget build(BuildContext context) {
    
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF1F5F9),
-        body: Column(
-          children: [
-            // 1. الهيدر الموحد
-            const PremiumHeader(
-              title: "لوحة إدارة الكرت",
-              subtitle: "تعديل البيانات وتغيير حالة الاتصال",
-              showBackButton: true,
-            ),
-            
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(22),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSectionLabel("بيانات الاشتراك"),
-                    
-                    // 2. استخدام حقول الإدخال المربوطة بالمتحكم مباشرة
-                    ModernInput(
-                      label: "اسم المستخدم", 
-                      icon: Icons.person_outline, 
-                      controller: controller.userCtrl
-                    ),
-                    ModernInput(
-                      label: "كلمة المرور", 
-                      icon: Icons.lock_outline, 
-                      controller: controller.passCtrl
-                    ),
-                    ModernInput(
-                      label: "الباقة الحالية", 
-                      icon: Icons.inventory_2_outlined, 
-                      controller: controller.packageCtrl, 
-                      isReadOnly: true
-                    ),
-                    
-                    const SizedBox(height: 10),
-                    
-                    // 3. قسم الحالة (مربوط بـ Obx للتحديث التلقائي)
-                    _buildStatusSection(),
-                    
-                    const SizedBox(height: 30),
-                    
-                    // 4. أزرار التحكم
-                    _buildSaveButton(),
-                    const SizedBox(height: 15),
-                    _buildDeleteButton(),
-                  ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if(didPop) return;
+        controller.goBack();
+      },
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          backgroundColor: const Color(0xFFF1F5F9),
+          body: Column(
+            children: [
+              // 1. الهيدر الموحد
+               PremiumHeader(
+                title: "لوحة إدارة الكرت",
+                subtitle: "تعديل البيانات وتغيير حالة الاتصال",
+                showBackButton: true,
+                goBack: controller.goBack,
+              ),
+              
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(22),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionLabel("بيانات الاشتراك"),
+                      
+                      // 2. استخدام حقول الإدخال المربوطة بالمتحكم مباشرة
+                      ModernInput(
+                        label: "اسم المستخدم", 
+                        icon: Icons.person_outline, 
+                        controller: controller.userCtrl
+                      ),
+                      ModernInput(
+                        label: "كلمة المرور", 
+                        icon: Icons.lock_outline, 
+                        controller: controller.passCtrl
+                      ),
+                      ModernInput(
+                        label: "الباقة الحالية", 
+                        icon: Icons.inventory_2_outlined, 
+                        controller: controller.packageCtrl, 
+                        isReadOnly: true
+                      ),
+                      
+                      const SizedBox(height: 10),
+                      
+                      // 3. قسم الحالة (مربوط بـ Obx للتحديث التلقائي)
+                      _buildStatusSection(),
+                      
+                      const SizedBox(height: 30),
+                      
+                      // 4. أزرار التحكم
+                      _buildSaveButton(),
+                      const SizedBox(height: 15),
+                      _buildDeleteButton(),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

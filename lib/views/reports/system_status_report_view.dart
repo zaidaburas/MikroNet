@@ -77,7 +77,7 @@ class SystemStatusReportView extends GetView<SystemStatusController> {
             _buildActionButtons(), // لم نعد بحاجة لتمرير المتحكم كبارامتر
 
             // الفوتر
-            const AppMiniFooter(sectionName: "تقارير وحالة النظام"),
+            const AppMiniFooter(title: Text( "تقارير وحالة النظام")),
           ],
         ),
       ),

@@ -13,7 +13,12 @@ class HomePage extends GetView<HomeController> {
   Widget build(BuildContext context) {
     Get.put(HomeController());
 
-    return Directionality(
+    return WillPopScope(
+    onWillPop: ()async{
+      controller.logout();
+      return true;
+    },
+    child :Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: const Color(0xFFF1F5F9),
@@ -42,6 +47,7 @@ class HomePage extends GetView<HomeController> {
           ],
         ),
       ),
+    )
     );
   }
 

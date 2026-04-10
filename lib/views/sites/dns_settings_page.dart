@@ -79,7 +79,7 @@ class DnsSettingsView extends GetView<DnsController> {
             ),
 
             // الفوتر
-            const AppMiniFooter(sectionName: "DNS Configuration v4.5"),
+            const AppMiniFooter(title: Text("DNS Configuration v4.5")),
           ],
         ),
       ),

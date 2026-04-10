@@ -55,7 +55,7 @@ class GeneratedCardsView extends StatelessWidget {
                   ),
                 ),
             
-                const AppMiniFooter(sectionName: "Micronet Card Engine"),
+                const AppMiniFooter(title: Text("Micronet Card Engine")),
               ],
             );
           }

@@ -7,7 +7,7 @@ import '../../models/response.dart';
 import 'cards_list_controller.dart'; 
 
 class CardInfoController extends GetxController {
-  final CardModel card;
+  CardModel card;
 
   CardInfoController({required this.card});
 
@@ -16,7 +16,7 @@ class CardInfoController extends GetxController {
   late TextEditingController packageCtrl;
   
   RxString status = "".obs; 
-
+  var isChanged = false;
   @override
   void onInit() {
     super.onInit();
@@ -36,8 +36,15 @@ class CardInfoController extends GetxController {
 
 
   Future<void> saveChanges() async {
-    _showLoading("جاري حفظ التعديلات...");
-
+    if(card.username == userCtrl.text && card.password == passCtrl.text) return;
+    showConfirmDialog(
+      message: "هل انت متاكد من تعديل البيانات",
+       onConfirm: _saveChanges
+    );
+  }
+  void _saveChanges() async {
+    showLoadingDialog();
+    
     try {
       AppResponse<void> response = await CardsApi.cardEdit(
         username: card.username, 
@@ -46,48 +53,43 @@ class CardInfoController extends GetxController {
           "password": passCtrl.text,
         }
       );
-
-      if (Get.isDialogOpen ?? false) Get.back();
+      hideDialog();
 
       if (response.status) {
-        Get.back();
-        showMsgDialog(message: "تم حفظ التعديلات بنجاح");
-        if (Get.isRegistered<CardsListController>()) {
-          Get.find<CardsListController>().onInit();
-        }
+        card = CardModel(id: card.id, username: userCtrl.text, password: passCtrl.text, profile: card.profile, status: card.status, customer: card.customer);
+        isChanged = true;
+        showMsgDialog(message: response.message,type: MsgType.success);
+        
       } else {
         showMsgDialog(message: response.message);
       }
     } catch (e) {
-      if (Get.isDialogOpen ?? false) Get.back();
+      hideDialog();
       showMsgDialog(message: "Error saving changes: $e");
     }
   }
+
 
   Future<void> changeStatus(String newStatus) async {
     showMsgDialog(message: "تغيير الحالة مباشرة غير مدعوم حالياً");
   }
 
   Future<void> deleteCard() async {
-    _showLoading("جاري حذف الكرت...");
+    showLoadingDialog();
     
     try {
       AppResponse<void> response = await CardsApi.deleteCard(card.username);
       
-      if (Get.isDialogOpen ?? false) Get.back();
+      hideDialog();
 
       if (response.status) {
-        Get.back(); // close confirm dialog if open
-        Get.back(); // return to list
+        Get.back(result: AppResponse(status: true, message: "delete",data: card));
         showMsgDialog(message: "تم حذف الكرت بنجاح");
-        if (Get.isRegistered<CardsListController>()) {
-          Get.find<CardsListController>().onInit();
-        }
       } else {
         showMsgDialog(message: response.message);
       }
     } catch (e) {
-      if (Get.isDialogOpen ?? false) Get.back();
+      hideDialog();
       showMsgDialog(message: "Error deleting card: $e");
     }
   }
@@ -120,10 +122,9 @@ class CardInfoController extends GetxController {
 }
 
   void goBack() {
-    Get.back();
+    
+    Get.back(result: AppResponse(status: isChanged, message: "",data: card));
   }
-
-  // lib/controller/cards/card_details_controller.dart
 
 void showDeleteConfirm() {
   showConfirmDialog(

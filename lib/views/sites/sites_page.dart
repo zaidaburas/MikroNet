@@ -98,7 +98,7 @@ class DataManagementView extends GetView<SitesController> {
               ),
             ),
 
-            const AppMiniFooter(sectionName: "إدارة الشبكة والمواقع"),
+            const AppMiniFooter(title:Text( "إدارة الشبكة والمواقع")),
           ],
         ),
       ),

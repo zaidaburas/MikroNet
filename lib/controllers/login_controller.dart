@@ -68,7 +68,7 @@ class LoginController extends GetxController {
     if (Get.isOverlaysOpen) Get.back();
 
     if (response.status) {
-      Get.offAllNamed(AppRoutes.home);
+      Get.toNamed(AppRoutes.home);
     } else {
       _showSnackbar("خطأ", response.message, isError: true);
     }

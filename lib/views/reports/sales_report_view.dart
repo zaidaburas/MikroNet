@@ -69,7 +69,7 @@ class SalesReportView extends StatelessWidget {
             _buildActionButtons(controller),
             
             // الفوتر المشترك
-            const AppMiniFooter(sectionName: "إدارة تقارير النظام"), // استبدلها بالويدجت الخاصة بك
+            const AppMiniFooter(title: Text( "إدارة تقارير النظام")), // استبدلها بالويدجت الخاصة بك
           ],
         ),
       ),

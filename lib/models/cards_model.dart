@@ -3,7 +3,20 @@
 // actual-profile,
 // uptime-used,download-used,
 // upload-used,last-seen""";
+enum CardStatus{
+  normal,
+  active,
+  expired;
 
+  static CardStatus parse(String value) {
+    return switch (value.toLowerCase()) {
+      'normal' => CardStatus.normal,
+      'active' => CardStatus.active,
+      _ => CardStatus.expired,
+      
+    };
+  }
+}
 class CardModel {
   final String id;
   final String username;

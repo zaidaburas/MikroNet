@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../widgets/shared/layouts/app_mini_footer.dart';
 import '/controllers/cards/add_single_card_controller.dart';
 import '../widgets/shared/layouts/sub_page_header.dart';
 import '../widgets/shared/layouts/modern_input.dart';
@@ -90,7 +91,10 @@ class AddSingleCardPage extends GetView<AddSingleCardController> {
               ),
             ),
             
-            _buildFooter(),
+           AppMiniFooter(
+              title: Text("إنشاء حساب مستخدم جديد في الشبكة",
+                style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey.shade400),),
+              ),
           ],
         ),
       ),
@@ -201,16 +205,5 @@ class AddSingleCardPage extends GetView<AddSingleCardController> {
     );
   }
 
-  Widget _buildFooter() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      width: double.infinity,
-      child: const Center(
-        child: Text(
-          "نظام إدارة الكروت الفردية v2.0 - GetX",
-          style: TextStyle(color: Colors.blueGrey, fontSize: 10, fontWeight: FontWeight.bold),
-        ),
-      ),
-    );
-  }
+  
 }

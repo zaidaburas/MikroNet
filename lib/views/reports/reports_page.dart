@@ -65,7 +65,7 @@ class ReportsManagementView extends StatelessWidget {
             ),
 
             // الفوتر
-            const AppMiniFooter(sectionName: "إدارة التقارير"),
+            const AppMiniFooter(title: Text("إدارة التقارير")),
           ],
         ),
       ),

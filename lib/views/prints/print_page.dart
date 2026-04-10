@@ -73,7 +73,7 @@ class PrintOperationsView extends StatelessWidget {
             ),
 
             // 4. الفوتر الموحد مع تمرير اسم القسم
-            const AppMiniFooter(sectionName: "إدارة عمليات الطباعة"),
+            const AppMiniFooter(title: Text("إدارة عمليات الطباعة")),
           ],
         ),
       ),

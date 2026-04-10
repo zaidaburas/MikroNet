@@ -96,7 +96,7 @@ class BackupView extends StatelessWidget {
               ),
 
               // 2. الفوتر الأسود الموحد v4.5
-              const AppMiniFooter(sectionName: "نظام حماية البيانات السحابي"),
+              const AppMiniFooter(title: "نظام حماية البيانات السحابي"),
             ],
           ),
         ),

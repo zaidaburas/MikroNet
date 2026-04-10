@@ -69,8 +69,10 @@ class CardsUnitPage extends GetView<CardsUnitController> {
               ),
             ),
 
-            // الفوتر المشترك
-            const AppMiniFooter(sectionName: "إدارة الكروت الذكية"),
+            AppMiniFooter(
+              title: Text("إدارة الكروت",
+                style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey.shade400),),
+              ),
           ],
         ),
       ),

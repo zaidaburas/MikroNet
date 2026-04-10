@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class PremiumHeader extends StatelessWidget {
   final String title;          // العنوان الأساسي (مثلاً: إدارة الكروت)
   final String? subtitle;       // عنوان فرعي صغير (اختياري)
   final IconData? icon;        // أيقونة تظهر على اليسار (اختياري)
   final bool showBackButton;   // هل يظهر سهم الرجوع؟ (افتراضياً نعم)
+  final VoidCallback? goBack;
 
   const PremiumHeader({
     super.key,
@@ -12,6 +14,7 @@ class PremiumHeader extends StatelessWidget {
     this.subtitle,
     this.icon,
     this.showBackButton = true,
+    this.goBack 
   });
 
   @override
@@ -44,7 +47,7 @@ class PremiumHeader extends StatelessWidget {
                     IconButton(
                       icon: const Icon(Icons.arrow_back_ios_new_rounded, 
                             color: Colors.white, size: 22),
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: goBack ?? Get.back,
                     )
                   else
                     const SizedBox(width: 48), // مساحة فارغة للحفاظ على التوازن

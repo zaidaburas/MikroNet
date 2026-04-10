@@ -67,7 +67,7 @@ class _AddBatchViewState extends State<AddBatchView> {
                   ),
                 ),
             
-                const AppMiniFooter(sectionName: "Micronet Card Engine"),
+                const AppMiniFooter(title: Text("Micronet Card Engine")),
               ],
             );
           }

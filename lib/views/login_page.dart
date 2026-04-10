@@ -131,7 +131,11 @@ class LoginPage extends GetView<LoginController> {
             ),
 
             // 4. الفوتر
-            const AppMiniFooter(sectionName: "بوابة تسجيل الدخول"),
+             AppMiniFooter(
+              title: Text("تسجيل الدخول إلى الميكروتك",
+                style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey.shade400),),
+              subTitle: Text("الرجاء إدخال بيانات الراوتر للمتابعة",style: TextStyle(color: Colors.blueGrey.shade200,fontSize: 12),),
+              ),
           ],
         ),
       ),
@@ -169,7 +173,7 @@ class LoginPage extends GetView<LoginController> {
                   onPressed: () => controller.hidePassword.toggle(), 
                 )
               : null,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
+          contentPadding: const EdgeInsets.only(top: 16,bottom: 16,right: 0,left: 20),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: Color(0xFFE2E8F0)),

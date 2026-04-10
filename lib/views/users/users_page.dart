@@ -70,7 +70,7 @@ class UsersManagementView extends StatelessWidget {
             ),
 
             // 4. الفوتر مع تمرير اسم القسم المطلوب (حل المشكلة)
-            const AppMiniFooter(sectionName: "إدارة المستخدمين"),
+            const AppMiniFooter(title:Text( "إدارة المستخدمين")),
           ],
         ),
       ),

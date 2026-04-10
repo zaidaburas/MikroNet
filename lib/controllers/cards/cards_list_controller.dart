@@ -13,6 +13,13 @@ class CardsListController extends GetxController {
   
   RxList<CardModel> allCards = <CardModel>[].obs;
   RxList<CardModel> filteredCards = <CardModel>[].obs;
+
+  var cardCounts = {
+        "الكل": 0.obs,
+        "جديدة":0.obs,
+        "نشطة":0.obs,
+        "منتهية":0.obs
+  };
   
   RxBool isLoading = true.obs;
   int _requestCounter = 0;
@@ -68,7 +75,10 @@ class CardsListController extends GetxController {
   // التعديل الرئيسي لفصل الحالات
   void _applyFilters() {
     var result = allCards.toList();
-
+    cardCounts["جديدة"]!.value = allCards.where((c)=>c.status=="normal").length;
+    cardCounts["نشطة"]!.value = allCards.where((c)=>c.status=="active").length;
+    cardCounts["منتهية"]!.value = allCards.where((c)=>c.status != "active" && c.status != "normal").length;
+    cardCounts["الكل"]!.value = allCards.length;
     if (filter.value != "الكل") {
       result = result.where((c) {
         if (filter.value == "نشطة") return c.status == "active";
@@ -90,61 +100,31 @@ class CardsListController extends GetxController {
     filteredCards.assignAll(result);
   }
 
-  void goToCardDetails(CardModel card) {
-    Get.toNamed(AppRoutes.cardDetails, arguments: card);
+  void goToCardDetails(CardModel card)async {
+   
+    var res = await Get.toNamed(AppRoutes.cardDetails, arguments: card);
+    if(res != null && res is AppResponse && res.status){
+      var updatedCard = res.data as CardModel;
+      var i = allCards.indexWhere((c)=> c.id == card.id);
+      if(res.message == "delete") {
+        allCards.removeAt(i);
+      } else {
+        allCards[i]= updatedCard;
+      }
+      _applyFilters();
+        
+    }
   }
 
-  void goToCardSessions(String username) {
-    Get.toNamed(AppRoutes.cardSessions, arguments: username);
+  void goToCardSessions(CardModel card) {
+     if(card.status == "normal"){
+      showMsgDialog(message: "لا توجد جلسات لم يتم استخدام الكرت",type: MsgType.info);
+      return;
+    }
+    Get.toNamed(AppRoutes.cardSessions, arguments: card.username);
   }
 
-  void showAddCardDialog() {
-    userCtrl.clear();
-    passCtrl.clear();
-    pkgCtrl.clear();
-
-    Get.dialog(
-      AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-        title: const Text("إضافة كرت جديد", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w900)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _dialogField(userCtrl, "اسم المستخدم", Icons.person_outline),
-            _dialogField(passCtrl, "كلمة المرور", Icons.lock_outline),
-            _dialogField(pkgCtrl, "الباقة", Icons.inventory_2_outlined),
-          ],
-        ),
-        actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1E3A8A),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              minimumSize: const Size(double.infinity, 50),
-            ),
-            onPressed: () => _addNewCard(),
-            child: const Text("حفظ", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _dialogField(TextEditingController c, String label, IconData i) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: TextField(
-        controller: c,
-        textAlign: TextAlign.right,
-        decoration: InputDecoration(
-          labelText: label,
-          prefixIcon: Icon(i, size: 18, color: const Color(0xFF1E3A8A)),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-        ),
-      ),
-    );
-  }
+  
 
   Future<void> _fetchCards() async {
     final currentId = ++_requestCounter;
@@ -202,6 +182,7 @@ class CardsListController extends GetxController {
       showMsgDialog(message: "Error adding card: $e");
     }
   }
+  void goToAddSingleCard ()=> Get.toNamed(AppRoutes.addSingleCard);
 }
 
 extension CardModelExt on CardModel {
