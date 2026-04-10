@@ -46,9 +46,9 @@ class HostsView extends GetView<HostsController> {
   }
 
   Widget _buildHostCard(HostUserModel h) {
-    bool isBlocked = h.type=="blocked";
-    bool isBybass = h.type=="bypass";
-    bool isAuth = h.type=="auth";
+    bool isBlocked = h.type==UserType.blocked;
+    bool isBybass = h.type==UserType.bypassed;
+    bool isAuth = h.type==UserType.authorized;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -63,7 +63,7 @@ class HostsView extends GetView<HostsController> {
           child: Icon(isBlocked ? Icons.block : Icons.important_devices, color: isBlocked ? Colors.red : isBybass?Colors.green:isAuth?Colors.blue: Colors.orange),
         ),
         title: Text(h.label == "Unknown" ? "جهاز غير معروف" : h.label, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text("${h.srcAddress} • ${h.macAddress}\nمتصل منذ: ${h.uptime}", style: const TextStyle(fontSize: 10)),
+        subtitle: Text("${h.srcAddress} • ${h.macAddress}\nمتصل منذ: ${h.uptime}\n${isBlocked?"محظور":isBybass?"مجاني":isAuth?"نشط":"غير نشط"}", style: const TextStyle(fontSize: 10)),
         trailing: IconButton(
           icon: const Icon(Icons.more_vert),
           onPressed: () => _openActionSheet(h),

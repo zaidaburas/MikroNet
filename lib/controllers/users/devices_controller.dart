@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mikronet/api/users/saved_users_api.dart';
 import '../dialog_helper.dart';
-import '/api/users_api.dart';
 import '/models/users_model.dart';
 import '/models/response.dart';
 
@@ -10,9 +9,9 @@ class DevicesController extends GetxController {
   
   RxList<SavedUserModel> allDevices = <SavedUserModel>[].obs;
   RxList<SavedUserModel> filteredDevices = <SavedUserModel>[].obs;
+  RxString searchQuery = "".obs;
 
   RxBool isLoading = true.obs;
-  int _requestCounter = 0;
 
   @override
   void onInit() {
@@ -28,37 +27,41 @@ class DevicesController extends GetxController {
     filter.value = key;
     _applyFilter();
   }
+  void setSearch(String query) {
+    searchQuery.value = query;
+    _applyFilter();
+  }
 
   void _applyFilter() {
-    if (filter.value == "ALL") {
-      filteredDevices.assignAll(allDevices);
-    } else if (filter.value == "SAVED") {
-      filteredDevices.assignAll(allDevices.where((d) => d.type == "regular" || d.type == "normal").toList());
-    } else if (filter.value == "BLOCKED") {
-      filteredDevices.assignAll(allDevices.where((d) => d.type == "blocked").toList());
-    } else if (filter.value == "FREE") {
-      filteredDevices.assignAll(allDevices.where((d) => d.type == "bypassed").toList());
+    var result =
+      switch (filter.value) {
+        "SAVED"   => allDevices.where((d) => d.label.isNotEmpty).toList(),
+        "UNSAVED"    => allDevices.where((d) => d.label == "Unknown").toList(),
+        "BLOCKED" => allDevices.where((d) => d.type == UserType.blocked).toList(),
+        "FREE"    => allDevices.where((d) => d.type == UserType.bypassed).toList(),
+        _         => allDevices, 
+      }
+    ;
+    if (searchQuery.value.isNotEmpty) {
+      String query = searchQuery.value.toLowerCase();
+      result = result.where((d) => 
+        d.label.toLowerCase().contains(query) || 
+        d.srcAddress.toLowerCase().contains(query) ||
+        d.macAddress.toLowerCase().contains(query)
+        
+      ).toList();
     }
+
+    filteredDevices.assignAll(result);
   }
 
-  /// تأكيد تعديل المسمى
-  void confirmRename(SavedUserModel device, String newName) {
-    if (newName.isEmpty || newName == device.label) return;
-    
-    showConfirmDialog(
-      message: "هل أنت متأكد من رغبتك في تغيير مسمى الجهاز إلى '$newName'؟",
-      onConfirm: () {
-        _executeRename(device, newName);
-      },
-    );
-  }
 
   /// تأكيد الحظر
   void confirmBlock(SavedUserModel device) {
     showConfirmDialog(
       message: "هل أنت متأكد من حظر هذا الجهاز؟ لن يتمكن من الوصول للشبكة.",
       onConfirm: () {
-        _executeAction(device, type: "blocked", msg: "تم حظر الجهاز بنجاح");
+        _executeBlock(device);
       },
     );
   }
@@ -68,7 +71,7 @@ class DevicesController extends GetxController {
     showConfirmDialog(
       message: "هل تريد فك الحظر عن هذا الجهاز والسماح له بالاتصال مجدداً؟",
       onConfirm: () {
-        _executeAction(device, type: "regular", msg: "تم فك الحظر عن الجهاز");
+        _executeRegular(device);
       },
     );
   }
@@ -78,7 +81,7 @@ class DevicesController extends GetxController {
     showConfirmDialog(
       message: "هل أنت متأكد من منح هذا الجهاز وصولاً مجانياً للشبكة؟",
       onConfirm: () {
-        _executeAction(device, type: "bypassed", msg: "تم تحويل الجهاز إلى مجاني");
+        _executeBypass(device);
       },
     );
   }
@@ -94,42 +97,26 @@ class DevicesController extends GetxController {
   }
 
   /// إضافة جهاز يدوياً
-  Future<void> addManualDevice({required String name, required String ip, required String mac, required String status}) async {
-    Get.dialog(const Center(child: CircularProgressIndicator(color: Color(0xff1E3C72))), barrierDismissible: false);
-    
-    String type = "regular";
-    if(status == "FREE") type = "bypassed";
-    if(status == "BLOCKED") type = "blocked";
-
-    AppResponse<void> response;
-    if(type == "blocked") {
-      response = await UsersApi.blockDevice(macAddress: mac, srcAddress: ip, label: name);
-    } else if (type == "bypassed") {
-      response = await UsersApi.bypassDevice(macAddress: mac, srcAddress: ip, label: name);
-    } else {
-      response = await UsersApi.labelDevice(macAddress: mac, srcAddress: ip, label: name);
-    }
+  Future<void> addManualDevice({required String name, required String ip, required String mac, required UserType status}) async {
+    showLoadingDialog();
+    var response = await SavedUsersApi.saveUser(macAddress: mac, label: name, toAddress: ip,type: status);
 
     if (Get.isDialogOpen ?? false) Get.back();
 
     if (response.status) {
       fetchDevices(); 
-      _showSuccess("تم بنجاح", "تمت إضافة الجهاز الجديد");
+      showMsgDialog(message: response.message,type: MsgType.success);
     } else {
-      showMsgDialog(message: response.message);
+      showMsgDialog(message: response.message,type: MsgType.error);
     }
   }
 
   /// جلب البيانات
   Future<void> fetchDevices() async {
-    final currentId = ++_requestCounter;
     isLoading.value = true;
-    
     try {
-      AppResponse<List<SavedUserModel>> response = await UsersApi.getAlISavedUsers();
-      
-      if (currentId != _requestCounter) return;
-
+      AppResponse<List<SavedUserModel>> response = await SavedUsersApi.getAlISavedUsers();
+      isLoading.value = false;
       if (response.status && response.data != null) {
         allDevices.assignAll(response.data!);
         _applyFilter();
@@ -137,20 +124,15 @@ class DevicesController extends GetxController {
         showMsgDialog(message: response.message);
       }
     } catch (e) {
-      if (currentId == _requestCounter) {
         showMsgDialog(message: "Error fetching devices: $e");
-      }
-    } finally {
-      if (currentId == _requestCounter) {
-        isLoading.value = false;
-      }
-    }
+    } 
+
   }
 
-  Future<void> _executeRename(SavedUserModel device, String newName) async {
-    Get.dialog(const Center(child: CircularProgressIndicator(color: Color(0xff1E3C72))), barrierDismissible: false);
-    
-    AppResponse<void> response = await UsersApi.editDevice(device.id, label: newName);
+  Future<void> executeRename(SavedUserModel device, String newName) async {
+    if (newName.isEmpty || newName == device.label) return;
+    showLoadingDialog();
+    AppResponse<void> response = await SavedUsersApi.renameSavedUser(device, newName);
     
     if (Get.isDialogOpen ?? false) Get.back();
 
@@ -164,52 +146,60 @@ class DevicesController extends GetxController {
       }
       allDevices.refresh();
       _applyFilter();
-      _showSuccess("تم بنجاح", "تم تغيير مسمى الجهاز");
+      showMsgDialog(message: response.message,type: MsgType.msg);
     } else {
-      showMsgDialog(message: response.message);
+      showMsgDialog(message: response.message,type: MsgType.error);
     }
   }
 
-  Future<void> _executeAction(SavedUserModel device, {required String type, required String msg}) async {
-    Get.dialog(const Center(child: CircularProgressIndicator(color: Color(0xff1E3C72))), barrierDismissible: false);
+  
+  Future<void> _executeBlock(SavedUserModel device) async {
     
-    AppResponse<void> response = await UsersApi.editDevice(device.id, type: type);
-    
+    AppResponse<void> response = await SavedUsersApi.blockSavedUser(device);
     if (Get.isDialogOpen ?? false) Get.back();
-
     if (response.status) {
-      int index = allDevices.indexWhere((e) => e.id == device.id);
-      if (index != -1) {
-        allDevices[index] = SavedUserModel(
-          id: device.id, srcAddress: device.srcAddress, dstAddress: device.dstAddress,
-          macAddress: device.macAddress, server: device.server, type: type, label: device.label
-        );
-      }
-      allDevices.refresh();
-      _applyFilter();
-      _showSuccess("تمت العملية", msg);
+      fetchDevices(); 
+      showMsgDialog(message: response.message,type: MsgType.success);
     } else {
       showMsgDialog(message: response.message);
     }
   }
-
+  Future<void> _executeBypass(SavedUserModel device) async {
+    //showLoadingDialog();
+    AppResponse<void> response = await SavedUsersApi.bypassSavedUser(device);
+    if (Get.isDialogOpen ?? false) Get.back();
+    if (response.status) {
+      fetchDevices(); 
+      showMsgDialog(message: response.message,type: MsgType.success);
+    } else {
+      showMsgDialog(message: response.message);
+    }
+  }
+  Future<void> _executeRegular(SavedUserModel device) async {
+    showLoadingDialog();
+    AppResponse<void> response = await SavedUsersApi.regularSavedUser(device);
+    if (Get.isDialogOpen ?? false) Get.back();
+    if (response.status) {
+      fetchDevices(); 
+      showMsgDialog(message: response.message,type: MsgType.success);
+    } else {
+      showMsgDialog(message: response.message);
+    }
+  }
+  
   Future<void> _executeDelete(SavedUserModel device) async {
-    Get.dialog(const Center(child: CircularProgressIndicator(color: Colors.redAccent)), barrierDismissible: false);
-    
-    AppResponse<void> response = await UsersApi.removeDevice(id: device.id);
+    showLoadingDialog();
+    AppResponse<void> response = await SavedUsersApi.removeSavedUser(device);
     
     if (Get.isDialogOpen ?? false) Get.back();
 
     if (response.status) {
-      allDevices.removeWhere((e) => e.id == device.id);
-      _applyFilter();
-      _showSuccess("تم الحذف", "تم حذف الجهاز من النظام");
+      fetchDevices();
+      showMsgDialog(message: response.message,type: MsgType.success);
     } else {
-      showMsgDialog(message: response.message);
+      showMsgDialog(message: response.message,type: MsgType.error);
     }
   }
 
-  void _showSuccess(String title, String msg) {
-    showMsgDialog(message: msg);
-  }
+
 }

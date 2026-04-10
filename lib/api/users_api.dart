@@ -1,96 +1,19 @@
 import '/models/users_model.dart';
+
 import '/services/mikrotik_client.dart';
 import '../models/response.dart';
-
+import 'users/saved_users_api.dart';
 class UsersApi {
   // UsersApi({});
 
-  static const String _hostsFields=".id,mac-address,address,to-address,server,uptime,bytes-in,bytes-out,authorized,bypassed,comment";
-  static const String _activeFields=".id,server,user,address,mac-address,uptime,session-time-left,bytes-in,bytes-out,limit-bytes-total,comment";
 
-  static Future<AppResponse<List<HostUserModel>>> getAllHosts({String where="=detail="})async{
-    try {
-      List usersData=await MikrotikClient.printData(
-        commands: [
-          "/ip/hotspot/host/print",
-          where
-        ],
-        fields: _hostsFields
-      );
-      List<HostUserModel> result = usersData.map((e) => HostUserModel.fromMikrotik(e)).toList();
-      return AppResponse<List<HostUserModel>>(
-        status: true,
-        message: "done",
-        data: result
-      );
-    } catch (e) {
-      return AppResponse<List<HostUserModel>>(
-        status: false,
-        message: e.toString(),
-      );
-    }
-  }
-
-  static Future<AppResponse<List<ActiveUserModel>>> getAllActive({String where="=detail="})async{
-    try {
-      List usersData=await MikrotikClient.printData(
-        commands: [
-          "/ip/hotspot/active/print",
-          where
-        ],
-        fields: _activeFields,
-      );
-      List<ActiveUserModel> result = usersData.map((e) => ActiveUserModel.fromMikrotik(e)).toList();
-      return AppResponse<List<ActiveUserModel>>(
-        status: true,
-        message: "done",
-        data: result
-      );
-    } catch (e) {
-      return AppResponse<List<ActiveUserModel>>(
-        status: false,
-        message: e.toString(),
-      );
-    }
-  }
-
-  static Future<AppResponse<void>> removeOneActive(String username)async{
-    try {
-      await MikrotikClient.deleteData(
-        command: "/ip/hotspot/active/remove",
-        condition: "?user=$username"
-      );
-      return AppResponse<void>(
-        status: true,
-        message: "done",
-      );
-    } catch (e) {
-      return AppResponse<void>(
-        status: false,
-        message: e.toString(),
-      );
-    }
-    
-  }
   
-  static Future<AppResponse<void>> removeOneHost(String srcAddress)async{
-    try {
-      await MikrotikClient.deleteData(
-        command: "/ip/hotspot/host/remove",
-        condition: "?address=$srcAddress"
-      );
-      return AppResponse<void>(
-        status: true,
-        message: "done",
-      );
-    } catch (e) {
-      return AppResponse<void>(
-        status: false,
-        message: e.toString(),
-      );
-    }
-    
-  }
+
+  
+
+  
+  
+  
 
   static Future<AppResponse<void>> insertCardToOne({
     required String username,
@@ -122,59 +45,45 @@ class UsersApi {
   }
   
   
-  static Future<AppResponse<List<SavedUserModel>>> getAlISavedUsers({String where="=detail="})async{
-    try {
-      List usersData=await MikrotikClient.printData(
-        commands: [
-          "/ip/hotspot/ip-binding/print",
-          where,
-        ],
-      );
-      List<SavedUserModel> result = usersData.map((e) => SavedUserModel.fromMikrotik(e)).toList();
-      return AppResponse<List<SavedUserModel>>(
-        status: true, 
-        message: "done",
-        data: result
-      );
-    } catch (e) {
-      return AppResponse<List<SavedUserModel>>(
-        status: false, 
-        message: e.toString(),
-      );
-    }
-  }
-
+  
   static Future<AppResponse<List<SavedUserModel>>> getBlockedDevices()async{
-    return await getAlISavedUsers(where: "?type=blocked");
+    return await SavedUsersApi.getAlISavedUsers(where: "?type=blocked");
   }
 
   static Future<AppResponse<List<SavedUserModel>>> getBypassedDevices()async{
-    return await getAlISavedUsers(where: "?type=bypassed");
+    return await SavedUsersApi.getAlISavedUsers(where: "?type=bypassed");
   }
 
   static Future<AppResponse<void>> labelDevice({
     required String macAddress,
-    String srcAddress="0.0.0.0",
-    String dstAddress="0.0.0.0",
-    String label="labeled device",
-    String server="all",
-  })async{
+    required String label,
+    })async{
+   
     try {
-      await MikrotikClient.addData(
-        command: "/ip/hotspot/ip-binding/add", 
-        data: {
-          "address":srcAddress,
-          "to-address":dstAddress,
-          "mac-address":macAddress,
-          "server":server,
-          "comment":label,
-          "type":"regular",
-        }
-      );
-      return AppResponse<void>(
-        status: true,
-        message: "done"
-      );
+      var user = await SavedUsersApi.getSavedUserByMac(macAddress);
+      if(user.status){
+        await MikrotikClient.fetch(
+          command: [
+            "/ip/hotspot/ip-binding/set", 
+            "=.id=${user.data!.id}"
+          ], 
+          params: {"comment": label}
+        );
+      }else{
+        await MikrotikClient.addData(
+          command: "/ip/hotspot/ip-binding/add", 
+          data: {
+            "mac-address":macAddress,
+            "comment":label,
+            "address":"0.0.0.0",
+            "to-address":"0.0.0.0",
+            "server":"all",
+            "type":"regular",
+          }
+        );
+    }
+    return AppResponse(status: true, message: "تمت تسمية الجهاز");
+
     } catch (e) {
       return AppResponse<void>(
         status: false,
@@ -274,7 +183,7 @@ class UsersApi {
     String type="regular",
   })async{
     try {
-      var response = await getAlISavedUsers(where: "?.id=$id");
+      var response = await SavedUsersApi.getAlISavedUsers(where: "?.id=$id");
       if(!response.status || response.data == null || response.data!.isEmpty){
         return AppResponse<void>(status: false, message: "Device not found");
       }
@@ -290,7 +199,7 @@ class UsersApi {
           "to-address": dstAddress==""?result.dstAddress:dstAddress,
           "comment": label==""?result.label:label,
           "server": server==""?result.server:server,
-          "type": type==""?result.type:type,
+          "type": type==""?result.type.name:type,
         }
       );
       return AppResponse<void>(
@@ -322,7 +231,7 @@ class UsersApi {
         // fields: ".id,address,to-address,mac-address,disabled,server,type,comment"
       );
       if(usersData.isEmpty){
-        return AppResponse(status: true, message: "",data: "empty");
+        return AppResponse(status: false, message: "",data: "empty");
       }
       return AppResponse(status: true, message: "",data: usersData.first[".id"]);
     } catch (e) {
@@ -331,6 +240,7 @@ class UsersApi {
     // return {};
   }
   static Future<AppResponse<List> > saveDevice({
+
     required String macAddress,
     String srcAddress="0.0.0.0",
     String dstAddress="0.0.0.0",
@@ -361,6 +271,7 @@ class UsersApi {
       );
     }
   }
+   
 }
 
 

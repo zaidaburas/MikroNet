@@ -47,7 +47,7 @@ class DevicesView extends StatelessWidget {
 
             // 2. الفلاتر بستايل الكبسولة الموحد
             _buildFiltersSection(controller),
-
+            _searchField(controller),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: SectionTitle(title: "قائمة الأجهزة"),
@@ -74,6 +74,7 @@ class DevicesView extends StatelessWidget {
         children: [
           _filterTab(controller, "ALL", "الكل"),
           _filterTab(controller, "SAVED", "محفوظة"),
+          _filterTab(controller, "UNSAVED", "غير محفوظة"),
           _filterTab(controller, "BLOCKED", "محظورة"),
           _filterTab(controller, "FREE", "مجانية"),
         ],
@@ -89,8 +90,8 @@ class DevicesView extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 250),
-          margin: const EdgeInsets.symmetric(horizontal: 5),
-          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
+          margin: const EdgeInsets.symmetric(horizontal: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
             color: isSelected ? const Color(0xFF1E3A8A) : Colors.white,
             borderRadius: BorderRadius.circular(12),
@@ -136,6 +137,12 @@ class DevicesView extends StatelessWidget {
         physics: const BouncingScrollPhysics(),
         itemBuilder: (_, i) {
           final d = devices[i];
+          var deviceType = 
+          switch(d.type){
+            UserType.bypassed => "مجاني",
+            UserType.blocked => "محظور",
+            _ => "عادي"
+          };
           return Container(
             margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
@@ -148,6 +155,7 @@ class DevicesView extends StatelessWidget {
               ],
             ),
             child: ListTile(
+              //isThreeLine: true,
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               leading: CircleAvatar(
@@ -159,7 +167,7 @@ class DevicesView extends StatelessWidget {
               title: Text(d.label,
                   style: const TextStyle(
                       fontWeight: FontWeight.w900, color: Color(0xFF1E293B))),
-              subtitle: Text("${d.srcAddress} • ${d.macAddress}",
+              subtitle: Text("${d.srcAddress} • ${d.macAddress}\n$deviceType",
                   style:
                       const TextStyle(fontSize: 11, color: Colors.blueGrey)),
               trailing: const Icon(Icons.more_horiz_rounded,
@@ -173,8 +181,8 @@ class DevicesView extends StatelessWidget {
   }
 
   Color _getStatusColor(SavedUserModel d) {
-    if (d.type == "blocked") return Colors.red;
-    if (d.type == "bypassed") return Colors.blue;
+    if (d.type == UserType.blocked) return Colors.red;
+    if (d.type == UserType.bypassed) return Colors.blue;
     return Colors.green;
   }
 
@@ -183,7 +191,7 @@ class DevicesView extends StatelessWidget {
     final nameCtrl = TextEditingController();
     final ipCtrl = TextEditingController();
     final macCtrl = TextEditingController();
-    String status = "NORMAL";
+    UserType status = UserType.regular;
 
     showModalBottomSheet(
       context: context,
@@ -231,15 +239,15 @@ class DevicesView extends StatelessWidget {
                         color: const Color(0xffF1F5F9),
                         borderRadius: BorderRadius.circular(15)),
                     child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
+                      child: DropdownButton<UserType>(
                         value: status,
                         isExpanded: true,
                         items: const [
                           DropdownMenuItem(
-                              value: "NORMAL", child: Text("عادي")),
-                          DropdownMenuItem(value: "FREE", child: Text("مجاني")),
+                              value: UserType.regular, child: Text("عادي")),
+                          DropdownMenuItem(value: UserType.bypassed, child: Text("مجاني")),
                           DropdownMenuItem(
-                              value: "BLOCKED", child: Text("محظور")),
+                              value: UserType.blocked, child: Text("محظور")),
                         ],
                         onChanged: (v) => setStateSheet(() => status = v!),
                       ),
@@ -287,8 +295,8 @@ class DevicesView extends StatelessWidget {
     final TextEditingController nameCtrl = TextEditingController(text: d.label);
     
     // تعريف الحالات بناءً على نوع الجهاز
-    bool isBlocked = d.type == "blocked";
-    bool isBypassed = d.type == "bypassed";
+    bool isBlocked = d.type == UserType.blocked;
+    bool isBypassed = d.type == UserType.bypassed;
 
     showModalBottomSheet(
       context: context,
@@ -328,7 +336,7 @@ class DevicesView extends StatelessWidget {
                     elevation: 0),
                 onPressed: () {
                   Get.back();
-                  controller.confirmRename(d, nameCtrl.text);
+                  controller.executeRename(d, nameCtrl.text);
                 },
                 child: const Text("حفظ المسمى الجديد",
                     style: TextStyle(
@@ -416,6 +424,37 @@ class DevicesView extends StatelessWidget {
               fontSize: 14)),
       trailing: const Icon(Icons.arrow_back_ios_new_rounded,
           size: 14, color: Colors.black12),
+    );
+  }
+  Widget _searchField(DevicesController controller) {
+    return Container(
+      height: 55,
+      margin: const EdgeInsets.symmetric(horizontal: 18,vertical: 5),
+      //padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04), 
+            blurRadius: 15, 
+            offset: const Offset(0, 5)
+          )
+        ],
+      ),
+      child: TextField(
+        // ربط التغيير مباشرة بدالة البحث في المتحكم
+        onChanged: controller.setSearch,
+        textAlign: TextAlign.center,
+        decoration: const InputDecoration(
+          hintText: "بحث باسم الجهاز او ip او mac",
+          hintStyle: TextStyle(fontSize: 13, color: Colors.blueGrey),
+          prefixIcon: Icon(Icons.search_rounded, color: Color(0xFF1E3A8A)),
+          suffixIcon: Icon(Icons.search_off_rounded,color: Color(0x00000000),),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(vertical: 15),
+        ),
+      ),
     );
   }
 }

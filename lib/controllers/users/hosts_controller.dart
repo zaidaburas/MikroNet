@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '/api/users/host_users_api.dart';
 import '../dialog_helper.dart'; // تأكد من المسار
-import '/api/users_api.dart';
 import '/models/users_model.dart';
 import '/models/response.dart';
 
@@ -15,11 +15,11 @@ class HostsController extends GetxController {
     fetchHosts();
   }
 
-  // جلب كافة الأجهزة المكتشفة من الراوتر
   Future<void> fetchHosts() async {
     isLoading.value = true;
     try {
-      AppResponse<List<HostUserModel>> response = await UsersApi.getAllHosts();
+      var response = await HostUsersApi.getAllHosts();
+      isLoading.value = false;
       if (response.status) {
         hosts.assignAll(response.data ?? []);
       } else {
@@ -27,9 +27,7 @@ class HostsController extends GetxController {
       }
     } catch (e) {
       showMsgDialog(message: "خطأ في الاتصال: $e");
-    } finally {
-      isLoading.value = false;
-    }
+    } 
   }
 
   // --- العمليات الأساسية ---
@@ -37,54 +35,30 @@ class HostsController extends GetxController {
   // 1. تسمية الجهاز (Labeling)
   Future<void> renameDevice(HostUserModel host, String newName) async {
     if (newName.isEmpty) return;
-    _showLoading();
-    var res = await UsersApi.labelDevice(
-      macAddress: host.macAddress,
-      label: newName,
-      srcAddress: host.srcAddress,
-    );
-    _hideLoading();
+    showLoadingDialog();
+    var res = await HostUsersApi.renameHostUser(host,newName);
+    if(Get.isDialogOpen ?? false) Get.back();
     if (res.status) fetchHosts();
   }
-  Future<void> rename(HostUserModel user, String newName) async {
-    if (newName.isEmpty) return;
-    AppResponse<void> res;
-    _showLoading();
-    if(user.label == "Unknown"){
-    res = await UsersApi.labelDevice(
-      macAddress: user.macAddress,
-      label: newName,
-      srcAddress: user.srcAddress,
-    );
-    }else{
-      var device = await UsersApi.getUserId({
-        "mac-address":user.macAddress,
-      });
-      res = await UsersApi.editDevice(device.data.toString(),label: newName);
-    }
-    _hideLoading();
-    if (res.status) fetchHosts();
-  }
-
 
   // 2. حظر الجهاز (Blocking)
   Future<void> toggleBlock(HostUserModel host) async {
-    bool isBlocked = host.label.toLowerCase().contains("block") || host.type == "unauth";
-    _showLoading();
+    bool isBlocked = host.type == UserType.blocked;
+    showLoadingDialog();
     AppResponse<void> res;
-    if (isBlocked && host.id != "Unknown") {
-      res = await UsersApi.removeDevice(id: host.id); // إزالة الحظر من IP-Binding
+    if (isBlocked) {
+      res = await HostUsersApi.regularHostUser(host); // إزالة الحظر من IP-Binding
     } else {
-      res = await UsersApi.blockDevice(macAddress: host.macAddress, label: "Blocked: ${host.label}");
+      res = await HostUsersApi.blockHostUser(host);
     }
-    _hideLoading();
+    if(Get.isDialogOpen ?? false) Get.back();
     if (res.status) fetchHosts();
   }
 
   // 3. التحويل لوصول مجاني (Bypass)
   Future<void> makeBypass(HostUserModel host) async {
-    _showLoading();
-    var res = await UsersApi.bypassDevice(macAddress: host.macAddress, label: host.label);
+    showLoadingDialog();
+    var res = await HostUsersApi.bypasskHostUser(host);
     _hideLoading();
     if (res.status) fetchHosts();
   }
