@@ -10,7 +10,8 @@ enum MsgType{
 void showConfirmDialog({
   required String message,
   required VoidCallback onConfirm,
-}) {
+}) async{
+  await Future.delayed(const Duration(milliseconds: 1));
   Get.dialog(
     Directionality(
       textDirection: TextDirection.rtl,
@@ -69,7 +70,8 @@ void showConfirmDialog({
                     ],
                   ),
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async{
+                      await Future.delayed(const Duration(milliseconds: 1));
                       onConfirm();
                       Get.back();
                     },
@@ -91,7 +93,8 @@ void showConfirmDialog({
   );
 }
 
-void showMsgDialog({required String message, MsgType type = MsgType.msg}) {
+void showMsgDialog({required String message, MsgType type = MsgType.msg}) async{
+  await Future.delayed(const Duration(milliseconds: 1));
   // تحديد الخصائص ديناميكياً بناءً على نوع الرسالة
   final (icon, baseColor, titleText, gradientColors) = switch (type) {
     MsgType.success => (

@@ -19,7 +19,7 @@ class ModernInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 15),
+      margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
         color: isReadOnly ? const Color(0xFFE2E8F0) : Colors.white,
         borderRadius: BorderRadius.circular(18),
@@ -34,6 +34,7 @@ class ModernInput extends StatelessWidget {
       child: TextField(
         controller: controller,
         readOnly: isReadOnly,
+        textAlign: TextAlign.center,
         // 👈 تحديد نوع الكيبورد بناءً على المتغير
         keyboardType: isNumber ? TextInputType.number : TextInputType.text,
         decoration: InputDecoration(
@@ -48,7 +49,7 @@ class ModernInput extends StatelessWidget {
             size: 20
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         ),
         style: TextStyle(
           color: isReadOnly ? Colors.blueGrey.shade600 : Colors.black,

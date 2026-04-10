@@ -33,8 +33,8 @@ class CardInfoPage extends GetView<CardInfoController> {
             children: [
               // 1. الهيدر الموحد
                PremiumHeader(
-                title: "لوحة إدارة الكرت",
-                subtitle: "تعديل البيانات وتغيير حالة الاتصال",
+                title: "تفاصيل الكرت",
+                subtitle: "تفاصيل الكرت وتعديل البيانات",
                 showBackButton: true,
                 goBack: controller.goBack,
               ),
@@ -45,7 +45,7 @@ class CardInfoPage extends GetView<CardInfoController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildSectionLabel("بيانات الاشتراك"),
+                      _buildSectionLabel("بيانات الكرت"),
                       
                       // 2. استخدام حقول الإدخال المربوطة بالمتحكم مباشرة
                       ModernInput(
@@ -104,7 +104,7 @@ class CardInfoPage extends GetView<CardInfoController> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                "حالة الاتصال", 
+                "حالة الكرت", 
                 style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569))
               ),
               // استخدام Obx لمراقبة تغير الحالة في المتحكم
@@ -179,16 +179,34 @@ class CardInfoPage extends GetView<CardInfoController> {
     ),
   );
 
-  Widget _buildDeleteButton() => SizedBox(
-    width: double.infinity,
-    child: TextButton.icon(
-      onPressed: () => controller.showDeleteConfirm(),
-      icon: const Icon(Icons.delete_sweep_rounded, color: Colors.red, size: 20),
+  Widget _buildDeleteButton() =>InkWell(
+    onTap: () =>  controller.showDeleteConfirm(),
+    child: Container(
+      height: 58, width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(colors: [Color.fromARGB(255, 42, 15, 15), Color.fromARGB(255, 107, 27, 17)]),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color.fromARGB(255, 138, 30, 30).withOpacity(0.3), 
+            blurRadius: 12, 
+            offset: const Offset(0, 6)
+          )
+        ],
+      ),
+      child:  Center(
+        child: TextButton.icon(
+      onPressed: null,
+      icon: const Icon(Icons.delete_sweep_rounded, color: Colors.white, size: 20),
       label: const Text(
         "حذف هذا الكرت نهائياً", 
-        style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)
+        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)
       ),
       style: TextButton.styleFrom(padding: const EdgeInsets.all(15)),
     ),
+      ),
+    ),
+  
   );
+  
 }

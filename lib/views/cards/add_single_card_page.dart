@@ -61,7 +61,7 @@ class AddSingleCardPage extends GetView<AddSingleCardController> {
                         padding: EdgeInsets.symmetric(vertical: 10),
                         child: Divider(),
                       ),
-                      _buildFieldLabel("اختيار العميل (Customer)"),
+                      _buildFieldLabel("اختيار حساب الادارة"),
                       const SizedBox(height: 10),
                       
                       // مراقبة حالة تحميل العملاء
