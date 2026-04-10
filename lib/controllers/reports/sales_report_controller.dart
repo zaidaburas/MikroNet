@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 // تأكد من صحة هذه المسارات حسب مجلدات مشروعك
 import '../../models/selles_model.dart';
-import '../../services/response.dart';
+import '../../models/response.dart';
 import '../../api/reports_api.dart'; // مسار ملف الـ API
 
 class SalesReportController extends GetxController {

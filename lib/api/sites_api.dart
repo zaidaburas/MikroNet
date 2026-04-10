@@ -1,4 +1,6 @@
-import 'package:mikronet/services/response.dart';
+import 'package:mikronet/api/version7_api.dart';
+import 'package:mikronet/models/response.dart';
+// import 'package:mikronet/models/response.dart';
 import '/services/mikrotik_client.dart';
 // تأكد من استيراد ملف المودل
  import '/models/sites_model.dart'; 
@@ -87,6 +89,7 @@ class SitesApi {
           '?-layer7-protocol',
           '?#!', 
           '?action=drop',
+          '?disabled=no'
         ]
       );
       List<BlockedSiteModel> result = _getRegExp(response, layer7List);
@@ -99,6 +102,9 @@ class SitesApi {
   // التعديل: تستقبل المودل
   static Future<AppResponse> addBlockByLayer7(BlockedSiteModel site) async {
     try {
+      if (MikrotikClient.version==7) {
+        return await SitesApi7.addBlockByLayer7(site);
+      }
       String comment = "MikroNet_Block_${site.name}";
       
       var layer7 = await MikrotikClient.addData(
@@ -178,7 +184,10 @@ class SitesApi {
 
   static Future<List> _getMangleList() async {
     try {
-      return await MikrotikClient.printData(commands: ["/ip/firewall/mangle/print"]);
+      return await MikrotikClient.printData(
+        commands: ["/ip/firewall/mangle/print"],
+        conditions: ["?disabled=no"]
+      );
     } catch (e) {
       throw e.toString();
     }
@@ -188,7 +197,7 @@ class SitesApi {
     try {
       return await MikrotikClient.printData(
         commands: ['/ip/firewall/filter/print'],
-        conditions: ['?action=drop']
+        conditions: ['?action=drop','?disabled=no']
       );
     } catch (e) {
       throw e.toString();
@@ -314,6 +323,9 @@ class SitesApi {
   // التعديل: تستقبل المودل
   static Future<AppResponse> addBlockBySSL(BlockedSiteModel site) async {
     try {
+      if (MikrotikClient.version==7) {
+        return await SitesApi7.addBlockBySSL(site);
+      }
       String comment = "MikroNet_Block_${site.name}";
       String outInterface = site.interface.isEmpty ? "all-ethernet" : site.interface;
 

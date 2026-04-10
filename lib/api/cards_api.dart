@@ -36,7 +36,7 @@ class CardsApi {
         return await CardsApi7.getAllCards(where: where);
       }
       List myCards = await MikrotikClient.printData(
-          commands: ["/tool/user-manager/user/print"], fields: _props);
+          commands: ["/tool/user-manager/user/print"], fields: _props,tag: 'cards');
 
       List<CardModel> cards =
           myCards.map((e) => CardModel.fromMikrotik(e)).toList();
@@ -236,7 +236,7 @@ class CardsApi {
       }
       List sessions = await MikrotikClient.printData(
           commands: ["/tool/user-manager/session/print"],
-          conditions: ["?user=$username"]);
+          conditions: ["?user=$username"],tag: 'cards_sessions');
       List<CardSessionModel> result = sessions
           .map((session) => CardSessionModel.fromMikrotik(session))
           .toList();

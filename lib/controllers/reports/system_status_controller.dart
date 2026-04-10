@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 // تأكد من صحة هذه المسارات حسب مجلدات مشروعك
 import '../../models/selles_model.dart';
-import '../../services/response.dart'; 
+import '../../models/response.dart'; 
 import '../../api/reports_api.dart';
 
 class SystemStatusController extends GetxController {

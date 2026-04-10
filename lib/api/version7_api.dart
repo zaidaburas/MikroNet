@@ -1,106 +1,71 @@
+import 'package:get/get.dart';
+
+import '../models/sites_model.dart';
 import '/models/profiles_model.dart';
 import '/services/mikrotik_client.dart';
 import '../models/response.dart';
 import '../models/cards_model.dart';
 
 class ProfilesApi7 {
-  int version;
-  ProfilesApi7({this.version=6});
   
-  // final String _props="""username,password,actual-profile,uptime-used,download-used,upload-used,last-seen""";
+  static Future<List> _getProfileData(String profileName)async{
+    String where=profileName.isNotEmpty?'?name=$profileName':'=detail=';
+    return await MikrotikClient.printData(
+      commands: ['/user-manager/profile/print',],
+      conditions: [where]
+    );
+  }
 
+  static Future<List> _getLimitations({String name=""})async{
+    String where=name.isNotEmpty?'?name=$name':'=detail=';
+    return await MikrotikClient.printData(
+      commands: ['/user-manager/limitation/print',],
+      conditions: [where]
+    );
+  }
+
+  static Future<List> _getLinks(String profileName)async{
+    String where=profileName.isNotEmpty?'?profile=$profileName':'=detail=';
+    return await MikrotikClient.printData(
+      commands: ['/user-manager/profile-limitation/print',],
+      conditions: [where]
+    );
+  }
 
   static Future<AppResponse<List<ProfilesModel>>> getProfiles({String profileName=""}) async {
   try {
-     // {
-    //   .id: *2, 
-    //   name: 100, 
-    //   owner: admin, 
-    //   name-for-users: 100, 
-    //   validity: 2d, 
-    //   price: 80, 
-    //   limitations: [
-    //     {
-    //       .id: *2, 
-    //       name: 100,
-    //       owner: admin, 
-    //       transfer-limit:167772160, 
-    //       uptime-limit: 2h, 
-    //       group- name: 1
-    //     }
-    //   ],
-    //   hotspot_settings: {
-    //     .id: *14, 
-    //     name: 1, 
-    //     shared-users: unlimited
-    //   }
-    // }
-    // List finalResult=[];
 
-    List profiles=await MikrotikClient.printData(
-      commands: [
-        '/user-manager/profile/print',
-      ]
-    );
-    List links=await MikrotikClient.printData(
-      commands: [
-        '/user-manager/profile-limitation/print',
-      ]
-    );
-    List limitations=await MikrotikClient.printData(
-      commands: [
-        '/user-manager/limitation/print',
-      ]
-    );
-    // List groups=await MikrotikClient.printData(
-    //   commands: [
-    //     '/user-manager/limitation/print',
-    //   ]
-    // );
-    // List hotspot=await _getHotspotProfiles();
-    List result=[];
-    for (var profile in profiles) {
-      var link=links.where((l)=>l['profile']==profile['name']).toList();
-      var limit=limitations.where((li)=>li['name']==link[0]['limitation']).toList();
-      Map d=Map.from(profile);
-      d['limitations']=limit;
-      d['uptime-limit']=limit.first['uptime-limit']??'0h';
-      d['palance']=limit.first['transfer-limit']??'0';
-      d["rate-limit"]=("${limit.first['rate-limit-tx']}/${limit.first['rate-limit-rx']}")??"0/0";
-      // print('\n\n\n\n\n');
-      // print(d);
-      // print('\n\n\n\n\n');
-      result.add(d);
+    List profiles=await _getProfileData(profileName);
+
+    List links=await _getLinks(profileName);
+
+    List limitations=await _getLimitations();
+    
+    List<ProfilesModel> result=[];
+
+    for (var item in profiles) {
+      Map link=links.firstWhereOrNull((l)=>l['profile']==item['name'])??{};
+      Map limit=limitations.firstWhereOrNull((li)=>li['name']==link['limitation'])??{};
+
+      if (link.isNotEmpty) {
+        ProfilesModel profile= ProfilesModel(
+          customer: 'default',
+          id: item['.id'],
+          name: item['name'],
+          price: item['price'],
+          validity: item['validity'],
+          palance: limit['transfer-limit']??'unlimited',
+          speed: ("${limit['rate-limit-rx']??"0"}/${limit['rate-limit-tx']??"0"}"),
+          uptime: limit['uptime-limit']??'unlimited',
+          users: '1'
+        );
+        result.add(profile);
+      }
     }
-
-    // print('\n\n\n\n\n');
-    // print(result);
-    // print('\n\n\n\n\n');
-    
-    // List results=await MikrotikClient.printData(
-    //   commands: [
-    //     '/user-manager/profile/print',
-    //   ]
-    // );
-    List<ProfilesModel> finalResult = result.map((e) => 
-    // ProfilesModel.fromMikrotik(e)
-      ProfilesModel(
-        customer: 'default',
-        id: e['.id'],
-        name: e['name'],
-        price: e['price'],
-        palance: e['palance'],
-        validity: e['validity']??'unlimited',
-        speed: e['rate-limit'],
-        uptime: e['uptime-limit']??'2h',
-        users: '1'
-      )
-    ).toList();
-    
     return AppResponse<List<ProfilesModel>>(
       status: true, 
       message: "done",
-      data: finalResult
+      data: result
     );
     
     } catch (e) {
@@ -112,29 +77,8 @@ class ProfilesApi7 {
   }
 
   
-  static Future<String>_addOneHotspotProfile({
-    required String name,
-    required String users,
-    required String speed,
-  })async{
-    try {
-      await MikrotikClient.addData(
-        command: "/ip/hotspot/user/profile/add", 
-        data: {
-          "name": 'MikroNet_${name}_profile' ,
-          "shared-users": users ,
-          "rate-limit": speed 
-        }
-      );
-      return "done";
-    } catch (e) {
-      return e.toString();
-    }
-  }
-
   static Future<String>_addLimit({
     required String name,
-    // required String customer,
     required String palance,
     required String uptime,
     required String rateLimit,
@@ -144,7 +88,6 @@ class ProfilesApi7 {
         command: "/user-manager/limitation/add", 
         data: {
           "name": 'MikroNet_${name}_limit' ,
-          // "owner": customer ,
           "transfer-limit": palance ,
           "uptime-limit": uptime ,
           "rate-limit-rx": rateLimit.split('/').first ,
@@ -153,13 +96,12 @@ class ProfilesApi7 {
       );
       return "done";
     } catch (e) {
-      return e.toString();
+      throw e.toString();
     }
   }
 
   static Future<String>_addProfile({
     required String name,
-    required String group,
     required String validity,
     required String price,
   })async{
@@ -168,11 +110,11 @@ class ProfilesApi7 {
         command: "/user-manager/profile/add", 
         data: {
           "name": name ,
-          // "group": group ,
           "name-for-users": name ,
           "validity": validity ,
           "price": price ,
-          // "starts-at": "logon"
+          "override-shared-users":"off",
+          "starts-when": "first-auth"
         }
       );
       return "done";
@@ -195,28 +137,16 @@ class ProfilesApi7 {
       );
       return "done";
     } catch (e) {
-      return e.toString();
+      throw e.toString();
     }
   }
   
   static Future<AppResponse<void>>addOneProfile(Map data)async{
     try {
-      print('\n\n\n\n\n');
-      print('\n\n\n\n\n');
-      print(data);
-      print('\n\n\n\n\n');
-      print('\n\n\n\n\n');
-      // add hotspot profile
-      // await _addOneHotspotProfile(
-      //   name: data["name"], 
-      //   users: data["users"], 
-      //   speed: data["speed"]
-      // );
 
       // add limit
       await _addLimit(
         name: data["name"], 
-        // customer: data["customer"], 
         palance: data["palance"],
         uptime: data["uptime"],
         rateLimit: data["speed"],
@@ -225,7 +155,6 @@ class ProfilesApi7 {
       // add profile
       await _addProfile(
         name: data["name"], 
-        group: data["customer"], 
         validity: data["validity"],
         price: data["price"],
       );
@@ -253,44 +182,38 @@ class ProfilesApi7 {
     try {
       var profileResponse=await getProfiles(profileName: name);
       if(!profileResponse.status || profileResponse.data == null || profileResponse.data!.isEmpty){
-        return AppResponse<void>(status: false, message: "Profile not found");
+        return AppResponse<void>(status: false, message: "Profile not found=${profileResponse.message}");
       }
-      ProfilesModel profile = profileResponse.data![0];
       
-      String newProfileName='MikroNet_${data["name"]??profile.name}_profile';
+      ProfilesModel profile = profileResponse.data![0];
+      // {name: 7500, price: 7000, validity: 10d12h, uptime: 7d7h, palance: 4288M, speed: 1024000/2000000, customer: default, users: 1}
+      // String newProfileName='MikroNet_${data["name"]??profile.name}_profile';
       String newLimitName='MikroNet_${data["name"]??profile.name}_limit';
-
-      // edit hotspot profile
-      await MikrotikClient.editData(
-        command: "/ip/hotspot/user/profile/set",
-        data: {
-          "name": newProfileName.toString() ,
-          "shared-users": data["users"]??profile.users ,
-          "rate-limit": data["speed"]??profile.speed 
-        },
-        condition: "?name=MikroNet_${name}_profile"
-      );
 
       // edit limit
       await MikrotikClient.editData(
-        command: "/tool/user-manager/profile/limitation/set",
+        command: "/user-manager/limitation/set",
         data: {
           "name": newLimitName ,
-          "owner": data["customer"]??profile.customer ,
+          // "owner": data["customer"]??profile.customer ,
           "transfer-limit": data["palance"]??profile.palance ,
           "uptime-limit": data["uptime"]??profile.uptime ,
-          "group-name": newProfileName ,
+          "rate-limit-rx": (data["speed"]??profile.speed).split('/').first, 
+          "rate-limit-tx": (data["speed"]??profile.speed).split('/').last, 
+          // "group-name": newProfileName ,
         },
         condition: "?name=MikroNet_${name}_limit"
       );
       
-
+      // print('\n');print('\n');print('\n');print('\n');print('\n');
+      // print("profileResponse.data!.first.toMap()");
+      // print('\n');print('\n');print('\n');print('\n');print('\n');
       // edit profile
       await MikrotikClient.editData(
-        command: "/tool/user-manager/profile/set",
+        command: "/user-manager/profile/set",
         data: {
           "name": data["name"]??profile.name ,
-          "owner": data["customer"]??profile.customer ,
+          // "owner": data["customer"]??profile.customer ,
           "name-for-users": data["name"]??profile.name ,
           "validity": data["validity"]??profile.validity ,
           "price": data["price"]??profile.price ,
@@ -317,34 +240,34 @@ class ProfilesApi7 {
     
     try {
       
-      String newProfileName='MikroNet_${name}_profile';
+      // String newProfileName='MikroNet_${name}_profile';
       String newLimitName='MikroNet_${name}_limit';
 
       
       // remove link
       await MikrotikClient.deleteData(
-        command: "/tool/user-manager/profile/profile-limitation/remove",
+        command: "/user-manager/profile-limitation/remove",
         condition: "?profile=$name"
       );
       
       // remove profile
       await MikrotikClient.deleteData(
-        command: "/tool/user-manager/profile/remove",
+        command: "/user-manager/profile/remove",
         condition: "?name=$name"
       );
 
       // remove limit
       await MikrotikClient.deleteData(
-        command: "/tool/user-manager/profile/limitation/remove",
+        command: "/user-manager/limitation/remove",
         condition: "?name=$newLimitName"
       );
 
 
       // remove hotspot profile
-      await MikrotikClient.deleteData(
-        command: "/ip/hotspot/user/profile/remove",
-        condition: "?name=$newProfileName"
-      );
+      // await MikrotikClient.deleteData(
+      //   command: "/ip/hotspot/user/profile/remove",
+      //   condition: "?name=$newProfileName"
+      // );
       
 
 
@@ -375,42 +298,9 @@ class ProfilesApi7 {
 
 
 class CardsApi7 {
-  // int version;
-  // CardsApi({this.version=6});
-  Map commands={
-    6:
-    {
-      'user_profiles':'/tool/user-manager/profile/print',
-      'user_customers':'/tool/user-manager/customer/print',
-      'user_adduser':'/tool/user-manager/user/add',
-      'user_addprofile':'/tool/user-manager/user/create-and-activate-profile',
-    },
-    7:
-    {
-      'user_profiles':'/user-manager/profile/print',
-      'user_customers':'/user-manager/user/group/print',
-      'user_adduser':'/user-manager/user/add',
-      'user_addprofile':'/user-manager/user-profile/add',
-    },
-  };
-  // static const String _props=""".id,username,password,actual-profile,uptime-used,download-used,upload-used,last-seen,customer""";
-  // List cards=[];
 
   static CardModel fromMikrotik7(Map card){
     String tempStatus="normal";
-    // {
-    //   .id: *5A4, name: zz7354, password:, otp-secret:, group: 1, 
-    //   shared-users: unlimited, attributes:, disabled: false, 
-    //   comment: jan/26/2025 23:02:59, 
-    //   profile: {
-    //     .id: *6F07, user: zz7354, profile: 2500, 
-    //     state: running-active, 
-    //     end-time: 2026-05-07 15:23:20
-    //   }
-    // },
-    // String uptime="";
-
-    // uptime=card.keys.toList().contains("uptime-used")?card["uptime-used"]:"";
 
     if(card["profile"].isNotEmpty && (card["profile"]["state"]=="used" || card["profile"]["state"]=="running")){
       tempStatus="expired";
@@ -436,10 +326,16 @@ class CardsApi7 {
   static Future<List> _getAllCards({List where = const ["=detail="]}) async {
     try {
       List myCardsProfiles = await MikrotikClient.printData(
-          commands: ["/user-manager/user-profile/print"], /* fields: _props */);
+          commands: ["/user-manager/user-profile/print"], 
+          fields: '.id,user,profile,state',
+          tag: 'cards_profiles'
+        );
 
       List myCards = await MikrotikClient.printData(
-          commands: ["/user-manager/user/print"], /* fields: _props */);
+          commands: ["/user-manager/user/print"],
+          fields: '.id,name,group,password',
+          tag: 'cards'
+        );
       
       List result=[];
       for (var card in myCards) {
@@ -564,6 +460,8 @@ class CardsApi7 {
     required Map<String, String> data,
   }) async {
     try {
+      data['name']=data['username']!;
+      data.remove('username');
       await MikrotikClient.editData(
           command: "/user-manager/user/set",
           data: data,
@@ -645,7 +543,8 @@ class CardsApi7 {
       List sessions = await MikrotikClient.printData(
           commands: ["/user-manager/session/print"],
           conditions: ["?user=$username"],
-          fields: '.id,user,started,ended,calling-station-id,user-address,uptime,nas-port-id,download,upload,last-accounting-packet'
+          fields: '.id,user,started,ended,calling-station-id,user-address,uptime,nas-port-id,download,upload,last-accounting-packet',
+          tag: 'cards_sessions'
         );
       List<CardSessionModel> result = sessions
           .map((session) => 
@@ -732,3 +631,200 @@ class CardsApi7 {
 
 
 
+
+class SitesApi7 {
+
+  
+    // ==========================================
+  // Layer7 Methods (RouterOS v7)
+  // ==========================================
+
+  static Future<AppResponse> addBlockByLayer7(BlockedSiteModel site) async {
+    try {
+      String comment = "MikroNet_Block_${site.name}_[v7]";
+      
+      var layer7 = await MikrotikClient.addData(
+        command: "/ip/firewall/layer7-protocol/add",
+        data: {'name': site.name, 'regexp': site.blockValue, 'comment': comment}
+      );
+
+      var filter = await MikrotikClient.addData(
+        command: "/ip/firewall/filter/add",
+        data: {
+          'action': 'drop',
+          'chain': 'forward',
+          'layer7-protocol': site.name,
+          'out-interface': site.interface.isEmpty ? "all-ethernet" : site.interface,
+          'comment': comment
+        }
+      );
+      return AppResponse(status: true, message: "${layer7.toString()} , ${filter.toString()}");
+    } catch (e) {
+      return AppResponse(status: false, message: e.toString());
+    }
+  }
+
+  static Future<AppResponse> editBlockByLayer7(BlockedSiteModel site) async {
+    try {
+      String comment = "MikroNet_Block_${site.name}_[v7]";
+      
+      await MikrotikClient.addData(
+        command: "/ip/firewall/layer7-protocol/set",
+        data: {
+          '.id': site.layer7Id,
+          'name': site.name,
+          'regexp': site.blockValue,
+          'comment': comment
+        }
+      );
+
+      await MikrotikClient.addData(
+        command: "/ip/firewall/filter/set",
+        data: {
+          '.id': site.filterId,
+          'layer7-protocol': site.name,
+          'out-interface': site.interface,
+          'comment': comment
+        }
+      );
+      
+      return AppResponse(status: true, message: "تم التعديل بنجاح");
+    } catch (e) {
+      return AppResponse(status: false, message: e.toString());
+    }
+  }
+
+  // ==========================================
+  // SSL Methods
+  // ==========================================
+  // ==========================================
+  // SSL Methods (RouterOS v7)
+  // ==========================================
+
+  static Future<AppResponse> _addSSLMangleV7(String name, String domain, String comment) async {
+    try {
+      var response = await MikrotikClient.addData(
+        command: "/ip/firewall/mangle/add",
+        data: {
+          'action': 'add-dst-to-address-list',
+          'address-list': name,
+          'address-list-timeout': '1d',
+          'chain': 'prerouting',
+          'protocol': 'tcp',
+          'dst-port': '443', // إضافة مخصصة لـ V7
+          'tls-host': '*$domain*',
+          'comment': comment,
+        }
+      );
+      return AppResponse(status: true, message: "done", data: response);
+    } catch (e) {
+      return AppResponse(status: false, message: e.toString());
+    }
+  }
+
+  static Future<AppResponse> _addSSLFilterTlsV7(String outInterface, String domain, String comment) async {
+    try {
+      var response = await MikrotikClient.addData(
+        command: "/ip/firewall/filter/add",
+        data: {
+          'action': 'drop',
+          'chain': 'forward',
+          'protocol': 'tcp',
+          'dst-port': '443', // إضافة مخصصة لـ V7
+          'tls-host': '*$domain*',
+          'out-interface': outInterface,
+          'comment': comment,
+        }
+      );
+      return AppResponse(status: true, message: "done", data: response);
+    } catch (e) {
+      return AppResponse(status: false, message: e.toString());
+    }
+  }
+
+  static Future<AppResponse> _linkFilterWithMangleV7(String name, String outInterface, String comment) async {
+    try {
+      var response = await MikrotikClient.addData(
+        command: "/ip/firewall/filter/add",
+        data: {
+          'action': 'drop',
+          'chain': 'forward',
+          // الانتباه هنا: لا نضيف dst-port بناءً على السكربت الذي أرسلته لفلتر الـ IP
+          'dst-address-list': name,
+          'out-interface': outInterface,
+          'comment': comment,
+        }
+      );
+      return AppResponse(status: true, message: "done", data: response);
+    } catch (e) {
+      return AppResponse(status: false, message: e.toString());
+    }
+  }
+
+  static Future<AppResponse> addBlockBySSL(BlockedSiteModel site) async {
+    try {
+      String comment = "MikroNet_Block_${site.name}_[v7]"; // تمييز التعليق بـ v7
+      String outInterface = site.interface.isEmpty ? "all-ethernet" : site.interface;
+
+      var mangle = await _addSSLMangleV7(site.name, site.blockValue, comment);
+      var tls = await _addSSLFilterTlsV7(outInterface, site.blockValue, comment);
+      var link = await _linkFilterWithMangleV7(site.name, outInterface, comment);
+      
+      var response = [mangle, tls, link];
+      return AppResponse(status: true, message: "${mangle.message} , ${tls.message} , ${link.message}", data: response);
+      
+    } catch (e) {
+      return AppResponse(status: false, message: e.toString());
+    }
+  }
+
+  static Future<AppResponse> editBlockBySSL(BlockedSiteModel site) async {
+    try {
+      String comment = "MikroNet_Block_${site.name}_[v7]";
+
+      // 1. تعديل المانجل
+      await MikrotikClient.addData(
+        command: "/ip/firewall/mangle/set",
+        data: {
+          '.id': site.id, 
+          'address-list': site.name,
+          'protocol': 'tcp',
+          'dst-port': '443', // تأكيد وجود البورت عند التعديل
+          'tls-host': '*${site.blockValue}*',
+          'comment': comment,
+        }
+      );
+
+      // 2. تعديل فلتر الـ TLS
+      await MikrotikClient.addData(
+        command: "/ip/firewall/filter/set",
+        data: {
+          '.id': site.filterId,
+          'protocol': 'tcp',
+          'dst-port': '443', // تأكيد وجود البورت عند التعديل
+          'tls-host': '*${site.blockValue}*',
+          'out-interface': site.interface,
+          'comment': comment,
+        }
+      );
+
+      // 3. تعديل فلتر الربط
+      await MikrotikClient.addData(
+        command: "/ip/firewall/filter/set",
+        data: {
+          '.id': site.linkId,
+          'dst-address-list': site.name,
+          'out-interface': site.interface,
+          'comment': comment,
+        }
+      );
+
+      return AppResponse(status: true, message: "تم التعديل بنجاح");
+    } catch (e) {
+      return AppResponse(status: false, message: e.toString());
+    }
+  }
+
+  
+
+}

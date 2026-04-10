@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mikronet/services/mikrotik_client.dart';
 import '../dialog_helper.dart';
 import '../../core/routes/app_pages.dart';
 import '../../models/cards_model.dart';
@@ -29,10 +30,25 @@ class CardsListController extends GetxController {
 
   @override
   void onClose() {
+    close();
     userCtrl.dispose();
     passCtrl.dispose();
     pkgCtrl.dispose();
     super.onClose();
+  }
+
+  Future<void> close()async{
+    // await MikrotikClient.cancel();
+    if(isLoading.value){
+      MikrotikClient.cancelCommand('users_profiles');
+      print('\n \n \n \n \n \n \n \n \n \n');
+      print('users_profiles');
+      print('\n \n \n \n \n \n \n \n \n \n');
+      MikrotikClient.cancelCommand('users');
+      print('\n \n \n \n \n \n \n \n \n \n');
+      print('users');
+      print('\n \n \n \n \n \n \n \n \n \n');
+    }
   }
 
   void goBack() {

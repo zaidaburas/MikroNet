@@ -28,7 +28,7 @@ class ProfilesController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchPackages();
+    init();
   }
 
   Future<void> init()async{
@@ -102,19 +102,22 @@ class ProfilesController extends GetxController {
 
     final data = {
       "name": nameCtrl.text, 
-      "price": priceCtrl.text,
+      "price": priceCtrl.text.isEmpty?'0':priceCtrl.text,
       "validity": validity, 
       "uptime": uptime,
       "palance": palance, 
-      "speed": speedCtrl.text,
+      "speed": speedCtrl.text.trim().isEmpty?'0/0':speedCtrl.text.toUpperCase().trim().toUpperCase(),
       "customer": customers.first.name, 
       "users": "1",
     };
+    // print('\n');print('\n');print('\n');print('\n');print('\n');
+    // print(data);
+    // print('\n');print('\n');print('\n');print('\n');print('\n');
 
     Get.back();
     Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
 
-    var response = index != null 
+    var response = (index != null )
         ? await ProfilesApi.profileEdit(packages[index].name, data)
         : await ProfilesApi.addOneProfile(data);
 
@@ -143,7 +146,10 @@ class ProfilesController extends GetxController {
       Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
       var response = await ProfilesApi.deleteProfile(packages[index].name);
       if (Get.isDialogOpen ?? false) Get.back();
-      if (response.status) packages.removeAt(index);
+      if (response.status) {
+        packages.removeAt(index);
+        Get.snackbar('تم الحذف', 'تم الحذف بنجاح');
+      }
     });
   }
 }

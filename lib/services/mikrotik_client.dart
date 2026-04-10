@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:charset/charset.dart';
-import 'router_os_client.dart';
+import 'router.dart';
 
 class MikrotikClient {
   static RouterOSClient? _client; // القناة الأساسية السريعة (للباقات والإضافات)
-  static RouterOSClient? _heavyClient; // القناة الثقيلة (لجلب الكروت والجلسات فقط)
+  // static RouterOSClient? _heavyClient; // القناة الثقيلة (لجلب الكروت والجلسات فقط)
   static int version=0;
 
   // حفظ الإعدادات لإعادة الاتصال التلقائي الصامت في حال فصل الراوتر إحدى القنوات
@@ -40,26 +40,27 @@ class MikrotikClient {
       useSsl: useSsl, verbose: verbose,
     );
 
-    _heavyClient = RouterOSClient(
-      address: address, user: user, password: password,
-      port: port, timeout: Duration(seconds: timeout),
-      useSsl: useSsl, verbose: verbose,
-    );
+    // _heavyClient = RouterOSClient(
+    //   address: address, user: user, password: password,
+    //   port: port, timeout: Duration(seconds: timeout),
+    //   useSsl: useSsl, verbose: verbose,
+    // );
   }
 
   static Future<bool> login() async {
     // الاتصال بالراوتر من القناتين في نفس اللحظة (توفير للوقت)
-    var results = await Future.wait([
-      _client!.login(),
-      _heavyClient!.login(),
-    ]);
+    var results = await _client!.login();
+    // Future.wait([
+    //   _client!.login(),
+    //   // _heavyClient!.login(),
+    // ]);
     version= await getVersion();
     // يرجع true إذا نجح الاتصال بالقناتين
-    return results[0] && results[1];
+    return results;
   }
 
   static void _checkConnection() {
-    if (_client == null || _heavyClient == null) {
+    if (_client == null /* || _heavyClient == null */) {
       throw Exception("empty socket connection");
     }
   }
@@ -68,7 +69,7 @@ class MikrotikClient {
 
   static String decode(String text) {
     try {
-      return utf8.decode(windows1256.encode(text), allowMalformed: true);
+      return utf8.decode(windows1256.encode(text), allowMalformed: false);
     } catch (e) {
       return text;
     }
@@ -76,6 +77,7 @@ class MikrotikClient {
 
   static String encode(String text) {
     try {
+      // return windows1256.decode(utf8.encode(text), allowInvalid: true);
       return windows1256.decode(utf8.encode(text), allowInvalid: true);
     } catch (e) {
       return text;
@@ -110,6 +112,7 @@ class MikrotikClient {
   static Future<List> fetch({
     required dynamic command,
     Map<String, String>? params,
+    String customTag="main_fetch_tage",
   }) async {
     _checkConnection();
     Map<String, String>? encodedParams;
@@ -120,11 +123,13 @@ class MikrotikClient {
       });
     }
 
-    // تبديل الاتصال تلقائياً بناءً على نوع الأمر
-    RouterOSClient activeClient = _isHeavyCommand(command) ? _heavyClient! : _client!;
-
     try {
-      List rawResult = await activeClient.talk(command, encodedParams);
+      List rawResult = await _client!.talk(
+        command, 
+        // encodedParams
+        params: encodedParams,
+        customTag: customTag
+      );
       return _decodeResult(rawResult);
     } catch (e) {
       // إعادة الاتصال الصامت إذا حصل أي خطأ
@@ -134,9 +139,13 @@ class MikrotikClient {
         port: _port, timeout: _timeout, useSsl: _useSsl, verbose: _verbose
       );
       await login();
-      activeClient = _isHeavyCommand(command) ? _heavyClient! : _client!;
       
-      List rawResult = await activeClient.talk(command, encodedParams);
+      List rawResult = await _client!.talk(
+        command,
+        // encodedParams
+        params: encodedParams,
+        customTag: customTag
+      );
       return _decodeResult(rawResult);
     }
   }
@@ -145,9 +154,10 @@ class MikrotikClient {
   static Stream<Map<String, dynamic>> fetchStream({
     required dynamic command,
     Map<String, String>? params,
+    String customTag="main_fetch_stream_tage",
   }) async* {
     _checkConnection();
-    RouterOSClient activeClient = _heavyClient!;
+    // RouterOSClient activeClient = _heavyClient!;
 
     Map<String, String>? encodedParams;
     if (params != null) {
@@ -158,7 +168,12 @@ class MikrotikClient {
     }
 
     try {
-      await for (var item in activeClient.streamData(command, encodedParams)) {
+      await for (var item in _client!.streamData(
+        command,
+        // encodedParams
+        params: encodedParams,
+        customTag: customTag
+      )) {
         Map<String, dynamic> decodedMap = {};
         item.forEach((key, value) {
           decodedMap[key] = decode(value);
@@ -175,6 +190,7 @@ class MikrotikClient {
     required List<String> commands,
     List<String> conditions = const [],
     String fields = "",
+    String tag="print_tage",
   }) async {
     if (conditions.isNotEmpty) {
       commands.addAll(conditions);
@@ -183,11 +199,15 @@ class MikrotikClient {
     if (fields != "") {
       params = {".proplist": fields};
     }
-    return await fetch(command: commands, params: params);
+    return await fetch(command: commands, params: params,customTag: tag);
   }
 
-  static Future<List> addData({required String command, required Map<String, String> data}) async {
-    return await fetch(command: command, params: data);
+  static Future<List> addData({
+    required String command, 
+    required Map<String, String> data,
+    String tag="add_tage",
+  }) async {
+    return await fetch(command: command, params: data,customTag: tag);
   }
 
   static Future<String> _getElementId(String setCmd, String cond) async {
@@ -198,27 +218,30 @@ class MikrotikClient {
       printCmd += "${cmd[i]}/";
     }
     printCmd += "print";
-    List result = await printData(commands: [printCmd], conditions: [cond], fields: ".id");
+    List result = await printData(commands: [printCmd], conditions: [cond], fields: ".id",tag: "get_id_tag");
     return result[0]['.id'];
   }
 
   static Future<List> editData({required String command, required Map<String, String> data, required String condition}) async {
     String userId = await _getElementId(command, condition);
-    return await fetch(command: [command, "=.id=$userId"], params: data);
+    return await fetch(command: [command, "=.id=$userId"], params: data,customTag: "edit_tag");
   }
 
-  static Future<List> deleteData({required String command, required String condition}) async {
+  static Future<List> deleteData({required String command, required String condition,String tag="delete_tage",}) async {
     String userId = await _getElementId(command, condition);
-    return await fetch(command: [command, "=.id=$userId"]);
+    return await fetch(command: [command, "=.id=$userId"],customTag: tag);
   }
 
-  static Future<List> removeById({required String command, required String id}) async {
-    return await fetch(command: [command, "=.id=$id"]);
+  static Future<List> removeById({required String command, required String id,String tag="remove_by_id_tage",}) async {
+    return await fetch(command: [command, "=.id=$id"],customTag: tag);
   }
 
   static Future<int> getVersion() async {
     _checkConnection();
-    List result = await _client!.talk("/system/resource/print");
+    List result = await _client!.talk(
+      "/system/resource/print",
+      // customTag: 'get_version'
+    );
     try {
       return int.parse(result[0]["version"].split('.')[0]);
     } catch (e) {
@@ -226,13 +249,18 @@ class MikrotikClient {
     }
   }
 
-  // static Future<void> cancel(String tag)async{
-  //   await _client!.cancelCommand(tag);
-  // }
+  static Future<void> cancelCommand(String tag)async{
+    // await _client!.cancelCommand(tag);
+  }
 
-  // static Future<void> close()async{
-  //   _client!.close();
-  // }
+  static Future<void> cancel()async{
+    _client!.close();
+    await _client!.login();
+  }
+
+  static Future<void> close()async{
+    _client!.close();
+  }
 }
 
 

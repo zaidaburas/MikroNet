@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
+// import 'dart:convert'; for utf8
 import 'dart:io';
 
 import 'package:charset/charset.dart';

@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 // تأكد من صحة مسارات الاستيراد لمشروعك
 import '/models/sites_model.dart';
 import '/api/sites_api.dart'; 
-import '/services/response.dart'; 
+import '/models/response.dart'; 
 
 // مسار ملف dialog_helper
 import '/controllers/dialog_helper.dart'; 

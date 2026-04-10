@@ -4,7 +4,7 @@ import 'package:mikronet/api/profiles_api.dart';
 import 'package:mikronet/controllers/helpers/functions.dart';
 import 'package:mikronet/models/profiles_model.dart';
 import 'package:mikronet/models/response.dart';
-// import 'package:mikronet/services/response.dart';
+// import 'package:mikronet/models/response.dart';
 import 'package:mikronet/views/prints/batches/generated_cards.dart';
 import 'package:mikronet/views/prints/templates/pdf_view.dart';
 import '/views/helpers/dialogs.dart';
