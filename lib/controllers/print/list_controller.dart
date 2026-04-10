@@ -1,3 +1,4 @@
+// import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:mikronet/views/prints/batches/generated_cards.dart';
 import 'package:mikronet/views/prints/templates/pdf_view.dart';
@@ -15,10 +16,77 @@ class BatchesController extends GetxController{
 
   
   List<PrintBatchesModel> allBatches=[];
+  bool isLoading=false;
+  bool isDeleteLoading=false;
+  // TextEditingController batchName=TextEditingController();
+  
   // List<GeneratedCardsModel> generatedCards = [];
   
 
+  Future<void> deleteBatch(PrintBatchesModel batch,int deleteOption)async{
+    isDeleteLoading=true;
+    update();
+    try {
+      // int r=-1;
+      String response="";
+      if (deleteOption==1) {
+        // الحذف من المايكروتك فقط
+        response=(await PrintBatchesApi.deleteFromServer(batch.id))=="done"?"1":"0";
+        // showErrorDialog(content: rr);
+      }
+      else if (deleteOption==2) {
+        // الحذف من sqflite فقط
+        response=(await PrintBatchesApi.deleteFromLocal(batch.id))>0?"2":"0";
+      }
+      else if (deleteOption==3) {
+        // كود الحذف من الاثنين معاً
+        response=(await PrintBatchesApi.deleteBatch(batch.id))=="done"?"3":"0";
+        // showErrorDialog(content: rr);
+      }
+      if (response=="1") {
+        Get.back();
+        update();
+      }
+      else if (response=="2") {
+        allBatches.remove(batch);
+        Get.back();
+        update();
+      }
+      else if (response=="3") {
+        allBatches.remove(batch);
+        Get.back();
+        update();
+      }
+    } catch (e) {
+      showErrorDialog(content: e.toString());
+    }
+    finally{
+      isDeleteLoading=false;
+      update();
+    }
+  }
   
+  Future<void> editBatch(PrintBatchesModel batch,String name,DateTime date)async{
+    try {
+      if (name.trim().isNotEmpty) {
+        int r=await PrintBatchesApi.batchEdit(
+          batch.id, 
+          {
+            'name':name.trim(),
+            'created_at':date.microsecondsSinceEpoch,
+          }
+        );
+        if (r>0) {
+          batch.name=name.trim();
+          batch.createdAt = date;
+          Get.back();
+          update();
+        }
+      }
+    } catch (e) {
+      showErrorDialog(content: e.toString());
+    }
+  }
 
   Future<void> getBatchCards(int id)async{
     try {

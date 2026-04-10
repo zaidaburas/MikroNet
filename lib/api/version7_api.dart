@@ -526,7 +526,7 @@ class CardsApi7 {
 
       // 2. المرور على الناتج واستخراج الـ id للكروت المطابقة
       for (var user in allUsers) {
-        if (usernames.contains(user['username'])) {
+        if (usernames.contains(user['name'])) {
           extractedIds.add(user['.id']!);
         }
       }

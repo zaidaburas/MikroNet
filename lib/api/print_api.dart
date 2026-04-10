@@ -102,8 +102,8 @@ class PrintBatchesApi {
 //   return cards;
 //  }
 
- static Future<int> batchEdit(int id, Map data)async{
-  return await DBApi.update("batches", data as Map<String, dynamic> ,"id=$id");
+ static Future<int> batchEdit(int id, Map<String, dynamic> data)async{
+  return await DBApi.update("batches", data ,"id=$id");
  }
 
  static Future<int> deleteFromLocal(int id)async{

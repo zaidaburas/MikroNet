@@ -9,7 +9,7 @@ import 'package:mikronet/models/profiles_model.dart';
 import 'package:mikronet/models/cards_model.dart'; // تم إضافة هذا الاستيراد لجلب CustomerModel
 import 'package:mikronet/models/response.dart';
 import 'package:mikronet/views/helpers/dialogs.dart';
-import 'package:mikronet/views/prints/batches/generated_cards.dart';
+// import 'package:mikronet/views/prints/batches/generated_cards.dart';
 import 'package:mikronet/views/prints/templates/pdf_view.dart';
 
 class BatchesFormController extends GetxController {
@@ -126,7 +126,7 @@ class BatchesFormController extends GetxController {
       'created_at': dateTime.microsecondsSinceEpoch,
       'template_id': selectedTemplate.value,
       'generated_cards': generatedUsernames.join(","),
-      'cards_profile': selectedProfile.value,
+      'cards_profile': allProfiles.where((p)=>p.id==selectedProfile.value).toList().first.name,
       'card_prefix': prefix.text.trim(),
       'card_suffix': suffix.text.trim(),
       'customer': selectedCustomer.value, // إضافة العميل للحفظ في قاعدة البيانات
@@ -235,6 +235,7 @@ class BatchesFormController extends GetxController {
       }
 
       Get.back(); 
+      Get.back(); 
       showSuccessDialog();
 
     } catch (e) {
@@ -317,9 +318,9 @@ class BatchesFormController extends GetxController {
 
   @override
   void onInit() {
-    super.onInit();
     init();
     _getDataFromMikrotik();
+    super.onInit();
   }
   void _getDataFromMikrotik()async{
     await getAllCustomers(); // استدعاء دالة جلب العملاء
@@ -343,42 +344,48 @@ class BatchesFormController extends GetxController {
     };
     super.update(ids, condition);
   }
-}
-
-void showSuccessDialog() {
-  Get.dialog(
-    AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.check_circle_rounded, color: Colors.green, size: 70),
-          const SizedBox(height: 15),
-          const Text("عملية ناجحة",
-              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
-          const Text("تم إنشاء الدفعة وإضافتها للميكروتك بنجاح. هل تطبعها الآن؟",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey, fontSize: 12)),
-          const SizedBox(height: 25),
-          Row(children: [
-            Expanded(
-                child: TextButton(
-                    onPressed: () {
-                      Get.back();
-                    },
-                    child: const Text("لاحقاً"))),
-            Expanded(
-                child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12))),
-                    onPressed: () {
-                    },
-                    child: const Text("طباعة PDF"))),
-          ])
-        ],
+  
+  void showSuccessDialog() {
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.check_circle_rounded, color: Colors.green, size: 70),
+            const SizedBox(height: 15),
+            const Text("عملية ناجحة",
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+            const Text("تم إنشاء الدفعة وإضافتها للميكروتك بنجاح. هل تطبعها الآن؟",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey, fontSize: 12)),
+            const SizedBox(height: 25),
+            Row(children: [
+              Expanded(
+                  child: TextButton(
+                      onPressed: () {
+                        Get.back();
+                      },
+                      child: const Text("لاحقاً"))),
+              Expanded(
+                  child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12))),
+                      onPressed: () {
+                        Get.back();
+                        Get.to(PdfView(
+                          usernames: generatedCards.map((g)=>g.username).toList(), 
+                          passwords: generatedCards.map((g)=>g.password).toList(), 
+                          template: allTemplates.where((t)=>t.id==selectedTemplate.value).first,
+                        ));
+                      },
+                      child: const Text("طباعة PDF"))),
+            ])
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
