@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mikronet/api/users/active_users_api.dart';
 import '/core/routes/app_pages.dart';
 import 'package:mikronet/core/extensions/string_extensions.dart';
 
@@ -102,7 +103,7 @@ class HomeController extends GetxController with GetSingleTickerProviderStateMix
       }
     }
 
-    var activeResponse = await UsersApi.getAllActive();
+    var activeResponse = await ActiveUsersApi.getAllActive();
     if (activeResponse.status && activeResponse.data != null) {
       activeUsersCount.value = "${activeResponse.data!.length} متصل";
     }

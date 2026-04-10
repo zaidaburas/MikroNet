@@ -6,92 +6,14 @@ import 'users/saved_users_api.dart';
 class UsersApi {
   // UsersApi({});
 
-  static const String _hostsFields=".id,mac-address,address,to-address,server,uptime,bytes-in,bytes-out,authorized,bypassed,comment";
-  static const String _activeFields=".id,server,user,address,mac-address,uptime,session-time-left,bytes-in,bytes-out,limit-bytes-total,comment";
 
-  static Future<AppResponse<List<HostUserModel>>> getAllHosts({String where="=detail="})async{
-    try {
-      List usersData=await MikrotikClient.printData(
-        commands: [
-          "/ip/hotspot/host/print",
-          where
-        ],
-        fields: _hostsFields
-      );
-      List<HostUserModel> result = usersData.map((e) => HostUserModel.fromMikrotik(e)).toList();
-      return AppResponse<List<HostUserModel>>(
-        status: true,
-        message: "done",
-        data: result
-      );
-    } catch (e) {
-      return AppResponse<List<HostUserModel>>(
-        status: false,
-        message: e.toString(),
-      );
-    }
-  }
-
-  static Future<AppResponse<List<ActiveUserModel>>> getAllActive({String where="=detail="})async{
-    try {
-      List usersData=await MikrotikClient.printData(
-        commands: [
-          "/ip/hotspot/active/print",
-          where
-        ],
-        fields: _activeFields,
-      );
-      List<ActiveUserModel> result = usersData.map((e) => ActiveUserModel.fromMikrotik(e)).toList();
-      return AppResponse<List<ActiveUserModel>>(
-        status: true,
-        message: "done",
-        data: result
-      );
-    } catch (e) {
-      return AppResponse<List<ActiveUserModel>>(
-        status: false,
-        message: e.toString(),
-      );
-    }
-  }
-
-  static Future<AppResponse<void>> removeOneActive(String username)async{
-    try {
-      await MikrotikClient.deleteData(
-        command: "/ip/hotspot/active/remove",
-        condition: "?user=$username"
-      );
-      return AppResponse<void>(
-        status: true,
-        message: "done",
-      );
-    } catch (e) {
-      return AppResponse<void>(
-        status: false,
-        message: e.toString(),
-      );
-    }
-    
-  }
   
-  static Future<AppResponse<void>> removeOneHost(String srcAddress)async{
-    try {
-      await MikrotikClient.deleteData(
-        command: "/ip/hotspot/host/remove",
-        condition: "?address=$srcAddress"
-      );
-      return AppResponse<void>(
-        status: true,
-        message: "done",
-      );
-    } catch (e) {
-      return AppResponse<void>(
-        status: false,
-        message: e.toString(),
-      );
-    }
-    
-  }
+
+  
+
+  
+  
+  
 
   static Future<AppResponse<void>> insertCardToOne({
     required String username,

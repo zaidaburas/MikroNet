@@ -226,3 +226,8 @@ void showLoadingDialog({
     barrierDismissible: false, // منع الإغلاق بالنقر خارج النافذة
   );
 }
+void hideDialog(){
+  if(Get.isOverlaysOpen){
+    Get.back();
+  }
+}

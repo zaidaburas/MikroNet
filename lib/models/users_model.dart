@@ -78,7 +78,7 @@ class HostUserModel {
   final String server;
   final String download;
   final String upload;
-  final String type;
+  final UserType type;
   final String label;
   
   HostUserModel({
@@ -98,13 +98,13 @@ class HostUserModel {
     bool isAuth=user.keys.contains("authorized");
     bool isBypass=user.keys.contains("bypassed");
     if( isAuth && user["authorized"]=="true" ){
-      user["type"]="auth";
+      user["type"]="authorized";
     }
     else if( isBypass && user["bypassed"]=="true" ){
-      user["type"]="bypass";
+      user["type"]="bypassed";
     }
     else{
-      user["type"]="unauth";
+      user["type"]="regular";
     }
     return HostUserModel(
       id: user[".id"]??"Unknown",
@@ -115,7 +115,7 @@ class HostUserModel {
       server: user["server"]??"Unknown", 
       download: user["bytes-out"]??"Unknown",
       upload: user["bytes-in"]??"Unknown",
-      type: user["type"]??"Unknown",
+      type: UserType.parse(user["type"]),
       label: user["comment"]??"Unknown",
     );
   }
@@ -130,7 +130,7 @@ class HostUserModel {
       "server":server,
       "download":download,
       "upload":upload,
-      "type":type,
+      "type":type.name,
       "label":label,
     };
   }
@@ -182,6 +182,7 @@ class ActiveUserModel {
       username: user["user"]??"Unknown",
       totalPalance: user["limit-bytes-total"]??"Unknown", 
       timeLeft: user["session-time-left"]??"Unknown", 
+      
     );
   }
 

@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mikronet/api/users/active_users_api.dart';
 import '../dialog_helper.dart'; 
-import '/api/users_api.dart';
 import '/models/users_model.dart';
 import '/models/response.dart';
 
@@ -19,7 +18,8 @@ class ActiveSessionsController extends GetxController {
   Future<void> fetchActiveSessions() async {
     isLoading.value = true;
     try {
-      AppResponse<List<ActiveUserModel>> response = await UsersApi.getAllActive();
+      AppResponse<List<ActiveUserModel>> response = await ActiveUsersApi.getAllActive();
+      isLoading.value = false;
       if (response.status) {
         actives.assignAll(response.data ?? []);
       } else {
@@ -27,70 +27,42 @@ class ActiveSessionsController extends GetxController {
       }
     } catch (e) {
       showMsgDialog(message: "خطأ في الاتصال: $e");
-    } finally {
-      isLoading.value = false;
     }
   }
 
   /* ---------------- الاجراءات والعمليات ---------------- */
 
   Future<void> disconnect(ActiveUserModel user) async {
-    _showLoading();
-    var res = await UsersApi.removeOneActive(user.username);
-    _hideLoading();
+    showLoadingDialog();
+    var res = await ActiveUsersApi.removeOneActive(user);
+    hideDialog();
     if (res.status) fetchActiveSessions();
   }
 
   Future<void> rename(ActiveUserModel user, String newName) async {
     if (newName.isEmpty) return;
-    AppResponse<void> res;
-    _showLoading();
-    res = await UsersApi.labelDevice(
-      macAddress: user.macAddress,
-      label: newName,
-    );
-    /*if(user.label == "Unknown"){
-    }else{
-    var map = {
-        "mac-address":user.macAddress,
-        "comment": user.label
-      };
-      var device = await UsersApi.getUserId({
-        "mac-address":user.macAddress,
-        "comment": user.label
-      });
-      //showMsgDialog(message: map.toString());
-      res = await UsersApi.editDevice(device.data.toString(),label: newName);
-      
-    }
-    */
-    _hideLoading();
+    showLoadingDialog();
+    var res = await ActiveUsersApi.renameActiveUser(user,newName);
+   
+    hideDialog();
     if (res.status) fetchActiveSessions();
   }
 
   Future<void> block(ActiveUserModel user) async {
-    _showLoading();
-    var res = await UsersApi.blockDevice(
-      macAddress: user.macAddress,
-      label: "Blocked: ${user.username}",
-    );
-    _hideLoading();
+    showLoadingDialog();
+    var res = await ActiveUsersApi.blockActiveUser(user);
+    hideDialog();
     if (res.status) {
-      await UsersApi.removeOneActive(user.username);
+      await ActiveUsersApi.removeOneActive(user);
       fetchActiveSessions();
     }
   }
 
   Future<void> makeFree(ActiveUserModel user) async {
-    _showLoading();
-    var res = await UsersApi.bypassDevice(
-      macAddress: user.macAddress,
-      label: "Free: ${user.username}",
-    );
-    _hideLoading();
+    showLoadingDialog();
+    var res = await ActiveUsersApi.bypassActiveUser(user);
+    hideDialog();
     if (res.status) fetchActiveSessions();
   }
 
-  void _showLoading() => Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
-  void _hideLoading() { if (Get.isDialogOpen ?? false) Get.back(); }
-}
+  }
