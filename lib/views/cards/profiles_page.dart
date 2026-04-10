@@ -20,8 +20,9 @@ class ProfilesPage extends GetView<ProfilesController> {
         floatingActionButton: FloatingActionButton.extended(
           backgroundColor: const Color(0xFF1E3A8A),
           onPressed: () {
-            controller.prepareSheet();
-            _openUpsertSheet(context);
+            controller.goToAddProfile();
+            // controller.prepareSheet();
+            // _openUpsertSheet(context);
           },
           label: const Text("إضافة باقة", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           icon: const Icon(Icons.add_circle_outline_rounded, color: Colors.white),
@@ -187,8 +188,7 @@ class ProfilesPage extends GetView<ProfilesController> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         TextButton.icon(onPressed: () {
-          controller.prepareSheet(item: p);
-          _openUpsertSheet(context, index: i);
+          controller.goToEditProfile(p);
         }, icon: const Icon(Icons.edit_outlined), label: const Text("تعديل")),
         const VerticalDivider(),
         TextButton.icon(onPressed: () => controller.confirmDelete(i), icon: const Icon(Icons.delete_outline, color: Colors.red), label: const Text("حذف", style: TextStyle(color: Colors.red))),

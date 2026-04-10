@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mikronet/api/cards_api.dart';
+import 'package:mikronet/core/routes/app_pages.dart';
 import 'package:mikronet/models/cards_model.dart';
 import '/controllers/dialog_helper.dart';
 import '/api/profiles_api.dart';
@@ -152,4 +153,6 @@ class ProfilesController extends GetxController {
       }
     });
   }
+  void goToAddProfile()=>Get.toNamed(AppRoutes.addProfile);
+  void goToEditProfile(ProfilesModel profile)=>Get.toNamed(AppRoutes.editProfile,arguments: profile);
 }

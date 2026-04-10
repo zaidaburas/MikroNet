@@ -1,7 +1,11 @@
 import 'package:get/get.dart';
+import 'package:mikronet/controllers/cards/profiles/add_profile_controller.dart';
+import 'package:mikronet/controllers/cards/profiles/edit_profile_controller.dart';
 import 'package:mikronet/controllers/more/more_settings_controller.dart';
 import 'package:mikronet/controllers/reports/system_status_controller.dart';
 import 'package:mikronet/controllers/sites/dns_settings_controller.dart';
+import 'package:mikronet/views/cards/profiles/add_profile_page.dart';
+import 'package:mikronet/views/cards/profiles/edit_profile_page.dart';
 import 'package:mikronet/views/more/more_settings_view.dart';
 import 'package:mikronet/views/reports/system_status_report_view.dart';
 import 'package:mikronet/views/sites/dns_settings_page.dart';
@@ -74,9 +78,11 @@ class AppRoutes {
   static const String cards = '/cards';
   static const String cardsList = '/cards/cards_list';
   static const String addSingleCard = '/cards/add_single_card';
-  static const String packages = '/cards/packages';
   static const String cardDetails = '/cards/card_details';
   static const String cardSessions = '/cards/card_sessions';
+  static const String packages = '/cards/packages';
+  static const String addProfile = '/cards/profiles/add_profile';
+  static const String editProfile = '/cards/profiles/edit_profile';
 
   static const String users = '/users';
   static const String binding= '/users/binding';
@@ -133,6 +139,16 @@ class AppPages {
       name: AppRoutes.packages, 
       page: () => const ProfilesPage(),
       binding: BindingsBuilder(() => Get.lazyPut(() => ProfilesController())),
+    ),
+    GetPage(
+      name: AppRoutes.addProfile, 
+      page: () => const AddProfilePage(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => AddProfileController())),
+    ),
+     GetPage(
+      name: AppRoutes.editProfile, 
+      page: () => const EditProfilePage(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => EditProfileController(profile: Get.arguments))),
     ),
     
     GetPage(

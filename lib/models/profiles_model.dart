@@ -142,7 +142,7 @@ class MikrotikDataHelper {
   String toMikrotikString() {
     if (gigas == 0 && megas == 0) return "0";
     // إذا كان هناك جيجا فقط نرسلها بلاحقة G، وإلا نجمع الكل ونرسله بلاحقة M
-    if (gigas > 0 && megas == 0) return "${gigas}G";
-    return "${(gigas * 1024) + megas}M";
+    if (gigas > 0 && megas == 0) return "${gigas * 1024 * 1024 * 1024}";
+    return "${(gigas * 1024 * 1024 * 1024) + (megas *1024*1024)}";
   }
 }
