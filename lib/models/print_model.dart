@@ -219,8 +219,8 @@ class PrintBatchesModel {
     return result;
   }
 
-  Map toDatabase(){
-    return {
+  Map<String,dynamic> toDatabase(){
+    return <String,dynamic>{
       "name": name, 
       "created_at": createdAt.microsecondsSinceEpoch, 
       "template_id": templateId, 

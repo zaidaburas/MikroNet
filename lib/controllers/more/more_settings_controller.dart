@@ -1,18 +1,19 @@
 import 'package:get/get.dart';
+import 'package:mikronet/controllers/dialog_helper.dart';
+import 'package:mikronet/core/routes/app_pages.dart';
 
 class MoreSettingsController extends GetxController {
   
   // دالة الانتقال لصفحة النسخ الاحتياطي والاستعادة
   void goToBackupAndRestore() {
-    // اكتب كود التوجيه هنا لاحقاً
-    // مثال: Get.toNamed('/backup');
-    print("الذهاب إلى صفحة النسخ الاحتياطي");
+    Get.toNamed(AppRoutes.backup);
   }
 
   // دالة إعادة تشغيل النظام (الراوتر)
   void rebootSystem() {
-    // اكتب كود الاتصال بالـ API لإعادة التشغيل هنا لاحقاً
-    // يفضل إضافة Get.defaultDialog لاحقاً لتأكيد العملية قبل التنفيذ
-    print("جاري إعادة تشغيل النظام...");
+    showConfirmDialog(message: "هل انت متاكد من اعادة تشغيل النظام", onConfirm: _executeReboot);
+  }
+  void _executeReboot()async{
+    showMsgDialog(message: "rebooted",type: MsgType.success);
   }
 }

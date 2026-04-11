@@ -1,11 +1,13 @@
 import 'package:get/get.dart';
 import 'package:mikronet/controllers/cards/profiles/add_profile_controller.dart';
 import 'package:mikronet/controllers/cards/profiles/edit_profile_controller.dart';
+import 'package:mikronet/controllers/more/backup_restore_controller.dart';
 import 'package:mikronet/controllers/more/more_settings_controller.dart';
 import 'package:mikronet/controllers/reports/system_status_controller.dart';
 import 'package:mikronet/controllers/sites/dns_settings_controller.dart';
 import 'package:mikronet/views/cards/profiles/add_profile_page.dart';
 import 'package:mikronet/views/cards/profiles/edit_profile_page.dart';
+import 'package:mikronet/views/more/backup_restore_page.dart';
 import 'package:mikronet/views/more/more_settings_view.dart';
 // import 'package:mikronet/views/prints/batches/add_batch.dart';
 import 'package:mikronet/views/reports/system_status_report_view.dart';
@@ -97,7 +99,6 @@ class AppRoutes {
   
   static const String reports = '/reports';
   static const String systemState = '/reports/system_state';
-  static const String backup = '/home/backup';
   
 
   static const String print = '/print';
@@ -105,6 +106,7 @@ class AppRoutes {
   static const String addBatch = '/print/add_batch';
 
   static const String more = '/more';
+  static const String backup = '/more/backup';
   // مسارات إدارة المواقع
 }
 
@@ -233,6 +235,11 @@ class AppPages {
       name: AppRoutes.more, 
       page: () => const MoreSettingsView(),
       binding: BindingsBuilder(() => Get.lazyPut(() => MoreSettingsController())),
+    ),
+    GetPage(
+      name: AppRoutes.backup, 
+      page: () => const BackupRestorePage(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => BackupRestoreController())),
     ),
   ];
 }
