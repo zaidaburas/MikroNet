@@ -8,10 +8,6 @@ import '../widgets/shared/layouts/app_mini_footer.dart';
 import '../widgets/shared/cards/main_action_card.dart';
 import '../widgets/shared/typography/section_title.dart';
 
-// استيراد الصفحات الفرعية
-import 'connected_users.dart';
-import 'devices_manager.dart';
-import 'hosts_view.dart';
 
 class UsersManagementView extends StatelessWidget {
   const UsersManagementView({super.key});
@@ -39,15 +35,15 @@ class UsersManagementView extends StatelessWidget {
                   
                   const SectionTitle(title: "المراقبة المباشرة"),
                   MainActionCard(
-                    title: " - Hosts - المتصلين حالياً",
-                    subtitle: "عرض الجلسات النشطة وسرعة الاستهلاك",
+                    title: "الأجهزة المتصلة",
+                    subtitle: "عرض كل الاجهزة المتصلة بالشبكة",
                     icon: Icons.devices_rounded,
                     color: const Color.fromARGB(255, 16, 95, 185),
                     onTap: () => Get.toNamed(AppRoutes.hostUsers),
                   ),
                   MainActionCard(
-                    title: " - Active - المتصلين حالياً",
-                    subtitle: "عرض الجلسات النشطة وسرعة الاستهلاك",
+                    title: "الاجهزة المتصلة بكروت",
+                    subtitle: "عرض الاجهزة المتصلة بكروت",
                     icon: Icons.online_prediction_rounded,
                     color: const Color(0xFF10B981),
                     onTap: () => Get.toNamed(AppRoutes.activeUsers)
@@ -59,7 +55,7 @@ class UsersManagementView extends StatelessWidget {
                   const SectionTitle(title: "التحكم والأمان"),
                   
                   MainActionCard(
-                    title: "إدارة الأجهزة",
+                    title: "إدارة الأجهزة المحفوظة",
                     subtitle: "التحكم في MAC Address وحظر الأجهزة",
                     icon: Icons.important_devices_rounded,
                     color: const Color(0xFF6366F1),
@@ -70,7 +66,10 @@ class UsersManagementView extends StatelessWidget {
             ),
 
             // 4. الفوتر مع تمرير اسم القسم المطلوب (حل المشكلة)
-            const AppMiniFooter(title:Text( "إدارة المستخدمين")),
+            AppMiniFooter(
+              title: Text("مراقبة الجلسات النشطة والتحكم بالأجهزة",
+                style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey.shade400),),
+              ),
           ],
         ),
       ),

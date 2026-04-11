@@ -13,11 +13,12 @@ class HomePage extends GetView<HomeController> {
   Widget build(BuildContext context) {
     Get.put(HomeController());
 
-    return WillPopScope(
-    onWillPop: ()async{
-      controller.logout();
-      return true;
-    },
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if(didPop) return;
+        controller.logout();
+      },
     child :Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(

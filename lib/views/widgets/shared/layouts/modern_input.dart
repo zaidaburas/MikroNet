@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class ModernInput extends StatelessWidget {
   final String label;
@@ -34,6 +35,9 @@ class ModernInput extends StatelessWidget {
       child: TextField(
         controller: controller,
         readOnly: isReadOnly,
+        inputFormatters: isNumber 
+            ? [FilteringTextInputFormatter.digitsOnly] 
+            : [],
         textAlign: TextAlign.center,
         // 👈 تحديد نوع الكيبورد بناءً على المتغير
         keyboardType: isNumber ? TextInputType.number : TextInputType.text,

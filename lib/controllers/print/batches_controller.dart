@@ -11,10 +11,6 @@ import '/views/helpers/dialogs.dart';
 import '/api/print_api.dart';
 import '/models/print_model.dart';
 
-// import 'package:flutter/material.dart';
-// import 'package:get/get.dart';
-// ... (نفس الاستيرادات السابقة)
-
 
 
 class BatchesController extends GetxController{
@@ -434,6 +430,9 @@ void _showSuccessDialog() {
   void stopUploading() {
     isUploading = false;
     update();
+  }
+  void goToAddBatchPage(){
+    
   }
 
 

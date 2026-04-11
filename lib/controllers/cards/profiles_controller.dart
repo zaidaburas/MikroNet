@@ -142,17 +142,29 @@ class ProfilesController extends GetxController {
   }
 
   void confirmDelete(int index) {
-    showConfirmDialog(message: "حذف (${packages[index].name})؟", onConfirm: () async {
-      Get.back();
-      Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
-      var response = await ProfilesApi.deleteProfile(packages[index].name);
-      if (Get.isDialogOpen ?? false) Get.back();
-      if (response.status) {
-        packages.removeAt(index);
-        Get.snackbar('تم الحذف', 'تم الحذف بنجاح');
-      }
+    showConfirmDialog(message: "حذف (${packages[index].name})؟", onConfirm: () {
+      _executeDelete(index);
     });
   }
-  void goToAddProfile()=>Get.toNamed(AppRoutes.addProfile);
-  void goToEditProfile(ProfilesModel profile)=>Get.toNamed(AppRoutes.editProfile,arguments: profile);
+  void _executeDelete(int index)async{
+    
+    showLoadingDialog();
+    var response = await ProfilesApi.deleteProfile(packages[index].name);
+    hideDialog();
+    if (response.status) {
+        packages.removeAt(index);
+        showMsgDialog(message: response.message,type: MsgType.success);
+    }else{
+        showMsgDialog(message: response.message,type: MsgType.error);
+    }
+  }
+  void goToAddProfile()async{
+    var result =await Get.toNamed(AppRoutes.addProfile);
+    if(result != null && result) fetchPackages();
+  }
+  void goToEditProfile(ProfilesModel profile)async{
+     var result =await Get.toNamed(AppRoutes.editProfile,arguments: profile);
+    if(result != null && result) fetchPackages();
+    
+  }
 }

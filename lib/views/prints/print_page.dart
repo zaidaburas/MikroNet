@@ -61,19 +61,46 @@ class PrintOperationsView extends StatelessWidget {
 
                   const SizedBox(height: 25),
 
-                  const SectionTitle(title: "معلومات الطباعة"),
+                  // const SectionTitle(title: "معلومات الطباعة"),
                   
-                  // 3. بطاقة المعلومات بتصميم Glassmorphism مبسط
-                  _buildInfoCard(
-                    icon: Icons.info_outline,
-                    text: "يمكنك إنشاء دفعة كروت أولاً، ثم ربطها بقالب طباعة جاهز من استوديو التصميم.",
-                  ),
+                  // // 3. بطاقة المعلومات بتصميم Glassmorphism مبسط
+                  // _buildInfoCard(
+                  //   icon: Icons.info_outline,
+                  //   text: "يمكنك إنشاء دفعة كروت أولاً، ثم ربطها بقالب طباعة جاهز من استوديو التصميم.",
+                  // ),
                 ],
               ),
             ),
 
             // 4. الفوتر الموحد مع تمرير اسم القسم
-            const AppMiniFooter(title: Text("إدارة عمليات الطباعة")),
+             AppMiniFooter(title: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 5),
+      
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.info_outline, color: Color(0xFF64748B), size: 20),
+          ),
+          const SizedBox(width: 15),
+          const Expanded(
+            child: Text(
+              "يمكنك إنشاء دفعة كروت أولاً، ثم ربطها بقالب طباعة جاهز من استوديو التصميم.",
+              style: TextStyle(
+                fontSize: 13,
+                color: Color(0xFF475569),
+                fontWeight: FontWeight.w500,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    )),
           ],
         ),
       ),

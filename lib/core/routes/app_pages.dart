@@ -7,6 +7,7 @@ import 'package:mikronet/controllers/sites/dns_settings_controller.dart';
 import 'package:mikronet/views/cards/profiles/add_profile_page.dart';
 import 'package:mikronet/views/cards/profiles/edit_profile_page.dart';
 import 'package:mikronet/views/more/more_settings_view.dart';
+// import 'package:mikronet/views/prints/batches/add_batch.dart';
 import 'package:mikronet/views/reports/system_status_report_view.dart';
 import 'package:mikronet/views/sites/dns_settings_page.dart';
 //import 'package:mikronet/controllers/users/devices_controller.dart';
@@ -100,6 +101,8 @@ class AppRoutes {
   
 
   static const String print = '/print';
+  static const String batches = '/print/batches';
+  static const String addBatch = '/print/add_batch';
 
   static const String more = '/more';
   // مسارات إدارة المواقع
@@ -211,6 +214,11 @@ class AppPages {
       page: () => const PrintOperationsView(),
       //binding: BindingsBuilder(() => Get.lazyPut(() => ReportsController())),
     ),
+    // GetPage(
+    //   name: AppRoutes.addBatch, 
+    //   page: () => const AddBatchView(),
+    //   //binding: BindingsBuilder(() => Get.lazyPut(() => ReportsController())),
+    // ),
     GetPage(
       name: AppRoutes.reports, 
       page: () => const ReportsManagementView(),

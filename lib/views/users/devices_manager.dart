@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mikronet/views/widgets/shared/layouts/floating_button.dart';
 import '/controllers/users/devices_controller.dart';
 import '/models/users_model.dart';
 
@@ -22,18 +23,14 @@ class DevicesView extends StatelessWidget {
         backgroundColor: const Color(0xffF8FAFC),
 
         // زر الإضافة جهة اليسار بارتفاع متناسق
-        floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+        //floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
         floatingActionButton: Padding(
           padding: const EdgeInsets.only(bottom: 50, left: 10),
-          child: FloatingActionButton(
-            backgroundColor: const Color(0xff1E3A8A),
-            elevation: 10,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18)),
-            onPressed: () => _showAddDeviceSheet(context, controller),
-            child: const Icon(Icons.add_rounded,
-                color: Colors.white, size: 30),
-          ),
+          child: FloatingButton(
+            text: "اضافة يدويا",
+            onPressed: ()=> _showAddDeviceSheet(context, controller),
+            iconBtn: Icons.add_circle_outline_rounded,
+            )
         ),
 
         body: Column(
@@ -57,7 +54,34 @@ class DevicesView extends StatelessWidget {
             Expanded(child: _buildDevicesList(controller)),
 
             // 4. الفوتر الموحد v4.5
-            const AppMiniFooter(title: Text("Devices Management")),
+            const AppMiniFooter(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.circle,color: Colors.green,size: 15,),
+                      SizedBox(width: 5,),
+                      Text("مجاني",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey),),
+                    ],
+                  ),
+                 Row(
+                    children: [
+                      Icon(Icons.circle,color: Colors.red,size: 15,),
+                      SizedBox(width: 5,),
+                      Text("محظور",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey),),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Icon(Icons.circle,color: Colors.blue,size: 15,),
+                      SizedBox(width: 5,),
+                      Text("عادي",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey),),
+                    ],
+                  ),
+                ],
+              )
+              ),
           ],
         ),
       ),
@@ -182,8 +206,8 @@ class DevicesView extends StatelessWidget {
 
   Color _getStatusColor(SavedUserModel d) {
     if (d.type == UserType.blocked) return Colors.red;
-    if (d.type == UserType.bypassed) return Colors.blue;
-    return Colors.green;
+    if (d.type == UserType.bypassed) return Colors.green;
+    return Colors.blue;
   }
 
   /* ================= 4. ADD DEVICE SHEET ================= */

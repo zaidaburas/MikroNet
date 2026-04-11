@@ -87,6 +87,7 @@ class AddProfileController extends GetxController {
     }
   }
 
+
   @override
   void onClose() {
     nameCtrl.dispose(); priceCtrl.dispose(); daysCtrl.dispose(); hoursCtrl.dispose();

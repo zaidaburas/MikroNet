@@ -17,10 +17,22 @@ class AppMiniFooter extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(top: BorderSide(color: Colors.blueGrey.shade50)),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(30), 
+          topRight: Radius.circular(30),
+    ),
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black.withOpacity(0.08),
+        spreadRadius: 1, 
+        blurRadius: 10 ,
+        offset: const Offset(0, -3), 
+      ),
+    ],
       ),
       child: Center(
         child: Column(
-          mainAxisSize: MainAxisSize.min, // لضمان ألا يأخذ العمود مساحة أكبر من محتواه
+          mainAxisSize: MainAxisSize.min, 
           children: [
             title,
             // التحقق مما إذا كان subTitle موجوداً قبل عرضه

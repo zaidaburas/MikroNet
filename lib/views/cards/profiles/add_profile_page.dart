@@ -18,8 +18,8 @@ class AddProfilePage extends GetView<AddProfileController> {
         body: Column(
           children: [
             const PremiumHeader(
-              title: "إضافة كرت جديد",
-              subtitle: "إنشاء حساب مستخدم جديد في الشبكة",
+              title: "إضافة باقة جديدة",
+              subtitle: "إنشاء باقة جديدة وتحديد الوقت والصلاحية",
               icon: Icons.add_card_rounded,
             ),
             
@@ -149,7 +149,7 @@ class AddProfilePage extends GetView<AddProfileController> {
             ),
             
            AppMiniFooter(
-              title: Text("إنشاء حساب مستخدم جديد في الشبكة",
+              title: Text("إنشاء باقة جديدة وتحديد الوقت والصلاحية",
                 style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey.shade400),),
               ),
           ],
@@ -187,7 +187,7 @@ class AddProfilePage extends GetView<AddProfileController> {
           child: controller.isLoading.value 
             ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
             : const Text(
-                "حفظ الباقة",
+                "اضافة الباقة",
                 style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
               ),
         ),

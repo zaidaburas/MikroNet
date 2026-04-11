@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../widgets/shared/layouts/app_mini_footer.dart';
 import '/controllers/users/hosts_controller.dart';
 import '/models/users_model.dart';
 import '../widgets/shared/layouts/sub_page_header.dart';
@@ -39,16 +40,55 @@ class HostsView extends GetView<HostsController> {
                 );
               }),
             ),
+            const AppMiniFooter(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.circle,color: Colors.green,size: 15,),
+                      SizedBox(width: 5,),
+                      Text("مجاني",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey),),
+                    ],
+                  ),
+                 Row(
+                    children: [
+                      Icon(Icons.circle,color: Colors.red,size: 15,),
+                      SizedBox(width: 5,),
+                      Text("محظور",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey),),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Icon(Icons.circle,color: Colors.blue,size: 15,),
+                      SizedBox(width: 5,),
+                      Text("بكرت",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey),),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Icon(Icons.circle,color: Colors.grey,size: 15,),
+                      SizedBox(width: 5,),
+                      Text("بدون كرت",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey),),
+                    ],
+                  ),
+                ],
+              )
+              ),
           ],
         ),
       ),
     );
   }
+  Color _getStatusColor(UserType t) => switch(t){
+    UserType.blocked => Colors.red,
+    UserType.bypassed => Colors.green,
+    UserType.authorized => Colors.blue,
+    _ => Colors.grey
+  };
+    
 
   Widget _buildHostCard(HostUserModel h) {
-    bool isBlocked = h.type==UserType.blocked;
-    bool isBybass = h.type==UserType.bypassed;
-    bool isAuth = h.type==UserType.authorized;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -59,11 +99,11 @@ class HostsView extends GetView<HostsController> {
       ),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: (isBlocked ? Colors.red : isBybass?Colors.green:isAuth?Colors.blue: Colors.orange).withOpacity(0.1),
-          child: Icon(isBlocked ? Icons.block : Icons.important_devices, color: isBlocked ? Colors.red : isBybass?Colors.green:isAuth?Colors.blue: Colors.orange),
+          backgroundColor: _getStatusColor(h.type).withOpacity(0.1),
+          child: Icon(Icons.important_devices, color: _getStatusColor(h.type)),
         ),
         title: Text(h.label == "Unknown" ? "جهاز غير معروف" : h.label, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text("${h.srcAddress} • ${h.macAddress}\nمتصل منذ: ${h.uptime}\n${isBlocked?"محظور":isBybass?"مجاني":isAuth?"نشط":"غير نشط"}", style: const TextStyle(fontSize: 10)),
+        subtitle: Text("${h.srcAddress} • ${h.macAddress}", style: const TextStyle(fontSize: 10)),
         trailing: IconButton(
           icon: const Icon(Icons.more_vert),
           onPressed: () => _openActionSheet(h),

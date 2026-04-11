@@ -17,10 +17,10 @@ class EditProfilePage extends GetView<EditProfileController> {
         backgroundColor: const Color(0xFFF8FAFC),
         body: Column(
           children: [
-            const PremiumHeader(
-              title: "إضافة كرت جديد",
-              subtitle: "إنشاء حساب مستخدم جديد في الشبكة",
-              icon: Icons.add_card_rounded,
+             PremiumHeader(
+              title: "تعديل باقة",
+              subtitle: "تعديل بيانات باقة ${controller.profile.name}",
+              icon: Icons.edit,
             ),
             
             Expanded(
@@ -149,7 +149,7 @@ class EditProfilePage extends GetView<EditProfileController> {
             ),
             
            AppMiniFooter(
-              title: Text("إنشاء حساب مستخدم جديد في الشبكة",
+              title: Text("تعديل بيانات الباقة الحالية",
                 style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey.shade400),),
               ),
           ],
@@ -172,7 +172,7 @@ class EditProfilePage extends GetView<EditProfileController> {
           gradient:const LinearGradient(
             colors: 
 
-             [const Color(0xFF0F172A), const Color(0xFF1E3A8A)]
+             [ Color(0xFF0F172A), Color(0xFF1E3A8A)]
           ),
           borderRadius: BorderRadius.circular(15),
           boxShadow: [
@@ -185,7 +185,7 @@ class EditProfilePage extends GetView<EditProfileController> {
         ),
         child:const Center(
           child:  Text(
-                "حفظ الباقة",
+                "حفظ التعديلات",
                 style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
               ),
         ),
