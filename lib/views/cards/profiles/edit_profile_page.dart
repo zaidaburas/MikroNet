@@ -61,7 +61,8 @@ class EditProfilePage extends GetView<EditProfileController> {
                       child: ModernInput(
                         label:  "السعر", 
                         icon: Icons.payments_outlined, 
-                        controller: controller.priceCtrl
+                        controller: controller.priceCtrl,
+                        isNumber: true,
                         )),
                     
                     ],),

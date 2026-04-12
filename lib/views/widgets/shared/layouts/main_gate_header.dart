@@ -3,21 +3,22 @@ import 'package:flutter/material.dart';
 class MainGateHeader extends StatelessWidget {
   final String title;
   final String subtitle;
-  final IconData icon;
+  final IconData? icon;
   final bool showButton;
 
   const MainGateHeader({
     super.key,
     required this.title,
     required this.subtitle,
-    required this.icon,
+     this.icon,
     this.showButton=true
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 200,
+      //height: 200,
+      padding: const EdgeInsets.only(top: 20),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topRight,
@@ -29,8 +30,8 @@ class MainGateHeader extends StatelessWidget {
           ],
         ),
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(45),
-          bottomRight: Radius.circular(45),
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
         ),
         boxShadow: [
           BoxShadow(
@@ -57,6 +58,7 @@ class MainGateHeader extends StatelessWidget {
               children: [
                 const SizedBox(height: 20),
                 // الأيقونة المركزية داخل دائرة بيضاء
+                if(icon !=null)
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
@@ -67,7 +69,7 @@ class MainGateHeader extends StatelessWidget {
                   child: CircleAvatar(
                     radius: 35,
                     backgroundColor: Colors.white,
-                    child: Icon(icon, color: const Color(0xff1E3C72), size: 35),
+                    child:icon != null ? Icon(icon, color: const Color(0xff1E3C72), size: 35):null,
                   ),
                 ),
                 const SizedBox(height: 12),

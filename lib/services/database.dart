@@ -78,7 +78,7 @@ class SqlDb {
   
 
   Future<Database?> get db async {
-    if (_db == null) {
+    if (_db == null || !_db!.isOpen) {
       _db = await _initializeDb();
       return _db;
     } else {

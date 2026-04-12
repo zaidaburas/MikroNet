@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../widgets/shared/layouts/main_gate_header.dart';
-import '../widgets/shared/layouts/app_mini_footer.dart';
+// import '../widgets/shared/layouts/app_mini_footer.dart';
  import '/controllers/reports/sales_report_controller.dart'; // مسار المتحكم الذي أنشأناه
 
 class SalesReportView extends StatelessWidget {
@@ -69,7 +69,7 @@ class SalesReportView extends StatelessWidget {
             _buildActionButtons(controller),
             
             // الفوتر المشترك
-            const AppMiniFooter(title: Text( "إدارة تقارير النظام")), // استبدلها بالويدجت الخاصة بك
+           // const AppMiniFooter(title: Text( "إدارة تقارير النظام")), // استبدلها بالويدجت الخاصة بك
           ],
         ),
       ),

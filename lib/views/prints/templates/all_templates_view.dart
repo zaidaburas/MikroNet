@@ -2,8 +2,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mikronet/core/routes/app_pages.dart';
+import 'package:mikronet/views/widgets/shared/layouts/floating_button.dart';
+import 'package:mikronet/views/widgets/shared/layouts/main_gate_header.dart';
 import '/controllers/print/templates_controller.dart';
 import '/models/print_model.dart';
+
 
 // import '/views/helpers/dialogs.dart';
 // import 'templates_form.dart';
@@ -22,7 +26,7 @@ class TemplatesView extends StatelessWidget {
         backgroundColor: const Color(0xffF8FAFC),
         body: Column(
           children: [
-            _circleAvatarHeader(context), // نفس الهيدر المعتمد
+            const MainGateHeader(title: "مكتبة القوالب المحفوظة", subtitle: "", icon: Icons.bookmarks_rounded), // نفس الهيدر المعتمد
             GetBuilder<TemplatesController>(
               init: controller,
               builder: (controller) {
@@ -34,7 +38,11 @@ class TemplatesView extends StatelessWidget {
                         return _buildEmptyState();
                       }
                 
-                      return ListView.builder(
+                      return Container(
+                        margin:const EdgeInsets.only(bottom: 50),
+                        child: 
+                       ListView.builder(
+                        
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         itemCount: controller.allTemplates.length,
                         itemBuilder: (_, i) {
@@ -54,72 +62,32 @@ class TemplatesView extends StatelessWidget {
                             // controller.openEditForm 
                           );
                         },
-                      );
+                      ));
                     },
                   ),
                 );
               }
             ),
-            _footer(), // نفس الفوتر المعتمد
+            //_footer(), // نفس الفوتر المعتمد
           ],
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: controller.openAddForm,
-          child: const Icon(Icons.add),
-        ),
+        floatingActionButton: FloatingButton(
+          text: "اضافة قالب",
+          onPressed: ()
+          {
+            Get.toNamed(AppRoutes.addTemplate)?.then((r){
+             controller.getAll();
+            });
+          },
+          // onPressed: controller.openAddForm,
+          iconBtn: Icons.add_circle_outline_outlined,
+          )
+       
       ),
     );
   }
 
-  /* ================= الهيدر الموحد ================= */
-  Widget _circleAvatarHeader(BuildContext context) => Container(
-        height: 160,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-            colors: [Color(0xff0F172A), Color(0xff1E3C72), Color(0xff2563EB)]
-          ),
-          borderRadius: BorderRadius.only(bottomLeft: Radius.circular(40), bottomRight: Radius.circular(40)),
-        ),
-        child: Stack(
-          children: [
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 20),
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
-                    child: const CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Colors.white,
-                      child: Icon(Icons.bookmarks_rounded, color: Color(0xff1E3C72), size: 28),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text("مكتبة القوالب المحفوظة", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
-                ],
-              ),
-            ),
-            Positioned(
-              top: 45, 
-              right: 20, 
-              child: InkWell(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
-                  child: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-
-  /* ================= كرت القالب ================= */
+ 
   Widget _buildTemplateCard(
     BuildContext context, 
     PrintTemplatesModel t, 
@@ -175,7 +143,7 @@ class TemplatesView extends StatelessWidget {
                       const SizedBox(width: 15),
                       _gridDetail(Icons.view_column_rounded, "أعمدة: $cols"),
                       const Spacer(),
-                      const Text('date' ?? "", style: TextStyle(fontSize: 11, color: Colors.grey)),
+                       Text("${t.withPassword ? "مع":"بدون"} كلمة مرور", style: TextStyle(fontSize: 11, color: Colors.grey)),
                     ],
                   ),
                   const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(height: 1, thickness: 0.5)),
@@ -201,7 +169,8 @@ class TemplatesView extends StatelessWidget {
                       _editButton(() {
                         // showErrorDialog(content: t.name);
                         // onEdit(index);
-                        controller.openEditForm(index);
+                        //controller.openEditForm(index);
+                        Get.toNamed(AppRoutes.editTemplate, arguments: controller.allTemplates[index])?.then((r)=>controller.getAll());
                         // Get.to(PrintTemplatesDesignView(
                         //   designerController: TemplatesController(),
                         //   isEdit: false,

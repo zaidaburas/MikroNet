@@ -10,7 +10,7 @@ import '../widgets/shared/typography/section_title.dart';
 
 // استيراد صفحات التقارير (يجب إنشاء هذه الملفات لاحقاً)
 import 'sales_report_view.dart';
-import 'system_status_report_view.dart';
+// import 'system_status_report_view.dart';
 
 class ReportsManagementView extends StatelessWidget {
   const ReportsManagementView({super.key});

@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:mikronet/api/router_api.dart';
 import 'package:mikronet/controllers/dialog_helper.dart';
 import 'package:mikronet/core/routes/app_pages.dart';
 
@@ -14,6 +15,11 @@ class MoreSettingsController extends GetxController {
     showConfirmDialog(message: "هل انت متاكد من اعادة تشغيل النظام", onConfirm: _executeReboot);
   }
   void _executeReboot()async{
-    showMsgDialog(message: "rebooted",type: MsgType.success);
+    showLoadingDialog();
+    var res =await RouterApi.rebootSystem();
+    showMsgDialog(message: res.message,type:res.status? MsgType.success:MsgType.error);
+    if(res.status){
+      Get.offAllNamed(AppRoutes.login);
+    }
   }
 }

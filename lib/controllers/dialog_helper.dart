@@ -93,7 +93,7 @@ void showConfirmDialog({
   );
 }
 
-void showMsgDialog({required String message, MsgType type = MsgType.msg}) async{
+Future<void> showMsgDialog({required String message, MsgType type = MsgType.msg}) async{
   await Future.delayed(const Duration(milliseconds: 1));
   // تحديد الخصائص ديناميكياً بناءً على نوع الرسالة
   final (icon, baseColor, titleText, gradientColors) = switch (type) {
@@ -129,7 +129,7 @@ void showMsgDialog({required String message, MsgType type = MsgType.msg}) async{
       ),
   };
 
-  Get.dialog(
+  return Get.dialog(
     Directionality(
       textDirection: TextDirection.rtl,
       child: AlertDialog(

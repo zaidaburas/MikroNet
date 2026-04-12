@@ -25,9 +25,8 @@ class BackupRestorePage extends GetView<BackupRestoreController> {
             ),
             
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
-                child: Container(
+              child: Container(
+                margin:const EdgeInsets.symmetric(horizontal: 20,vertical: 25),
                   padding: const EdgeInsets.all(15),
                   decoration: BoxDecoration(
                    color: const Color(0xFFF1F5F9),
@@ -52,34 +51,35 @@ class BackupRestorePage extends GetView<BackupRestoreController> {
                         icon: Icons.save_as_outlined, 
                         controller: controller.nameCtrl,
                       ),
-                      
-                      const SizedBox(height: 20),
-                      _sectionLabel("البيانات المراد حفظها / استعادتها"),
-                      const SizedBox(height: 10),
+                      const Spacer(),
+                      // const SizedBox(height: 200),
+                      // const Spacer(),
+                      // _sectionLabel("البيانات المراد حفظها / استعادتها"),
+                      // const SizedBox(height: 10),
 
-                      // مربعات الاختيار بتصميم عصري
-                      Obx(() => Column(
-                        children: [
-                          _buildCustomCheckbox(
-                            title: "بيانات الدخول (Logins)",
-                            icon: Icons.router_rounded,
-                            value: controller.isLoginsChecked.value,
-                            onChanged: (val) => controller.isLoginsChecked.value = val,
-                          ),
-                          _buildCustomCheckbox(
-                            title: "القوالب (Templates)",
-                            icon: Icons.design_services_rounded,
-                            value: controller.isTemplatesChecked.value,
-                            onChanged: (val) => controller.isTemplatesChecked.value = val,
-                          ),
-                          _buildCustomCheckbox(
-                            title: "الدفعات والكروت (Batches)",
-                            icon: Icons.receipt_long_rounded,
-                            value: controller.isBatchesChecked.value,
-                            onChanged: (val) => controller.isBatchesChecked.value = val,
-                          ),
-                        ],
-                      )),
+                      // // مربعات الاختيار بتصميم عصري
+                      // Obx(() => Column(
+                      //   children: [
+                      //     _buildCustomCheckbox(
+                      //       title: "بيانات الدخول (Logins)",
+                      //       icon: Icons.router_rounded,
+                      //       value: controller.isLoginsChecked.value,
+                      //       onChanged: (val) => controller.isLoginsChecked.value = val,
+                      //     ),
+                      //     _buildCustomCheckbox(
+                      //       title: "القوالب (Templates)",
+                      //       icon: Icons.design_services_rounded,
+                      //       value: controller.isTemplatesChecked.value,
+                      //       onChanged: (val) => controller.isTemplatesChecked.value = val,
+                      //     ),
+                      //     _buildCustomCheckbox(
+                      //       title: "الدفعات والكروت (Batches)",
+                      //       icon: Icons.receipt_long_rounded,
+                      //       value: controller.isBatchesChecked.value,
+                      //       onChanged: (val) => controller.isBatchesChecked.value = val,
+                      //     ),
+                      //   ],
+                      // )),
 
                       const SizedBox(height: 30),
                       
@@ -118,7 +118,7 @@ class BackupRestorePage extends GetView<BackupRestoreController> {
                   ),
                 ),
               ),
-            ),
+            
             
             AppMiniFooter(
               title: Text(

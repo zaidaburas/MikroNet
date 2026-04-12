@@ -3,12 +3,16 @@ import 'package:mikronet/controllers/cards/profiles/add_profile_controller.dart'
 import 'package:mikronet/controllers/cards/profiles/edit_profile_controller.dart';
 import 'package:mikronet/controllers/more/backup_restore_controller.dart';
 import 'package:mikronet/controllers/more/more_settings_controller.dart';
+import 'package:mikronet/controllers/print/templates/add_template_controller.dart';
+import 'package:mikronet/controllers/print/templates/edit_template_controller.dart';
 import 'package:mikronet/controllers/reports/system_status_controller.dart';
 import 'package:mikronet/controllers/sites/dns_settings_controller.dart';
 import 'package:mikronet/views/cards/profiles/add_profile_page.dart';
 import 'package:mikronet/views/cards/profiles/edit_profile_page.dart';
 import 'package:mikronet/views/more/backup_restore_page.dart';
 import 'package:mikronet/views/more/more_settings_view.dart';
+import 'package:mikronet/views/prints/templates/add_template_page.dart';
+import 'package:mikronet/views/prints/templates/edit_template_page.dart';
 // import 'package:mikronet/views/prints/batches/add_batch.dart';
 import 'package:mikronet/views/reports/system_status_report_view.dart';
 import 'package:mikronet/views/sites/dns_settings_page.dart';
@@ -104,6 +108,8 @@ class AppRoutes {
   static const String print = '/print';
   static const String batches = '/print/batches';
   static const String addBatch = '/print/add_batch';
+  static const String addTemplate = '/print/add_template';
+  static const String editTemplate = '/print/edit_template';
 
   static const String more = '/more';
   static const String backup = '/more/backup';
@@ -216,11 +222,16 @@ class AppPages {
       page: () => const PrintOperationsView(),
       //binding: BindingsBuilder(() => Get.lazyPut(() => ReportsController())),
     ),
-    // GetPage(
-    //   name: AppRoutes.addBatch, 
-    //   page: () => const AddBatchView(),
-    //   //binding: BindingsBuilder(() => Get.lazyPut(() => ReportsController())),
-    // ),
+    GetPage(
+      name: AppRoutes.addTemplate, 
+      page: () => const AddTemplateView(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => AddTemplateController())),
+    ),
+    GetPage(
+      name: AppRoutes.editTemplate, 
+      page: () => const EditTemplateView(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => EditTemplateController(editedTemplate: Get.arguments))),
+    ),
     GetPage(
       name: AppRoutes.reports, 
       page: () => const ReportsManagementView(),

@@ -121,13 +121,14 @@ class PrintTemplatesDesignView extends StatelessWidget {
                           whiteContainer(
                             Column(
                             children:[
-                              const Row(
+                               Row(
                                 // mainAxisSize: MainAxisSize.min,
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text("تجربة اسم مستخدم"),
-                                  SizedBox(width: 35,),
-                                  Text("تجربة كلمة مرور"),
+                                  const Text("تجربة اسم مستخدم"),
+                                  const SizedBox(width: 35,),
+                                  if(controller.password)
+                                  const Text("تجربة كلمة مرور"),
                                 ],
                               ),
                               SizedBox(
@@ -137,6 +138,7 @@ class PrintTemplatesDesignView extends StatelessWidget {
                                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                   children: [
                                     SizedBox(width: ((screenWidth+20)/3), child: textFieldWithOutButton(controller.usernameText,padding: 1,onChanged: (v){controller.update();})),
+                                    if(controller.password)
                                     SizedBox(width: ((screenWidth+20)/3), child: textFieldWithOutButton(controller.passwordText,padding: 1,onChanged: (v){controller.update();})),
                                   ],
                                 ),
@@ -145,14 +147,14 @@ class PrintTemplatesDesignView extends StatelessWidget {
 
                               Row(children: [
                                 gridControl(
-                                  "numrows", 
+                                  "عدد الصفوف", 
                                   controller.numrows, 
                                   min: 10,max: 20,
                                   func: (p0) => controller.update(),
                                   Icons.table_rows_rounded
                                 ), 
                                 gridControl(
-                                  "numcolumns", 
+                                  "عدد الاعمدة", 
                                   controller.numcolumns, 
                                   min: 2,max: 5,
                                   func: (p0) => controller.update(),
@@ -162,14 +164,14 @@ class PrintTemplatesDesignView extends StatelessWidget {
                               const Divider(height: 10, thickness: 0.5),
                               Row(children: [
                                 gridControl(
-                                  'username_fontsize', 
+                                  'حجم اسم المستخدم', 
                                   controller.usernameFontSize, 
                                   func: (p0) => controller.update(),
                                   Icons.person_outline,
                                   min: 8,max: 30,
                                 ), 
                                 gridControl(
-                                  'password_fontsize', 
+                                  'حجم كلمة المرور', 
                                   controller.passwordFontSize, 
                                   func: (p0) => controller.update(),
                                   Icons.password,
@@ -180,7 +182,7 @@ class PrintTemplatesDesignView extends StatelessWidget {
                               modernSwitch(
                                 controller.password,
                                 controller.isWithPassword2,
-                                text: '${controller.password?"مع":"بدون"} ${"password"}  (انقر للتغيير)'
+                                text: '${controller.password?"مع":"بدون"} ${"كلمة مرور"}  (انقر للتغيير)'
                               ),
                               const Divider(height: 10, thickness: 0.5),
                               
@@ -193,7 +195,7 @@ class PrintTemplatesDesignView extends StatelessWidget {
                                     width: ((screenWidth/3)+20),
                                     onPressed: controller.pickImage,
                                     icon: Icons.image_outlined,
-                                    label: 'upload_photo',
+                                    label: 'اختيار صورة',
                                     colors: [Colors.blueGrey.shade700, Colors.blueGrey.shade900],
                                   ),
                                   // const SizedBox(width: 30,),
@@ -202,7 +204,7 @@ class PrintTemplatesDesignView extends StatelessWidget {
                                     width: ((screenWidth/3)+20),
                                     onPressed: controller.preview,
                                     icon: Icons.remove_red_eye_rounded,
-                                    label: 'preview',
+                                    label: 'معاينة',
                                     colors: [Colors.lightGreen.shade700, Colors.lime.shade900],
                                   ),
                                 ],
@@ -239,8 +241,16 @@ class PrintTemplatesDesignView extends StatelessWidget {
                               ],
                             )
                           ),
-                          const SizedBox(height: 5),                         
-                          Center(child: Text("${'numcards_inpage'}: ${(controller.numrows.value * controller.numcolumns.value)}")),
+                          const SizedBox(height: 5),    
+                          gradientButton(
+                                    //width: ((screenWidth/3)+20),
+                                    height: 55,
+                                    onPressed: isEdit?controller.editOne : controller.addOne,
+                                    icon: isEdit? Icons.save_rounded : Icons.add_circle_outline_outlined,
+                                    label: isEdit ? "حفظ" : "اضافة",
+                                    colors: const [Color(0xff1E3C72), Color(0xff2563EB)],
+                                  ),                     
+                          //Center(child: Text("${'numcards_inpage'}: ${(controller.numrows.value * controller.numcolumns.value)}")),
                         ],
                       );
                     }
@@ -248,7 +258,7 @@ class PrintTemplatesDesignView extends StatelessWidget {
                 ),
               ),
             ),
-            _footer(),
+            //_footer(),
           ],
         ),
       ),
@@ -739,11 +749,11 @@ Widget textFieldWithButton(
       const SizedBox(width: 10),
       const Icon(Icons.text_fields_rounded, color: Colors.grey, size: 20),
       const SizedBox(width: 10),
-      Expanded(child: TextField(controller: controller, decoration: InputDecoration(hintText: hint, border: InputBorder.none, hintStyle: const TextStyle(fontSize: 12)))),
-      gradientButton(
-        onPressed: onPressed,
-        icon: icon, label: btnLabel, colors: colors, width: btnWidth, height: btnHeight,
-      ),
+      Expanded(child: TextField(controller: controller,textAlign: TextAlign.center, decoration: InputDecoration(hintText: hint, border: InputBorder.none,suffixIcon:const Icon(Icons.signal_cellular_null,color: Colors.transparent,), hintStyle: const TextStyle(fontSize: 15)))),
+      // gradientButton(
+      //   onPressed: onPressed,
+      //   icon: icon, label: btnLabel, colors: colors, width: btnWidth, height: btnHeight,
+      // ),
     ]),
   );
 

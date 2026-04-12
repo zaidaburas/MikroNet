@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mikronet/controllers/dialog_helper.dart';
 // تأكد من استيراد ملف الـ API الخاص بك هنا
 import '/api/sites_api.dart'; 
 
@@ -19,6 +20,13 @@ class DnsController extends GetxController {
     secondaryCtrl = TextEditingController();
     // جلب البيانات عند فتح الصفحة
     fetchDnsData();
+  }
+  bool _isEmptyFields(){
+    if(primaryCtrl.text.isEmpty || secondaryCtrl.text.isEmpty){
+      showMsgDialog(message: "يرجى تعبئة الحقول الفارغة",type: MsgType.warning);
+      return true;
+    }
+    return false;
   }
 
   @override
@@ -49,14 +57,14 @@ class DnsController extends GetxController {
         if (servers.length > 1) secondaryCtrl.text = servers[1].trim();
       }
     } else {
-      Get.snackbar("تنبيه", "فشل في جلب إعدادات DNS الحالية", 
-        backgroundColor: Colors.redAccent, colorText: Colors.white);
+      showMsgDialog(message: "فشل في جلب إعدادات DNS الحالية",type: MsgType.error);
     }
     isLoading.value = false;
   }
 
   // الدالة الثانية: حفظ البيانات الجديدة
   Future<void> saveDnsSettings() async {
+    if(_isEmptyFields()) return;
     isLoading.value = true;
     var response = await SitesApi.setDns(
       main: primaryCtrl.text,
@@ -64,24 +72,9 @@ class DnsController extends GetxController {
       allowRemoteRequests: allowRemoteRequest.value,
     );
 
-    if (response.status) {
-      Get.snackbar(
-        "نجاح", 
-        "تم تحديث إعدادات DNS بنجاح",
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        margin: const EdgeInsets.all(15)
-      );
-    } else {
-      Get.snackbar(
-        "خطأ", 
-        response.message ?? "حدث خطأ أثناء الحفظ",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    }
     isLoading.value = false;
+    
+    showMsgDialog(message: response.message ,type: response.status?MsgType.success:MsgType.error);
+    
   }
 }

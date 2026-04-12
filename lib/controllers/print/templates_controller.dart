@@ -215,6 +215,7 @@ class TemplatesController extends GetxController {
   }
 
   Future<void> openAddForm()async{
+    initialSettings();
     Get.to(PrintTemplatesDesignView(
       designerController: this,
       isEdit: false,
@@ -259,7 +260,7 @@ class TemplatesController extends GetxController {
   }
 
   void initialSettings() {
-    profileName.text = "dictionary['profile_name']";
+    profileName.text = "";
     setDefaultImage();
     setItemDimensions();
     x.value = itemWidth + 10;

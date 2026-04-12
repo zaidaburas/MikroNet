@@ -26,8 +26,8 @@ class SalesReportController extends GetxController {
     super.onInit();
     // تعيين تاريخ اليوم كافتراضي عند فتح الصفحة
     DateTime now = DateTime.now();
-    fromDate.value = DateTime(now.year, now.month, now.day);
-    toDate.value = DateTime(now.year, now.month, now.day, 23, 59, 59); // جعل النهاية آخر اليوم
+    fromDate.value = DateTime(now.year, now.month, now.day-1);
+    toDate.value = DateTime(now.year, now.month, now.day); // جعل النهاية آخر اليوم
   }
 
   // اختيار تاريخ "من"
