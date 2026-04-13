@@ -4,7 +4,7 @@ import 'package:mikronet/controllers/dialog_helper.dart';
 // تأكد من استيراد ملف الـ API الخاص بك هنا
 import '/api/sites_api.dart'; 
 
-class DnsController extends GetxController {
+class DnsSettingsController extends GetxController {
   // متغيرات لمراقبة حالة التحميل والسويتش
   var isLoading = true.obs;
   var allowRemoteRequest = false.obs;

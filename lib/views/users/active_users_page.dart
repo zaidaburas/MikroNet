@@ -6,12 +6,11 @@ import '/models/users_model.dart';
 import '../widgets/shared/layouts/sub_page_header.dart';
 
 
-class ActiveSessionsView extends GetView<ActiveSessionsController> {
-  const ActiveSessionsView({super.key});
+class ActiveUsersPage extends GetView<ActiveUsersController> {
+  const ActiveUsersPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    Get.lazyPut(() => ActiveSessionsController());
 
     return Directionality(
       textDirection: TextDirection.rtl,

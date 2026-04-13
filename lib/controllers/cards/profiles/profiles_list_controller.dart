@@ -8,7 +8,7 @@ import '/api/profiles_api.dart';
 import '/models/profiles_model.dart';
 
 
-class ProfilesController extends GetxController {
+class ProfilesListController extends GetxController {
   RxList<ProfilesModel> packages = <ProfilesModel>[].obs;
   RxBool isLoading = true.obs;
   int _requestCounter = 0;

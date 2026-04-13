@@ -4,13 +4,11 @@ import '../widgets/shared/layouts/main_gate_header.dart';
 // import '../widgets/shared/layouts/app_mini_footer.dart';
  import '/controllers/reports/sales_report_controller.dart'; // مسار المتحكم الذي أنشأناه
 
-class SalesReportView extends StatelessWidget {
-  const SalesReportView({super.key});
+class SalesReportPage extends GetView<SalesReportController> {
+  const SalesReportPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // حقن المتحكم
-    final controller = Get.put(SalesReportController());
 
     return Directionality(
       textDirection: TextDirection.rtl,

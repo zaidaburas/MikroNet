@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import '../../core/app_pages.dart'; // لتتمكن من الوصول لـ AppRoutes
 
-class SitesController extends GetxController {
+class SitesUnitController extends GetxController {
   
   @override
   void onInit() {

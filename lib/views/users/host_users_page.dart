@@ -5,13 +5,12 @@ import '../../controllers/users/host_users_controller.dart';
 import '/models/users_model.dart';
 import '../widgets/shared/layouts/sub_page_header.dart';
 
-class HostsView extends GetView<HostsController> {
-  const HostsView({super.key});
+class HostUsersPage extends GetView<HostUsersController> {
+  const HostUsersPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    Get.lazyPut(() => HostsController());
-
+    
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(

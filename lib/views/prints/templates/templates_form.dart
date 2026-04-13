@@ -7,7 +7,7 @@ import '../../../controllers/prints/templates/templates_list_controller.dart';
 // import '../print/saved_templates_view.dart';
 
 // class PrintTemplatesDesignView extends StatefulWidget {
-//   final TemplatesController designerController;
+//   final TemplatesListController designerController;
 //   const PrintTemplatesDesignView({super.key,required this.designerController});
 
 //   @override
@@ -15,10 +15,10 @@ import '../../../controllers/prints/templates/templates_list_controller.dart';
 // }
 
 class PrintTemplatesDesignView extends StatelessWidget {
-  final TemplatesController designerController;
+  final TemplatesListController designerController;
   final bool isEdit;
   const PrintTemplatesDesignView({super.key,required this.designerController,required this.isEdit });
-  // final TemplatesController designerController = Get.put(TemplatesController());
+  // final TemplatesListController designerController = Get.put(TemplatesListController());
 
 
   
@@ -38,8 +38,8 @@ class PrintTemplatesDesignView extends StatelessWidget {
                 animation: designerController,
                 builder: (_, __) => SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  child: GetBuilder<TemplatesController>(
-                    init: TemplatesController(),
+                  child: GetBuilder<TemplatesListController>(
+                    init: TemplatesListController(),
                     builder: (controller) {
                       return Column(
                         children: [

@@ -6,8 +6,8 @@ import '../../controllers/reports/system_status_report_controller.dart';
 import '../../core/string_extensions.dart';
 
 // 1. التغيير هنا: الوراثة من GetView
-class SystemStatusReportView extends GetView<SystemStatusController> {
-  const SystemStatusReportView({super.key});
+class SystemStatusReportPage extends GetView<SystemStatusReportController> {
+  const SystemStatusReportPage({super.key});
 
   @override
   Widget build(BuildContext context) {

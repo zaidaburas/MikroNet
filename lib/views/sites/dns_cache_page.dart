@@ -9,8 +9,8 @@ import '../widgets/shared/layouts/sub_page_header.dart';
 import '../widgets/shared/layouts/app_mini_footer.dart';
 import '../widgets/shared/typography/section_title.dart';
 
-class DnsCacheView extends GetView<DnsCacheController> {
-  const DnsCacheView({super.key});
+class DnsCachePage extends GetView<DnsCacheController> {
+  const DnsCachePage({super.key});
 
   @override
   Widget build(BuildContext context) {

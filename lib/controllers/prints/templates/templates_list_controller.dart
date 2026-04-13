@@ -13,7 +13,7 @@ import '../../../views/prints/templates/templates_form.dart';
 import '../../../views/prints/templates/pdf_view.dart';
 import 'package:pdf/pdf.dart';
 
-class TemplatesController extends GetxController {
+class TemplatesListController extends GetxController {
   List<PrintTemplatesModel> allTemplates=[];
   late PrintTemplatesModel editedTemplate;
   int editId=0;

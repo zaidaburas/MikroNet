@@ -4,7 +4,7 @@ import '../dialog_helper.dart';
 import '/models/users_model.dart';
 import '/models/response.dart';
 
-class DevicesController extends GetxController {
+class SavedUsersController extends GetxController {
   RxString filter = "ALL".obs;
   
   RxList<SavedUserModel> allDevices = <SavedUserModel>[].obs;

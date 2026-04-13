@@ -6,7 +6,7 @@ import '../../models/selles_model.dart';
 import '../../models/response.dart'; 
 import '../../api/reports_api.dart';
 
-class SystemStatusController extends GetxController {
+class SystemStatusReportController extends GetxController {
   // حالة التحميل
   RxBool isLoading = false.obs;
   

@@ -4,7 +4,7 @@ import '../dialog_helper.dart';
 import '/models/users_model.dart';
 import '/models/response.dart';
 
-class ActiveSessionsController extends GetxController {
+class ActiveUsersController extends GetxController {
   RxList<ActiveUserModel> actives = <ActiveUserModel>[].obs;
   RxBool isLoading = true.obs;
 

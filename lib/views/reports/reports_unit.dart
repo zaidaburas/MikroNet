@@ -1,19 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart'; // استيراد مكتبة GetX للتنقل
-import 'package:mikronet/core/app_pages.dart';
 
 // استيراد الويدجتس المشتركة بناءً على هيكلة مشروعك
+import '../../controllers/reports/reports_unit_controller.dart';
 import '../widgets/shared/layouts/main_gate_header.dart';
 import '../widgets/shared/layouts/app_mini_footer.dart';
 import '../widgets/shared/cards/main_action_card.dart';
 import '../widgets/shared/typography/section_title.dart';
 
-// استيراد صفحات التقارير (يجب إنشاء هذه الملفات لاحقاً)
-import 'sales_report_page.dart';
-// import 'system_status_report_view.dart';
-
-class ReportsManagementView extends StatelessWidget {
-  const ReportsManagementView({super.key});
+class ReportsUnitPage extends GetView<ReportsUnitController> {
+  const ReportsUnitPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -44,9 +40,7 @@ class ReportsManagementView extends StatelessWidget {
                     subtitle: "إحصائيات الكروت المباعة وإيرادات الشبكة",
                     icon: Icons.point_of_sale_rounded,
                     color: const Color(0xFF10B981), // لون أخضر مناسب للمبيعات والأموال
-                    onTap: () {
-                       Get.to(() => const SalesReportView());
-                    }, // التنقل باستخدام GetX
+                    onTap: controller.gotToSalesReport,
                   ),
 
                   // مسافة بين البطاقات
@@ -58,7 +52,7 @@ class ReportsManagementView extends StatelessWidget {
                     subtitle: "مراقبة أداء المايكروتيك واستهلاك الموارد",
                     icon: Icons.monitor_heart_rounded,
                     color: const Color(0xFF8B5CF6), // لون بنفسجي مميز لحالة النظام
-                    onTap: () => Get.toNamed(AppRoutes.systemState), // التنقل باستخدام GetX
+                    onTap: controller.gotToSystemStatus, // التنقل باستخدام GetX
                   ),
                 ],
               ),

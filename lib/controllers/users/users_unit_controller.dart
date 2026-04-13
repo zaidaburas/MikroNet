@@ -1,17 +1,20 @@
 import 'package:get/get.dart';
 import '../../core/app_pages.dart'; // استيراد المسارات
 
-class UsersManagementController extends GetxController {
+class UsersUnitController extends GetxController {
 
   void goBack() {
     Get.back();
   }
 
   void goToActiveUsers() {
-    //Get.toNamed(AppRoutes.activeUsers);
+    Get.toNamed(AppRoutes.activeUsers);
   }
 
-  void goToDevices() {
-    //Get.toNamed(AppRoutes.devices);
+  void goToHostUsers() {
+    Get.toNamed(AppRoutes.hostUsers);
+  }
+  void goToSavedUsers() {
+    Get.toNamed(AppRoutes.savedUsers);
   }
 }

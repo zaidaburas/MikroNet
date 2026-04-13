@@ -6,8 +6,8 @@ import '../../../controllers/prints/templates/add_template_controller.dart';
 import '../../widgets/shared/layouts/gradient_button.dart';
 import 'template_shared_widgets.dart'; // الملف الذي يحتوي على الـ UI helpers
 
-class AddTemplateView extends GetView<AddTemplateController> {
-  const AddTemplateView({super.key});
+class AddTemplatePage extends GetView<AddTemplateController> {
+  const AddTemplatePage({super.key});
 
   @override
   Widget build(BuildContext context) {

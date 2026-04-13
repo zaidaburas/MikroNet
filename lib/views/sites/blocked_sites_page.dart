@@ -9,8 +9,8 @@ import '../widgets/shared/layouts/sub_page_header.dart';
 import '../widgets/shared/layouts/app_mini_footer.dart';
 import '../widgets/shared/typography/section_title.dart';
 
-class BlockedSitesView extends GetView<BlockedSitesController> {
-  const BlockedSitesView({super.key});
+class BlockedSitesPage extends GetView<BlockedSitesController> {
+  const BlockedSitesPage({super.key});
 
   @override
   Widget build(BuildContext context) {

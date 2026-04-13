@@ -7,8 +7,8 @@ import '../../../controllers/prints/templates/edit_template_controller.dart';
 import '../../widgets/shared/layouts/main_gate_header.dart';
 import 'template_shared_widgets.dart'; 
 
-class EditTemplateView extends GetView<EditTemplateController> {
-  const EditTemplateView({super.key});
+class EditTemplatePage extends GetView<EditTemplateController> {
+  const EditTemplatePage({super.key});
 
   @override
   Widget build(BuildContext context) {

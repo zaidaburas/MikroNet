@@ -9,14 +9,12 @@ import '../widgets/shared/layouts/app_mini_footer.dart';
 import '../widgets/shared/cards/main_action_card.dart';
 import '../widgets/shared/typography/section_title.dart';
 
-class MoreSettingsView extends GetView<MoreSettingsController> {
-  const MoreSettingsView({super.key});
+class MoreUnitPage extends GetView<MoreUnitController> {
+  const MoreUnitPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // حقن المتحكم (إذا لم تكن تستخدم Bindings في ملف الراوتس)
-    Get.put(MoreSettingsController());
-
+   
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mikronet/core/app_pages.dart';
 import '../../controllers/sites/sites_unit_controller.dart';
 
 // استيراد الـ Widgets الموحدة
@@ -9,13 +8,11 @@ import '../widgets/shared/layouts/app_mini_footer.dart';
 import '../widgets/shared/cards/main_action_card.dart';
 import '../widgets/shared/typography/section_title.dart';
 
-class DataManagementView extends GetView<SitesController> {
-  const DataManagementView({super.key});
+class SitesUnitPage extends GetView<SitesUnitController> {
+  const SitesUnitPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // ملاحظة: يُفضل استخدام Bindings في الراوتس بدلاً من Get.put هنا
-    Get.put(SitesController()); 
     
     return Directionality(
       textDirection: TextDirection.rtl,

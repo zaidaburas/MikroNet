@@ -3,7 +3,7 @@ import 'package:mikronet/api/router_api.dart';
 import 'package:mikronet/controllers/dialog_helper.dart';
 import 'package:mikronet/core/app_pages.dart';
 
-class MoreSettingsController extends GetxController {
+class MoreUnitController extends GetxController {
   
   // دالة الانتقال لصفحة النسخ الاحتياطي والاستعادة
   void goToBackupAndRestore() {

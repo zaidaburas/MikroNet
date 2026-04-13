@@ -9,14 +9,12 @@ import '../widgets/shared/layouts/sub_page_header.dart';
 import '../widgets/shared/layouts/app_mini_footer.dart';
 import '../widgets/shared/typography/section_title.dart';
 
-class DevicesView extends StatelessWidget {
-  const DevicesView({super.key});
+class SavedUsersPage extends GetView<SavedUsersController> {
+  const SavedUsersPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // ربط المتحكم (GetX) بالواجهة
-    final DevicesController controller = Get.put(DevicesController());
-
+    
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -28,7 +26,7 @@ class DevicesView extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 50, left: 10),
           child: FloatingButton(
             text: "اضافة يدويا",
-            onPressed: ()=> _showAddDeviceSheet(context, controller),
+            onPressed: ()=> _showAddDeviceSheet(context),
             iconBtn: Icons.add_circle_outline_rounded,
             )
         ),
@@ -43,15 +41,15 @@ class DevicesView extends StatelessWidget {
             ),
 
             // 2. الفلاتر بستايل الكبسولة الموحد
-            _buildFiltersSection(controller),
-            _searchField(controller),
+            _buildFiltersSection(),
+            _searchField(),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: SectionTitle(title: "قائمة الأجهزة"),
             ),
 
             // 3. القائمة الرئيسية
-            Expanded(child: _buildDevicesList(controller)),
+            Expanded(child: _buildDevicesList()),
 
             // 4. الفوتر الموحد v4.5
             const AppMiniFooter(
@@ -89,24 +87,24 @@ class DevicesView extends StatelessWidget {
   }
 
   /* ================= 2. FILTERS SECTION ================= */
-  Widget _buildFiltersSection(DevicesController controller) {
+  Widget _buildFiltersSection() {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
       physics: const BouncingScrollPhysics(),
       child: Row(
         children: [
-          _filterTab(controller, "ALL", "الكل"),
-          _filterTab(controller, "SAVED", "محفوظة"),
-          _filterTab(controller, "UNSAVED", "غير محفوظة"),
-          _filterTab(controller, "BLOCKED", "محظورة"),
-          _filterTab(controller, "FREE", "مجانية"),
+          _filterTab( "ALL", "الكل"),
+          _filterTab( "SAVED", "محفوظة"),
+          _filterTab( "UNSAVED", "غير محفوظة"),
+          _filterTab( "BLOCKED", "محظورة"),
+          _filterTab( "FREE", "مجانية"),
         ],
       ),
     );
   }
 
-  Widget _filterTab(DevicesController controller, String key, String title) {
+  Widget _filterTab(String key, String title) {
     return Obx(() {
       bool isSelected = controller.filter.value == key;
       return InkWell(
@@ -140,7 +138,7 @@ class DevicesView extends StatelessWidget {
   }
 
   /* ================= 3. DEVICES LIST ================= */
-  Widget _buildDevicesList(DevicesController controller) {
+  Widget _buildDevicesList() {
     return Obx(() {
       if (controller.isLoading.value) {
         return const Center(child: CircularProgressIndicator());
@@ -196,7 +194,7 @@ class DevicesView extends StatelessWidget {
                       const TextStyle(fontSize: 11, color: Colors.blueGrey)),
               trailing: const Icon(Icons.more_horiz_rounded,
                   color: Colors.blueGrey),
-              onTap: () => _showOptionsSheet(Get.context ?? _, controller, d),
+              onTap: () => _showOptionsSheet(Get.context ?? _, d),
             ),
           );
         },
@@ -211,7 +209,7 @@ class DevicesView extends StatelessWidget {
   }
 
   /* ================= 4. ADD DEVICE SHEET ================= */
-  void _showAddDeviceSheet(BuildContext context, DevicesController controller) {
+  void _showAddDeviceSheet(BuildContext context) {
     final nameCtrl = TextEditingController();
     final ipCtrl = TextEditingController();
     final macCtrl = TextEditingController();
@@ -315,7 +313,7 @@ class DevicesView extends StatelessWidget {
 
   /* ================= 5. OPTIONS SHEET ================= */
   /* ================= 5. OPTIONS SHEET (المحدثة بالمنطق الشرطي) ================= */
-  void _showOptionsSheet(BuildContext context, DevicesController controller, SavedUserModel d) {
+  void _showOptionsSheet(BuildContext context, SavedUserModel d) {
     final TextEditingController nameCtrl = TextEditingController(text: d.label);
     
     // تعريف الحالات بناءً على نوع الجهاز
@@ -450,7 +448,7 @@ class DevicesView extends StatelessWidget {
           size: 14, color: Colors.black12),
     );
   }
-  Widget _searchField(DevicesController controller) {
+  Widget _searchField() {
     return Container(
       height: 55,
       margin: const EdgeInsets.symmetric(horizontal: 18,vertical: 5),

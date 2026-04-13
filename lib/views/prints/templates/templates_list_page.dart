@@ -13,10 +13,8 @@ import '/models/print_model.dart';
 // import 'templates_form.dart';
 // import '../print/page_preview.dart';
 
-class TemplatesView extends StatelessWidget {
-
-  TemplatesView({super.key});
-  final TemplatesController controller=Get.put(TemplatesController());
+class TemplatesListPage extends GetView<TemplatesListController> {
+  const TemplatesListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +25,7 @@ class TemplatesView extends StatelessWidget {
         body: Column(
           children: [
             const MainGateHeader(title: "مكتبة القوالب المحفوظة", subtitle: "", icon: Icons.bookmarks_rounded), // نفس الهيدر المعتمد
-            GetBuilder<TemplatesController>(
+            GetBuilder<TemplatesListController>(
               init: controller,
               builder: (controller) {
                 return Expanded(

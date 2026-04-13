@@ -8,8 +8,8 @@ import '../widgets/shared/layouts/app_mini_footer.dart';
 import '../widgets/shared/typography/section_title.dart';
 
 // 1. التعديل هنا: الوراثة من GetView بدلاً من StatelessWidget
-class DnsSettingsView extends GetView<DnsController> {
-  const DnsSettingsView({super.key});
+class DnsSettingsPage extends GetView<DnsSettingsController> {
+  const DnsSettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {

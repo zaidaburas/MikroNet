@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mikronet/core/app_pages.dart';
-import 'package:mikronet/views/prints/batches/batches_list_page.dart';
+import 'package:mikronet/controllers/prints/prints_unit_controller.dart';
 
 // استيراد المكونات المشتركة
 import '/views/widgets/shared/layouts/main_gate_header.dart';
@@ -9,18 +8,10 @@ import '/views/widgets/shared/layouts/app_mini_footer.dart';
 import '/views/widgets/shared/cards/main_action_card.dart';
 import '/views/widgets/shared/typography/section_title.dart';
 
-// استيراد الصفحات الفرعية
-// import '../print/print_templates.dart';
-// import '../print/print_batches.dart';
-import 'templates/templates_list_page.dart';
+class PrintsUnitPage extends GetView<PrintsUnitController> {
+  const PrintsUnitPage({super.key});
 
-class PrintOperationsView extends StatelessWidget {
-  const PrintOperationsView({super.key});
-
-  // ميثود مساعدة للتنقل
-  void _go(BuildContext context, Widget page) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +41,7 @@ class PrintOperationsView extends StatelessWidget {
                     subtitle: "إنشاء • توليد • متابعة الدفعات",
                     icon: Icons.layers_rounded,
                     color: const Color(0xFF2563EB),
-                    onTap: () => Get.toNamed(AppRoutes.batches),
+                    onTap: controller.gotToBtches,
                   ),
 
                   MainActionCard(
@@ -58,7 +49,7 @@ class PrintOperationsView extends StatelessWidget {
                     subtitle: "تصميم • تعديل • حفظ القوالب",
                     icon: Icons.style_rounded, // أيقونة متناسقة مع التصميم
                     color: const Color(0xFF1E3A8A),
-                    onTap: () => _go(context, TemplatesView()),
+                    onTap: controller.gotToTemplates,
                   ),
 
                   const SizedBox(height: 25),

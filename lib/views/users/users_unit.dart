@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mikronet/core/app_pages.dart';
+import 'package:mikronet/controllers/users/users_unit_controller.dart';
 
 // استيراد الـ Widgets الموحدة
 import '../widgets/shared/layouts/main_gate_header.dart';
@@ -9,8 +9,8 @@ import '../widgets/shared/cards/main_action_card.dart';
 import '../widgets/shared/typography/section_title.dart';
 
 
-class UsersManagementView extends StatelessWidget {
-  const UsersManagementView({super.key});
+class UsersUnitPage extends GetView<UsersUnitController> {
+  const UsersUnitPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -39,14 +39,14 @@ class UsersManagementView extends StatelessWidget {
                     subtitle: "عرض كل الاجهزة المتصلة بالشبكة",
                     icon: Icons.devices_rounded,
                     color: const Color.fromARGB(255, 16, 95, 185),
-                    onTap: () => Get.toNamed(AppRoutes.hostUsers),
+                    onTap: controller.goToHostUsers,
                   ),
                   MainActionCard(
                     title: "الاجهزة المتصلة بكروت",
                     subtitle: "عرض الاجهزة المتصلة بكروت",
                     icon: Icons.online_prediction_rounded,
                     color: const Color(0xFF10B981),
-                    onTap: () => Get.toNamed(AppRoutes.activeUsers)
+                    onTap: controller.goToActiveUsers
                   ),
 
 
@@ -59,7 +59,7 @@ class UsersManagementView extends StatelessWidget {
                     subtitle: "التحكم في MAC Address وحظر الأجهزة",
                     icon: Icons.important_devices_rounded,
                     color: const Color(0xFF6366F1),
-                    onTap: () => Get.toNamed(AppRoutes.binding),
+                    onTap: controller.goToSavedUsers,
                   ),
                 ],
               ),

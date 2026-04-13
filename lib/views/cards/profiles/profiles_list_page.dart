@@ -5,8 +5,8 @@ import '/models/profiles_model.dart';
 import '/views/widgets/shared/layouts/sub_page_header.dart';
 import '../../../core/string_extensions.dart';
 
-class ProfilesPage extends GetView<ProfilesController> {
-  const ProfilesPage({super.key});
+class ProfilesListPage extends GetView<ProfilesListController> {
+  const ProfilesListPage({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -5,7 +5,7 @@ import '../dialog_helper.dart'; // تأكد من المسار
 import '/models/users_model.dart';
 import '/models/response.dart';
 
-class HostsController extends GetxController {
+class HostUsersController extends GetxController {
   RxList<HostUserModel> hosts = <HostUserModel>[].obs;
   RxBool isLoading = true.obs;
 

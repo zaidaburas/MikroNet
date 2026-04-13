@@ -99,7 +99,7 @@ class HomeController extends GetxController with GetSingleTickerProviderStateMix
   void generateSingleCard() => Get.toNamed(AppRoutes.addSingleCard);
   void manageActiveUsers() => Get.toNamed(AppRoutes.users); 
   void viewUptimeDetails() => Get.toNamed(AppRoutes.reports); 
-  void checkDiskSpace() => Get.toNamed(AppRoutes.systemState);
+  void checkDiskSpace() => Get.toNamed(AppRoutes.systemStatus);
 
   // ================= دوال التنقل للأقسام (Grid) =================
   void goToCards() => Get.toNamed(AppRoutes.cards);
