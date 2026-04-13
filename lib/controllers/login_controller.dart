@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '/core/routes/app_pages.dart';
+import '../core/app_pages.dart';
 import '/models/login_model.dart';
 import '/models/response.dart';
 import '/api/login_api.dart';

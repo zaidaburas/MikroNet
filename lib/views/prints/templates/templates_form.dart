@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 // import '/controllers/print/template_design_controller.dart';
-import '/controllers/print/templates_controller.dart';
+import '../../../controllers/prints/templates/templates_list_controller.dart';
 // import '../print/saved_templates_view.dart';
 
 // class PrintTemplatesDesignView extends StatefulWidget {

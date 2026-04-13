@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mikronet/views/widgets/shared/layouts/gradient_button.dart';
 import 'package:mikronet/views/widgets/shared/layouts/modern_input.dart';
-import '../../../controllers/print/templates/edit_template_controller.dart';
+import '../../../controllers/prints/templates/edit_template_controller.dart';
 
 import '../../widgets/shared/layouts/main_gate_header.dart';
 import 'template_shared_widgets.dart'; 

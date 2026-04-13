@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mikronet/api/users/active_users_api.dart';
 import 'package:mikronet/controllers/dialog_helper.dart';
-import '/core/routes/app_pages.dart';
-import '/core/extensions/string_extensions.dart'; 
+import '../core/app_pages.dart';
+import '../core/string_extensions.dart'; 
 import '/api/reports_api.dart';
 
 class HomeController extends GetxController with GetSingleTickerProviderStateMixin {

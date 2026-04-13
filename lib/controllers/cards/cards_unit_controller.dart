@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import 'package:mikronet/core/routes/app_pages.dart';
+import 'package:mikronet/core/app_pages.dart';
 
 class CardsUnitController extends GetxController {
   // دالة للتنقل إلى قائمة الكروت

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../controllers/print/templates/base_template_controller.dart';
+import '../../../controllers/prints/templates/base_template_controller.dart';
 import '../../widgets/shared/layouts/gradient_button.dart';
 
 

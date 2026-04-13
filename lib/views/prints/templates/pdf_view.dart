@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '/controllers/print/pdf_view_controller.dart';
+import '../../../controllers/prints/pdf_view_controller.dart';
 import '/models/print_model.dart';
 import 'package:printing/printing.dart';
 
