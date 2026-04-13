@@ -160,6 +160,7 @@ class PrintBatchesModel {
   String cardSuffix;
   List cards;
   String customer; // <-- الحقل الجديد
+  String routerSerial;
 
   PrintBatchesModel({
     required this.id,
@@ -172,6 +173,8 @@ class PrintBatchesModel {
     this.cardSuffix="",
     this.cards=const [],
     this.customer="", // <-- قيمة افتراضية للحقل الجديد
+    this.routerSerial = ""
+
   });
 
   static PrintBatchesModel fromDatabase0(Map data){
@@ -189,6 +192,7 @@ class PrintBatchesModel {
       cardPrefix: data["card_prefix"], 
       cardSuffix: data["card_suffix"], 
       customer: data["customer"] ?? "", // <-- قراءة الحقل
+      routerSerial: data["router_serial"] ?? "", // <-- قراءة الحقل
     );
   }
 
@@ -208,6 +212,7 @@ class PrintBatchesModel {
       cardSuffix: data["card_suffix"], 
       cards: data["cards"] ?? [],
       customer: data["customer"] ?? "", // <-- قراءة الحقل
+      routerSerial: data["router_serial"] ?? "",
     );
   }
 

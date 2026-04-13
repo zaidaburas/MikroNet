@@ -7,12 +7,15 @@ enum MsgType{
   info,
   msg
 }
-void showConfirmDialog({
+
+Future<bool> showConfirmDialog({
   required String message,
   required VoidCallback onConfirm,
-}) async{
+}) async {
   await Future.delayed(const Duration(milliseconds: 1));
-  Get.dialog(
+  
+  // انتظار نتيجة النافذة المنبثقة
+  final bool? result = await Get.dialog<bool>(
     Directionality(
       textDirection: TextDirection.rtl,
       child: AlertDialog(
@@ -45,7 +48,8 @@ void showConfirmDialog({
             children: [
               Expanded(
                 child: TextButton(
-                  onPressed: () => Get.back(),
+                  // إرجاع false عند الإلغاء
+                  onPressed: () => Get.back(result: false),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -70,10 +74,11 @@ void showConfirmDialog({
                     ],
                   ),
                   child: ElevatedButton(
-                    onPressed: () async{
+                    onPressed: () async {
                       await Future.delayed(const Duration(milliseconds: 1));
-                      onConfirm();
-                      Get.back();
+                      onConfirm(); // تنفيذ الدالة الممررة كما هي
+                      // إرجاع true عند الموافقة
+                      Get.back(result: true);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
@@ -91,8 +96,10 @@ void showConfirmDialog({
       ),
     ),
   );
-}
 
+  // إذا كانت النتيجة null (مثلاً المستخدم ضغط خارج النافذة لإغلاقها) نعتبرها false
+  return result ?? false;
+}
 Future<void> showMsgDialog({required String message, MsgType type = MsgType.msg}) async{
   await Future.delayed(const Duration(milliseconds: 1));
   // تحديد الخصائص ديناميكياً بناءً على نوع الرسالة

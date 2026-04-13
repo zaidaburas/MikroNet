@@ -5,7 +5,7 @@ import 'package:mikronet/models/print_model.dart';
 import '/controllers/print/list_controller.dart';
 import 'add_batch.dart';
 
-class BatchesView extends GetView<BatchesController> {
+class BatchesView extends GetView<BatchesListController> {
   BatchesView({super.key});
   final TextEditingController searchCtrl = TextEditingController();
   final RxString searchQuery = "".obs;
@@ -14,7 +14,7 @@ class BatchesView extends GetView<BatchesController> {
   @override
   Widget build(BuildContext context) {
     // التأكد من تهيئة الكنترولر (في حال لم يتم تهيئته في الـ Binding)
-    Get.put(BatchesController());
+    Get.put(BatchesListController());
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -36,7 +36,7 @@ class BatchesView extends GetView<BatchesController> {
             
             // استخدام GetBuilder للبيانات + Obx للفلترة والبحث
             Expanded(
-              child: GetBuilder<BatchesController>(
+              child: GetBuilder<BatchesListController>(
                 builder: (ctrl) {
                   if (ctrl.isLoading) { // افتراض وجود isLoading في الكنترولر الفعلي
                     return const Center(child: CircularProgressIndicator());
@@ -347,7 +347,7 @@ class BatchesView extends GetView<BatchesController> {
               onPressed: () => Get.back(),
               child: const Text("إلغاء", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
             ),
-            GetBuilder<BatchesController>(
+            GetBuilder<BatchesListController>(
               builder: (ctrl) {
                 if (ctrl.isDeleteLoading ?? false) {
                    return const CircularProgressIndicator();

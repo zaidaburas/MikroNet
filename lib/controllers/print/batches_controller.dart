@@ -7,7 +7,9 @@ import 'package:mikronet/models/response.dart';
 // import 'package:mikronet/models/response.dart';
 import 'package:mikronet/views/prints/batches/generated_cards.dart';
 import 'package:mikronet/views/prints/templates/pdf_view.dart';
-import '/views/helpers/dialogs.dart';
+import '../../api/router_api.dart';
+import '../dialog_helper.dart';
+// import '/views/helpers/dialogs.dart';
 import '/api/print_api.dart';
 import '/models/print_model.dart';
 
@@ -26,6 +28,7 @@ class BatchesController extends GetxController{
   List<GeneratedCardsModel> generatedCards = [];
   List<String> generatedUsernames=[];
   List<String> generatedPasswords=[];
+  String routerSerial = "";
 
   
 
@@ -37,7 +40,7 @@ class BatchesController extends GetxController{
       });
       Get.to(GeneratedCardsView(cards));
     } catch (e) {
-      showErrorDialog(content: e.toString());
+      showMsgDialog(message: e.toString(),type: MsgType.error);
     }
   }
 
@@ -57,17 +60,18 @@ class BatchesController extends GetxController{
         saveFile: false,
       ));
     } catch (e) {
-      showErrorDialog(content: e.toString());
+      showMsgDialog(message: e.toString(),type: MsgType.error);
     }
   }
 
   Future<void> getAllBatches2()async{
     try {
-      List result=await PrintBatchesApi.getAllBatches2();
+      List result=await PrintBatchesApi.getAllBatchesByRouter(routerSerial);
       // var cards=await PrintBatchesApi.get
       // var cards=List.generate(r.length, (i){
       //   return GeneratedCardsModel.fromDatabase(r[i]);
       // });
+      
       List<PrintBatchesModel> temp=[];
       // print(result[0].toString());
       if (result.isNotEmpty) {
@@ -78,7 +82,7 @@ class BatchesController extends GetxController{
       }
       update();
     } catch (e) {
-      showErrorDialog(title: "error in get batches2",content: e.toString());
+      showMsgDialog(message: e.toString(),type: MsgType.error);
     }
   }
 
@@ -94,11 +98,17 @@ class BatchesController extends GetxController{
       }
       update();
     } catch (e) {
-      showErrorDialog(content: e.toString());
+      showMsgDialog(message: e.toString(),type: MsgType.error);
     }
   }
-
-
+  Future<void> getRouterSerial() async {
+    var res =await RouterApi.getRouterSerial();
+    if(!res.status){
+      await showMsgDialog(message: res.message,type: MsgType.error);
+      Get.back();
+    }
+    routerSerial = res.data.toString();
+  }
   Future<void> getallProfiles()async{
     try {
       AppResponse result=await ProfilesApi.getProfiles();
@@ -111,7 +121,7 @@ class BatchesController extends GetxController{
       }
       update();
     } catch (e) {
-      showErrorDialog(content: "Get Profiles Error : ${e.toString()}");
+      showMsgDialog(message: e.toString(),type: MsgType.error);
     }
   }
 
@@ -161,6 +171,7 @@ class BatchesController extends GetxController{
     getAllBatches2();
     getAllTemplates();
     getallProfiles();
+    getRouterSerial();
   }
 
   @override
@@ -225,7 +236,7 @@ class BatchesController extends GetxController{
         _showSuccessDialog();
       }
     } catch (e) {
-      showErrorDialog(content: e.toString());
+      showMsgDialog(message: e.toString(),type: MsgType.error);
     }
   }
 
@@ -233,7 +244,7 @@ class BatchesController extends GetxController{
     try {
       validation();
     } catch (e) {
-      showErrorDialog(content: e.toString());
+      showMsgDialog(message: e.toString(),type: MsgType.error);
       return;
     }
 
@@ -242,7 +253,10 @@ class BatchesController extends GetxController{
     );
     if(!template.withPassword && selectedPasswordType=="same"){
       bool confirm=await showConfirmDialog(
-        content: "القالب بدون كلمة مرور ونمط توليد كلمة المرور مشابه لاسم المستخدم هل انت متاكد ",
+        message: "القالب بدون كلمة مرور ونمط توليد كلمة المرور مشابه لاسم المستخدم هل انت متاكد ",
+        onConfirm: () {
+          
+        }
       );
       if(!confirm){return;}
     }
@@ -253,7 +267,7 @@ class BatchesController extends GetxController{
     try {
       validation();
     } catch (e) {
-      showErrorDialog(content: e.toString());
+      showMsgDialog(message: e.toString(),type: MsgType.error);
       return;
     }
 
@@ -263,7 +277,10 @@ class BatchesController extends GetxController{
     // var profile=allProfiles.firstWhere((p)=>p.id==selectedProfile.value);
     if(!template.withPassword && selectedPasswordType=="same"){
       bool confirm=await showConfirmDialog(
-        content: "القالب بدون كلمة مرور ونمط توليد كلمة المرور مشابه لاسم المستخدم هل انت متاكد ",
+        message: "القالب بدون كلمة مرور ونمط توليد كلمة المرور مشابه لاسم المستخدم هل انت متاكد ",
+        onConfirm :() {
+          
+        },
       );
       if(!confirm){return;}
     }

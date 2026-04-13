@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:mikronet/core/routes/app_pages.dart';
 import 'package:mikronet/views/prints/batches/print_batches.dart';
 
 // استيراد المكونات المشتركة
@@ -48,7 +50,7 @@ class PrintOperationsView extends StatelessWidget {
                     subtitle: "إنشاء • توليد • متابعة الدفعات",
                     icon: Icons.layers_rounded,
                     color: const Color(0xFF2563EB),
-                    onTap: () => _go(context, BatchesView()),
+                    onTap: () => Get.toNamed(AppRoutes.batches),
                   ),
 
                   MainActionCard(

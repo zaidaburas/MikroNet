@@ -48,7 +48,8 @@ class SqlDb {
       cards_profile TEXT,
       card_prefix TEXT,
       card_suffix TEXT,
-      customer TEXT
+      customer TEXT,
+      router_serial TEXT
     );
   """;
 

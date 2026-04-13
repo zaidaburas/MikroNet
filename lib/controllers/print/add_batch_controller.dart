@@ -3,12 +3,14 @@ import 'package:get/get.dart';
 import 'package:mikronet/api/print_api.dart';
 import 'package:mikronet/api/profiles_api.dart';
 import 'package:mikronet/api/cards_api.dart';
+import 'package:mikronet/api/router_api.dart';
+import 'package:mikronet/controllers/dialog_helper.dart';
 import 'package:mikronet/controllers/helpers/functions.dart';
 import 'package:mikronet/models/print_model.dart';
 import 'package:mikronet/models/profiles_model.dart';
 import 'package:mikronet/models/cards_model.dart'; // تم إضافة هذا الاستيراد لجلب CustomerModel
 import 'package:mikronet/models/response.dart';
-import 'package:mikronet/views/helpers/dialogs.dart';
+// import 'package:mikronet/views/helpers/dialogs.dart';
 // import 'package:mikronet/views/prints/batches/generated_cards.dart';
 import 'package:mikronet/views/prints/templates/pdf_view.dart';
 
@@ -25,6 +27,7 @@ class BatchesFormController extends GetxController {
   List<String> generatedUsernames = [];
   List<String> generatedPasswords = [];
   List<GeneratedCardsModel> generatedCards = [];
+  String routerSerial = "";
 
   // Form Variables
   TextEditingController batchName = TextEditingController();
@@ -55,9 +58,10 @@ class BatchesFormController extends GetxController {
       }
       update();
     } catch (e) {
-      showErrorDialog(content: e.toString());
+      showMsgDialog(message: e.toString(),type: MsgType.error);
     }
   }
+
 
   Future<void> getallProfiles() async {
     try {
@@ -65,7 +69,7 @@ class BatchesFormController extends GetxController {
       allProfiles = result.data ?? [];
       update();
     } catch (e) {
-      showErrorDialog(content: "Get Profiles Error : ${e.toString()}");
+      showMsgDialog(message: "Get Profiles Error : ${e.toString()}",type: MsgType.error);
     }
   }
 
@@ -77,8 +81,16 @@ class BatchesFormController extends GetxController {
       selectedCustomer.value = allCustomers.isNotEmpty ? allCustomers[0].name : "admin";
       update();
     } catch (e) {
-      showErrorDialog(content: "Get Customers Error : ${e.toString()}");
+      showMsgDialog(message: "Get Customers Error : ${e.toString()}",type: MsgType.error);
     }
+  }
+  Future<void> getRouterSerial() async {
+    var res =await RouterApi.getRouterSerial();
+    if(!res.status){
+      await showMsgDialog(message: res.message,type: MsgType.error);
+      Get.back();
+    }
+    routerSerial = res.data.toString();
   }
 
   void prepareCardsData(ProfilesModel profile, {List<String> existingUsers = const []}) {
@@ -130,6 +142,7 @@ class BatchesFormController extends GetxController {
       'card_prefix': prefix.text.trim(),
       'card_suffix': suffix.text.trim(),
       'customer': selectedCustomer.value, // إضافة العميل للحفظ في قاعدة البيانات
+      'router_serial': routerSerial,
     };
     
     int batchId = await PrintBatchesApi.addOneBatch(data);
@@ -178,7 +191,7 @@ class BatchesFormController extends GetxController {
     try {
       validation();
     } catch (e) {
-      showErrorDialog(content: e.toString());
+      showMsgDialog(message: e.toString(),type: MsgType.error);
       return;
     }
 
@@ -187,7 +200,8 @@ class BatchesFormController extends GetxController {
 
     if (!template.withPassword && selectedPasswordType == "same") {
       bool confirm = await showConfirmDialog(
-        content: "القالب بدون كلمة مرور ونمط توليد كلمة المرور مشابه لاسم المستخدم هل انت متاكد ",
+        message: "القالب بدون كلمة مرور ونمط توليد كلمة المرور مشابه لاسم المستخدم هل انت متاكد ",
+        onConfirm: (){}
       );
       if (!confirm) return;
     }
@@ -240,7 +254,7 @@ class BatchesFormController extends GetxController {
 
     } catch (e) {
       Get.back(); 
-      showErrorDialog(content: e.toString());
+      showMsgDialog(message: e.toString(),type: MsgType.error);
     }
   }
 
@@ -248,14 +262,15 @@ class BatchesFormController extends GetxController {
     try {
       validation();
     } catch (e) {
-      showErrorDialog(content: e.toString());
+      showMsgDialog(message: e.toString(),type: MsgType.error);
       return;
     }
 
     PrintTemplatesModel template = allTemplates.firstWhere((t) => t.id == selectedTemplate.value);
     if (!template.withPassword && selectedPasswordType == "same") {
       bool confirm = await showConfirmDialog(
-        content: "القالب بدون كلمة مرور ونمط توليد كلمة المرور مشابه لاسم المستخدم هل انت متاكد ",
+        message: "القالب بدون كلمة مرور ونمط توليد كلمة المرور مشابه لاسم المستخدم هل انت متاكد ",
+        onConfirm: (){}
       );
       if (!confirm) return;
     }
@@ -323,6 +338,7 @@ class BatchesFormController extends GetxController {
     super.onInit();
   }
   void _getDataFromMikrotik()async{
+    await getRouterSerial();
     await getAllCustomers(); // استدعاء دالة جلب العملاء
     await getAllTemplates();
     await getallProfiles();

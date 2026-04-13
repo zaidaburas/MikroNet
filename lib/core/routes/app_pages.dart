@@ -3,6 +3,7 @@ import 'package:mikronet/controllers/cards/profiles/add_profile_controller.dart'
 import 'package:mikronet/controllers/cards/profiles/edit_profile_controller.dart';
 import 'package:mikronet/controllers/more/backup_restore_controller.dart';
 import 'package:mikronet/controllers/more/more_settings_controller.dart';
+import 'package:mikronet/controllers/print/batches_controller.dart';
 import 'package:mikronet/controllers/print/templates/add_template_controller.dart';
 import 'package:mikronet/controllers/print/templates/edit_template_controller.dart';
 import 'package:mikronet/controllers/reports/system_status_controller.dart';
@@ -11,6 +12,7 @@ import 'package:mikronet/views/cards/profiles/add_profile_page.dart';
 import 'package:mikronet/views/cards/profiles/edit_profile_page.dart';
 import 'package:mikronet/views/more/backup_restore_page.dart';
 import 'package:mikronet/views/more/more_settings_view.dart';
+import 'package:mikronet/views/prints/batches/print_batches.dart';
 import 'package:mikronet/views/prints/templates/add_template_page.dart';
 import 'package:mikronet/views/prints/templates/edit_template_page.dart';
 // import 'package:mikronet/views/prints/batches/add_batch.dart';
@@ -20,6 +22,7 @@ import 'package:mikronet/views/sites/dns_settings_page.dart';
 
 // ================= استيراد الواجهات (Views) =================
 //import '../../views/users/devices_manager.dart';
+import '../../controllers/print/list_controller.dart';
 import '/views/login_page.dart';
 import '/views/home_page.dart';
 import '/controllers/login_controller.dart';
@@ -221,6 +224,11 @@ class AppPages {
       name: AppRoutes.print, 
       page: () => const PrintOperationsView(),
       //binding: BindingsBuilder(() => Get.lazyPut(() => ReportsController())),
+    ),
+    GetPage(
+      name: AppRoutes.batches, 
+      page: () => BatchesView(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => BatchesListController())),
     ),
     GetPage(
       name: AppRoutes.addTemplate, 

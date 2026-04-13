@@ -58,6 +58,10 @@ class PrintBatchesApi {
   }).toList();
   return result;
  }
+ static Future<List> getAllBatchesByRouter(String routerSerial)async{
+  return await DBApi.select("batches","router_serial='$routerSerial'");
+  
+ }
 
  static Future<Map> getBatchData(int id)async{
   List result=await DBApi.select("batches","id=$id");

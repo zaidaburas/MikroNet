@@ -2,6 +2,8 @@
 import 'package:get/get.dart';
 import 'package:mikronet/views/prints/batches/generated_cards.dart';
 import 'package:mikronet/views/prints/templates/pdf_view.dart';
+import '../../api/router_api.dart';
+import '../dialog_helper.dart';
 import '/views/helpers/dialogs.dart';
 import '/api/print_api.dart';
 import '/models/print_model.dart';
@@ -12,16 +14,24 @@ import '/models/print_model.dart';
 
 
 
-class BatchesController extends GetxController{
+class BatchesListController extends GetxController{
 
   
   List<PrintBatchesModel> allBatches=[];
   bool isLoading=false;
   bool isDeleteLoading=false;
+  var routerSerial = "";
   // TextEditingController batchName=TextEditingController();
   
   // List<GeneratedCardsModel> generatedCards = [];
-  
+  Future<void> getRouterSerial() async {
+    var res =await RouterApi.getRouterSerial();
+    if(!res.status){
+      await showMsgDialog(message: res.message,type: MsgType.error);
+      Get.back();
+    }
+    routerSerial = res.data.toString();
+  }
 
   Future<void> deleteBatch(PrintBatchesModel batch,int deleteOption)async{
     isDeleteLoading=true;
@@ -127,7 +137,8 @@ class BatchesController extends GetxController{
 
   Future<void> getAllBatches2()async{
     try {
-      List result=await PrintBatchesApi.getAllBatches2();
+      var serial =await RouterApi.getRouterSerial();
+      List result=await PrintBatchesApi.getAllBatchesByRouter(serial.data.toString());
       // var cards=await PrintBatchesApi.get
       // var cards=List.generate(r.length, (i){
       //   return GeneratedCardsModel.fromDatabase(r[i]);
