@@ -118,7 +118,26 @@ class CardInfoPage extends GetView<CardInfoController> {
                 child: _statusBtn(
                   "تجديد الكرت", 
                   Colors.green, 
-                  () => controller.changeStatus("نشطة")
+                  () {
+                    Get.dialog(
+                      AlertDialog(
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _buildSectionLabel('نوع الباقة'),
+                            Obx(() =>( _buildPackageDropdown())),
+                            const SizedBox(height: 10,),
+                            _statusBtn(
+                              "تجديد الكرت", 
+                              Colors.green, 
+                              ()async{await controller.updateProfile();}
+                            )
+                          ],
+                        ),
+                      )
+                    );
+                    // controller.changeStatus("نشطة")
+                  },
                 )
               ),
               const SizedBox(width: 12),
@@ -137,6 +156,35 @@ class CardInfoPage extends GetView<CardInfoController> {
   }
 
   /* ================= HELPERS & WIDGETS ================= */
+  void showUpdateCardDialog(){}
+  
+  Widget _buildPackageDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: controller.selectedProfile.value?.name,
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF1E3A8A)),
+          hint: const Text("اختر الباقة"),
+          items: controller.profiles.map((p) => DropdownMenuItem(
+            value: p.name,
+            child: Text(p.name, 
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+          )).toList(),
+          onChanged: (v) {
+            controller.selectedProfile.value = controller.profiles.firstWhere((p) => p.name == v);
+          },
+        ),
+      ),
+    );
+  }
+  
   Widget _buildSectionLabel(String label) => Padding(
     padding: const EdgeInsets.only(bottom: 12, right: 5),
     child: Text(
